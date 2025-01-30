@@ -13,8 +13,8 @@ pub struct SimCtrlGUI {
     receiver: Receiver<GUIEvents>,
 
     initialized: bool,
-    drones: Vec<DroneGUI>,
-    edges: HashMap<NodeId, NodeId>
+    nodes: HashMap<NodeId, DroneGUI>,
+    edges: HashMap<NodeId, Vec<NodeId>>
 }
 
 struct DroneGUI {
@@ -33,7 +33,7 @@ impl SimCtrlGUI {
             sender,
             receiver,
             initialized: false,
-            drones: Vec::new(),
+            nodes: HashMap::new(),
             edges: HashMap::new()
         }
     }
@@ -52,13 +52,14 @@ impl SimCtrlGUI {
                 color: Color32::BLUE,
             };
 
-            for drone in new_drone.neighbor.iter() {
-                if !self.edges.contains_key(drone) {
-                    self.edges.insert(new_drone.id.clone(), *drone);
+            for drone in new_drone.neighbor.clone() {
+                if !self.edges.contains_key(&drone) {
+                    let vec = self.edges.get_mut(&new_drone.id).unwrap();
+                    vec.push(drone);
                 }
             }
 
-            self.drones.push(new_drone);
+            self.nodes.insert(new_drone.id, new_drone);
 
             i += 1;
         }
@@ -116,25 +117,83 @@ impl eframe::App for SimCtrlGUI {
             }
 
             egui::CentralPanel::default().show(ctx, |ui| {
-                ui.heading("Drone Simulation GUI");
-
-                if ui.button("Spawn Drone").clicked() {
-                    //self.command_send.send(DroneCommand::Spawn(1)).unwrap();
+                ui.heading("Simulation Controller");
+    
+                // Allocating space for drawing and preparing the painter for rendering
+                let (_response, painter) =
+                    ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
+    
+                // Drawing edges (connections) between drones
+                for (start_id, neighbor) in self.edges {
+                    let start = self.nodes.get(&start_id).unwrap();
+                    for end_id in neighbor {
+                        let end = self.nodes.get(&end_id).unwrap();
+                        painter.line_segment(
+                            [egui::pos2(start.x, start.y), egui::pos2(end.x, end.y)],
+                            egui::Stroke::new(2.0, Color32::LIGHT_GRAY),
+                        );
+                    }
                 }
-                if ui.button("Crash Drone").clicked() {
-                    //self.command_send.send(DroneCommand::Crash(1)).unwrap();
+    
+                // Drawing the nodes (drones) and handling user interaction for selection
+                for pos in self.nodes.iter_mut() {
+                    let screen_pos = egui::pos2(pos.x, pos.y);
+                    let radius = 10.0;
+    
+                    // Allocating space for each drone's graphical representation
+                    let response = ui.allocate_rect(
+                        egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.0)),
+                        egui::Sense::click(),
+                    );
+    
+                    // Detecting if the drone is clicked and updating its selected status
+                    if response.clicked() {
+                        pos.selected = true;
+                    }
+    
+                    // Drawing the drone as a filled circle
+                    painter.circle_filled(screen_pos, radius, pos.color);
                 }
-
-                ui.separator();
-                ui.label("Simulation Events:");
-                /*match self.event_recv.try_recv() {
-                    Ok(event) => ui.label(format!("Event: {:?}", event)),
-                    Err(TryRecvError::Empty) => ui.label("No new events."),
-                    Err(TryRecvError::Disconnected) => ui.label("Error: Event channel disconnected."),
-                }*/
+    
+                // Displaying a pop-up with detailed information when a drone is selected
+                for (id, instance) in self.nodes.iter_mut() {
+                    if instance.selected {
+                        egui::Window::new(format!("Node {}", instance.id))
+                            .fixed_size([100.0, 100.0]) // Window size
+                            .resizable(false) // disable resizable
+                            .collapsible(true) // activate collapsable
+                            .show(ctx, |ui| {
+                                // Displaying information about the selected drone.
+                                ui.label(format!("Id: {}", instance.id));
+                                ui.label(format!(
+                                    "Neighbors: {:?}",
+                                    instance.neighbor
+                                ));
+                                ui.label(format!("PDR: {}", instance.pdr));
+                                ui.add_space(10.0);
+    
+                                // Buttons to change the color of the selected drone
+                                ui.horizontal_centered(|ui| {
+                                    if ui.button("Red").clicked() {
+                                        instance.color = egui::Color32::RED;
+                                    }
+                                    if ui.button("Green").clicked() {
+                                        instance.color = egui::Color32::GREEN;
+                                    }
+                                    if ui.button("Blue").clicked() {
+                                        instance.color = egui::Color32::BLUE;
+                                    }
+                                });
+                                ui.add_space(10.0);
+    
+                                // Button to close the window
+                                if ui.button("Close").clicked() {
+                                    instance.selected = false;
+                                }
+                            });
+                    }
+                }
             });
-
-            ctx.request_repaint(); // Refresh GUI
         }
     }
 }
