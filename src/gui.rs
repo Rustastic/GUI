@@ -62,6 +62,8 @@ impl SimCtrlGUI {
 
             i += 1;
         }
+
+        self.initialized = true;
     }
 
     fn handle_commands(&mut self, drone: NodeId, command: GUICommands) {
