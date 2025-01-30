@@ -5,7 +5,7 @@ use simulation_controller::SimulationController;
 
 use crate::GUIActions;
 
-struct SimCtrlGUI {
+pub struct SimCtrlGUI {
     sim_ctrl: SimulationController,
     receiver: Receiver<GUIActions>
 }
