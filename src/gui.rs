@@ -1,21 +1,18 @@
 use crossbeam_channel::{Receiver, Sender, TryRecvError};
 
 use eframe::egui;
-use simulation_controller::SimulationController;
 use wg_2024::network::NodeId;
 
 use crate::{GUICommands, GUIEvents};
 
 pub struct SimCtrlGUI {
-    sim_ctrl: SimulationController,
     sender: Sender<GUICommands>,
     receiver: Receiver<GUIEvents>
 }
 
 impl SimCtrlGUI {
-    pub fn new(sim_ctrl: SimulationController, sender: Sender<GUICommands>, receiver: Receiver<GUIEvents>) -> Self {
+    pub fn new(sender: Sender<GUICommands>, receiver: Receiver<GUIEvents>) -> Self {
         Self {
-            sim_ctrl,
             sender,
             receiver
         }
