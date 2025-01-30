@@ -66,18 +66,18 @@ impl SimCtrlGUI {
 
     fn handle_commands(&mut self, drone: NodeId, command: GUICommands) {
         match command {
-            GUICommands::Spawn => todo!(),
-            GUICommands::Crash(node_id) => todo!(),
-            GUICommands::RemoveSender(drone, neighbor) => todo!(),
-            GUICommands::AddSender(drone, neighbor) => todo!(),
-            GUICommands::SetPDR(drone, pdr) => todo!(),
+            GUICommands::Spawn => (),
+            GUICommands::Crash(node_id) => (),
+            GUICommands::RemoveSender(drone, neighbor) => (),
+            GUICommands::AddSender(drone, neighbor) => (),
+            GUICommands::SetPDR(drone, pdr) => (),
         }
     }
 
     fn handle_events(&mut self, event: GUIEvents) {
         match event {
-            GUIEvents::PacketSent(src, dest, packet) => todo!(),
-            GUIEvents::PacketDropped(src, packet) => todo!(),
+            GUIEvents::PacketSent(src, dest, packet) => (),
+            GUIEvents::PacketDropped(src, packet) => (),
             GUIEvents::Topology(topology) => self.topology(topology)
         }
     }
@@ -88,7 +88,7 @@ impl eframe::App for SimCtrlGUI {
         if !self.initialized {
             match self.receiver.try_recv() {
                 Ok(event) => match event.clone() {
-                    GUIEvents::Topology(drones) => self.handle_events(event),
+                    GUIEvents::Topology(_) => self.handle_events(event),
                     _ => panic!("CAZZZOOOOOOOOOOOOOOOOOOOOOOOOOOOO"),
                 },
                 Err(e)=> match e {
