@@ -1,5 +1,5 @@
-mod gui;
 mod commands;
+mod gui;
 
-pub use gui::*;
 pub use commands::*;
+pub use gui::*;

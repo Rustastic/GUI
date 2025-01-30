@@ -1,9 +1,10 @@
-use wg_2024::{drone::Drone, network::NodeId, packet::Packet};
+use wg_2024::{config::Drone as ConfigDrone, drone::Drone, network::NodeId, packet::Packet};
 
 // From SimCtrl to GUI
 pub enum GUIEvents {
     PacketSent(NodeId, NodeId, Packet),
     PacketDropped(NodeId, Packet),
+    Topology(Vec<ConfigDrone>),
 }
 
 // From GUI to SimCtrl

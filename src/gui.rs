@@ -1,6 +1,8 @@
 use crossbeam_channel::{Receiver, Sender, TryRecvError};
 
+use colored::Colorize;
 use eframe::egui;
+
 use wg_2024::network::NodeId;
 
 use crate::{GUICommands, GUIEvents};
@@ -26,18 +28,32 @@ impl SimCtrlGUI {
             GUICommands::AddSender(drone, neighbor) => todo!(),
             GUICommands::SetPDR(drone, pdr) => todo!(),
         }
-    }
-
-    fn handle_events(&mut self, drone: NodeId, event: GUIEvents) {
-        match event {
-            GUIEvents::PacketSent(src, dest) => todo!(),
-            GUIEvents::PacketDropped(src, packet) => todo!(),
-        }
     }*/
+
+    fn handle_events(&mut self, event: GUIEvents) {
+        match event {
+            GUIEvents::PacketSent(src, dest, packet) => todo!(),
+            GUIEvents::PacketDropped(src, packet) => todo!(),
+            GUIEvents::Topology(topology) => todo!()
+        }
+    }
 }
 
 impl eframe::App for SimCtrlGUI {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+
+        match self.receiver.try_recv() {
+            Ok(event) => self.handle_events(event),
+            Err(e)=> match e {
+                crossbeam_channel::TryRecvError::Empty => (),
+                crossbeam_channel::TryRecvError::Disconnected => eprintln!(
+                    "[ {} ]: GUICommands receiver channel disconnected: {}",
+                    "Simulation Controller".red(),
+                    e
+                ),
+            }
+        }
+
         egui::CentralPanel::default().show(ctx, |ui| {
             ui.heading("Drone Simulation GUI");
 
