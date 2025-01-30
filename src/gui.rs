@@ -54,7 +54,7 @@ impl SimCtrlGUI {
 
             for drone in new_drone.neighbor.clone() {
                 if !self.edges.contains_key(&drone) {
-                    let vec = self.edges.get_mut(&new_drone.id).unwrap();
+                    let vec = self.edges.entry(new_drone.id).or_insert_with(Vec::new);
                     vec.push(drone);
                 }
             }
