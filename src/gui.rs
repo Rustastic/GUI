@@ -124,7 +124,7 @@ impl eframe::App for SimCtrlGUI {
                     ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
     
                 // Drawing edges (connections) between drones
-                for (start_id, neighbor) in self.edges {
+                for (start_id, neighbor) in self.edges.clone() {
                     let start = self.nodes.get(&start_id).unwrap();
                     for end_id in neighbor {
                         let end = self.nodes.get(&end_id).unwrap();
@@ -136,7 +136,7 @@ impl eframe::App for SimCtrlGUI {
                 }
     
                 // Drawing the nodes (drones) and handling user interaction for selection
-                for pos in self.nodes.iter_mut() {
+                for (_, pos) in self.nodes.iter_mut() {
                     let screen_pos = egui::pos2(pos.x, pos.y);
                     let radius = 10.0;
     
@@ -156,7 +156,7 @@ impl eframe::App for SimCtrlGUI {
                 }
     
                 // Displaying a pop-up with detailed information when a drone is selected
-                for (id, instance) in self.nodes.iter_mut() {
+                for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
                         egui::Window::new(format!("Node {}", instance.id))
                             .fixed_size([100.0, 100.0]) // Window size
