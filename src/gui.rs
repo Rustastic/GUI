@@ -13,6 +13,7 @@ pub struct SimCtrlGUI {
     receiver: Receiver<GUIEvents>,
 
     initialized: bool,
+    crashed: bool,
     nodes: HashMap<NodeId, DroneGUI>,
     edges: HashMap<NodeId, Vec<NodeId>>
 }
@@ -23,8 +24,11 @@ struct DroneGUI {
     pdr: f32,
     x: f32,
     y: f32,
+    color: egui::Color32,
+
     selected: bool,
-    color: egui::Color32
+    remove_sender: bool,
+    remove_sender_value: Option<String>
 }
 
 impl SimCtrlGUI {
@@ -33,6 +37,7 @@ impl SimCtrlGUI {
             sender,
             receiver,
             initialized: false,
+            crashed: false,
             nodes: HashMap::new(),
             edges: HashMap::new()
         }
@@ -54,8 +59,11 @@ impl SimCtrlGUI {
                 pdr: drone.pdr,
                 x,
                 y,
-                selected: false,
                 color: Color32::BLUE,
+
+                selected: false,
+                remove_sender: false,
+                remove_sender_value: None,
             };
 
             for drone in new_drone.neighbor.clone() {
@@ -181,56 +189,78 @@ impl eframe::App for SimCtrlGUI {
                                 ui.add_space(10.0);
     
                                 // Buttons to change the color of the selected drone
-                                ui.horizontal_centered(|ui| {
-                                    if ui.button("Crash").clicked() {
-                                        match self.sender.send(GUICommands::Crash(instance.id)) {
-                                            Ok(()) => {
-                                                // change color to red
-                                                instance.color = egui::Color32::RED;
+                                if !self.crashed {
+                                    ui.horizontal_centered(|ui| {
+                                        if ui.button("Crash").clicked() {
+                                            match self.sender.send(GUICommands::Crash(instance.id)) {
+                                                Ok(()) => {
+                                                    // change color to red
+                                                    instance.color = egui::Color32::RED;
 
-                                                // remove from edge hashmap
-                                                self.edges.remove(&instance.id);
+                                                    // remove from edge hashmap
+                                                    self.edges.remove(&instance.id);
 
-                                                // remove edges starting from neighbor
-                                                for neighbor_id in instance.neighbor.iter() {
-                                                    // get edges starting from neighbor
-                                                    if let Some(neighbor_drone) = self.edges.get_mut(neighbor_id) {
-                                                        for (index, drone) in neighbor_drone.clone().iter_mut().enumerate() {
-                                                            // if they end in the crashing drone
-                                                            if *drone == instance.id {
-                                                                neighbor_drone.remove(index);
+                                                    // remove edges starting from neighbor
+                                                    for neighbor_id in instance.neighbor.iter() {
+                                                        // get edges starting from neighbor
+                                                        if let Some(neighbor_drone) = self.edges.get_mut(neighbor_id) {
+                                                            for (index, drone) in neighbor_drone.clone().iter_mut().enumerate() {
+                                                                // if they end in the crashing drone
+                                                                if *drone == instance.id {
+                                                                    neighbor_drone.remove(index);
+                                                                }
                                                             }
                                                         }
                                                     }
-                                                }
 
-
-                                                // remove from drone hashmap
-                                                //self.nodes.remove(&instance.id);
-                                            },
-                                            Err(_) => todo!(),
+                                                    self.crashed = true;
+                                                },
+                                                Err(e) => panic!("Voglio la mamma: {}", e),
+                                            }
                                         }
-                                    }
-                                    if ui.button("RemoveSender").clicked() {
+                                        if ui.button("RemoveSender").clicked() {
+                                            instance.remove_sender = !instance.remove_sender;
+                                            /*match self.sender.send(GUICommands::RemoveSender(instance, ())) {
+                                                
+                                            }*/
 
-                                    }
-                                    if ui.button("AddSender").clicked() {
+                                            if instance.remove_sender {
+                                                egui::ComboBox::from_label("Select an option")
+                                                    .selected_text(instance.remove_sender_value.clone().unwrap_or("None".to_string()))
+                                                    .show_ui(ui, |ui| {
+                                                        for option in &["Option 1", "Option 2", "Option 3"] {
+                                                            if ui.selectable_label(
+                                                                instance.remove_sender_value.as_deref() == Some(*option),
+                                                                *option,
+                                                            )
+                                                            .clicked()
+                                                            {
+                                                                instance.remove_sender_value = Some(option.to_string());
+                                                                instance.remove_sender = false; // Hide dropdown after selection
+                                                            }
+                                                        }
+                                                    });
+                                            }
+                                        }
+                                        if ui.button("AddSender").clicked() {
 
-                                    }
-                                    if ui.button("Set PacketDropRate").clicked() {
+                                        }
+                                        if ui.button("Set PacketDropRate").clicked() {
 
-                                    }
-                                    
-                                    /*if ui.button("Red").clicked() {
-                                        instance.color = egui::Color32::RED;
-                                    }
-                                    if ui.button("Green").clicked() {
-                                        instance.color = egui::Color32::GREEN;
-                                    }
-                                    if ui.button("Blue").clicked() {
-                                        instance.color = egui::Color32::BLUE;
-                                    }*/
-                                });
+                                        }
+                                        
+                                        /*if ui.button("Red").clicked() {
+                                            instance.color = egui::Color32::RED;
+                                        }
+                                        if ui.button("Green").clicked() {
+                                            instance.color = egui::Color32::GREEN;
+                                        }
+                                        if ui.button("Blue").clicked() {
+                                            instance.color = egui::Color32::BLUE;
+                                        }*/
+                                    });
+                                }
+
                                 ui.add_space(10.0);
     
                                 // Button to close the window
