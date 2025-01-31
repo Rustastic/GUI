@@ -268,6 +268,7 @@ impl eframe::App for SimCtrlGUI {
                                                                     } else {
                                                                         if let Some(other_edge) = self.edges.get_mut(&neighbor) {
                                                                             other_edge.retain(|&node| node != neighbor);
+                                                                            instance.color = Color32::GREEN;
                                                                         } else {
                                                                             panic!("DIO SANTO");
                                                                         }
