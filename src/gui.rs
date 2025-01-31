@@ -266,12 +266,16 @@ impl eframe::App for SimCtrlGUI {
                                                                     if edge.contains(&neighbor) {
                                                                         edge.retain(|&node| node != neighbor);
                                                                     } else {
-                                                                        if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+                                                                        println!("ciao");
+                                                                        /*if let Some(other_edge) = self.edges.get_mut(&neighbor) {
                                                                             other_edge.retain(|&node| node != neighbor);
                                                                             instance.color = Color32::GREEN;
+
+                                                                            
+
                                                                         } else {
                                                                             panic!("DIO SANTO");
-                                                                        }
+                                                                        }*/
                                                                     }
                                                                 } else {
                                                                     if let Some(other_edge) = self.edges.get_mut(&neighbor) {
