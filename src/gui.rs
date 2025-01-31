@@ -249,13 +249,13 @@ impl eframe::App for SimCtrlGUI {
                                 }
 
                                 if instance.remove_sender {
-                                    egui::ComboBox::from_label("Select an option")
+                                    egui::ComboBox::from_label("Select Sender to remove: ")
                                         .selected_text(instance.remove_sender_value.clone().unwrap_or("None".to_string()))
                                         .show_ui(ui, |ui| {
-                                            for option in &["Option 1", "Option 2", "Option 3"] {
+                                            for option in String::from_utf8(instance.neighbor.clone()) {
                                                 if ui.selectable_label(
-                                                    instance.remove_sender_value.as_deref() == Some(*option),
-                                                    *option,
+                                                    instance.remove_sender_value.as_deref() == Some(&option),
+                                                    &option,
                                                 )
                                                 .clicked()
                                                 {
