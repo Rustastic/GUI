@@ -182,11 +182,11 @@ impl eframe::App for SimCtrlGUI {
     
                                 // Buttons to change the color of the selected drone
                                 ui.horizontal_centered(|ui| {
-                                    /*if ui.button("Crash").clicked() {
+                                    if ui.button("Crash").clicked() {
                                         match self.sender.send(GUICommands::Crash(instance.id)) {
                                             Ok(()) => {
                                                 instance.color = egui::Color32::RED;
-                                                self.edges
+                                                self.edges.remove(&instance.id);
                                             },
                                             Err(_) => todo!(),
                                         }
@@ -199,9 +199,9 @@ impl eframe::App for SimCtrlGUI {
                                     }
                                     if ui.button("Set PacketDropRate").clicked() {
 
-                                    }*/
+                                    }
                                     
-                                    if ui.button("Red").clicked() {
+                                    /*if ui.button("Red").clicked() {
                                         instance.color = egui::Color32::RED;
                                     }
                                     if ui.button("Green").clicked() {
@@ -209,7 +209,7 @@ impl eframe::App for SimCtrlGUI {
                                     }
                                     if ui.button("Blue").clicked() {
                                         instance.color = egui::Color32::BLUE;
-                                    }
+                                    }*/
                                 });
                                 ui.add_space(10.0);
     
