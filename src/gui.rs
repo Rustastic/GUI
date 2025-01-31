@@ -225,9 +225,6 @@ impl eframe::App for SimCtrlGUI {
                                         }
                                         if ui.button("RemoveSender").clicked() {
                                             instance.remove_sender = !instance.remove_sender;
-                                            /*match self.sender.send(GUICommands::RemoveSender(instance, ())) {
-                                                
-                                            }*/
                                         }
                                         if ui.button("AddSender").clicked() {
 
@@ -252,7 +249,20 @@ impl eframe::App for SimCtrlGUI {
                                     egui::ComboBox::from_label("Select Sender to remove: ")
                                         .selected_text(instance.remove_sender_value.clone().unwrap_or("None".to_string()))
                                         .show_ui(ui, |ui| {
-                                            for option in String::from_utf8(instance.neighbor.clone()) {
+                                            println!("{:?}", instance.neighbor);
+
+                                            let options: Vec<String>;
+                                            match String::from_utf8(instance.neighbor.clone()) {
+                                                Ok(string) => {
+                                                    options = string.split_whitespace().map(String::from).collect();
+                                                },
+                                                Err(_) => panic!("mamma mia"),
+                                            };
+
+                                            println!("{:?}", options);
+
+
+                                            for option in options {
                                                 if ui.selectable_label(
                                                     instance.remove_sender_value.as_deref() == Some(&option),
                                                     &option,
