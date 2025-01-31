@@ -118,6 +118,7 @@ impl SimCtrlGUI {
         Ok(())
     }
 }
+
 impl eframe::App for SimCtrlGUI {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         if !self.initialized {
@@ -151,8 +152,8 @@ impl eframe::App for SimCtrlGUI {
                 }
             }
 
-            let mut nodes = self.nodes.clone(); // Clone `nodes` once, outside the loop to avoid borrowing conflicts
-            let edges = self.edges.clone(); // Clone `edges` once
+            let mut nodes = self.nodes.clone();
+            let edges = self.edges.clone();
 
             egui::CentralPanel::default().show(ctx, |ui| {
                 ui.heading("Simulation Controller");
@@ -196,14 +197,15 @@ impl eframe::App for SimCtrlGUI {
                 }
 
                 // Displaying a pop-up with detailed information when a drone is selected
-                for (_, instance) in nodes.iter_mut() {
+                for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
+                        // Only show the window if `instance.selected` is true
                         egui::Window::new(format!("Node {}", instance.id))
                             .fixed_size([100.0, 100.0]) // Window size
                             .resizable(false) // disable resizable
                             .collapsible(true) // activate collapsable
                             .show(ctx, |ui| {
-                                // Displaying information about the selected drone.
+                                // Displaying information about the selected drone
                                 ui.label(format!("Id: {}", instance.id));
                                 if !instance.crashed {
                                     ui.label(format!(
@@ -251,10 +253,10 @@ impl eframe::App for SimCtrlGUI {
                                             instance.remove_sender = !instance.remove_sender;
                                         }
                                         if ui.button("AddSender").clicked() {
-
+                    
                                         }
                                         if ui.button("Set PacketDropRate").clicked() {
-
+                    
                                         }
                                     });
                                 }
@@ -294,11 +296,12 @@ impl eframe::App for SimCtrlGUI {
 
                                 // Button to close the window
                                 if ui.button("Close").clicked() {
-                                    instance.selected = false;
+                                    instance.selected = false; // Close the window
                                 }
                             });
                     }
                 }
+
             });
         }
     }
