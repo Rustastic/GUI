@@ -271,7 +271,7 @@ impl eframe::App for SimCtrlGUI {
                                                                 if let Some(edge) = self.edges.get_mut(&neighbor) {
                                                                     if edge.contains(&instance.id) {
                                                                         println!("case 3");
-                                                                        edge.retain(|&node| node != neighbor);
+                                                                        edge.retain(|&node| node != instance.id);
                                                                     } else {
                                                                         panic!("DIO SANTO");
                                                                     }
