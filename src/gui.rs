@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, f32::consts::PI};
 use crossbeam_channel::{Receiver, Sender, TryRecvError};
 
 use colored::Colorize;
@@ -39,15 +39,21 @@ impl SimCtrlGUI {
     }
 
     fn topology(&mut self, topology: Vec<ConfigDrone>) {
-        let mut i = 0;
+        let radius = 50.0;
+        let center_x = 100.0;
+        let center_y = 100.0;
 
-        for drone in topology {
+        for (i, drone) in topology.iter().enumerate() {
+            let angle = i as f32 * (2.0 * PI / 10.0);
+            let x = center_x + radius * angle.cos();
+            let y = center_y + radius * angle.sin();
+
             let new_drone = DroneGUI {
                 id: drone.id,
-                neighbor: drone.connected_node_ids,
+                neighbor: drone.connected_node_ids.clone(),
                 pdr: drone.pdr,
-                x: (i * 100) as f32,
-                y: 100.0,
+                x,
+                y,
                 selected: false,
                 color: Color32::BLUE,
             };
@@ -60,8 +66,6 @@ impl SimCtrlGUI {
             }
 
             self.nodes.insert(new_drone.id, new_drone);
-
-            i += 1;
         }
 
         self.initialized = true;
@@ -71,7 +75,7 @@ impl SimCtrlGUI {
         match command {
             GUICommands::Spawn => (),
             GUICommands::Crash(node_id) => (),
-            GUICommands::RemoveSender(drone, neighbor) => (),
+            GUICommands::RemoveSender(drone, neighborz) => (),
             GUICommands::AddSender(drone, neighbor) => (),
             GUICommands::SetPDR(drone, pdr) => (),
         }
@@ -106,13 +110,16 @@ impl eframe::App for SimCtrlGUI {
         } else {
             match self.receiver.try_recv() {
                 Ok(event) => self.handle_events(event),
-                Err(e)=> match e {
-                    crossbeam_channel::TryRecvError::Empty => (),
-                    crossbeam_channel::TryRecvError::Disconnected => eprintln!(
-                        "[ {} ]: GUICommands receiver channel disconnected: {}",
-                        "Simulation Controller".red(),
-                        e
-                    ),
+                Err(e)=> {
+                    match e {
+                        crossbeam_channel::TryRecvError::Empty => (),
+                        crossbeam_channel::TryRecvError::Disconnected => eprintln!(
+                            "[ {} ]: GUICommands receiver channel disconnected: {}",
+                            "Simulation Controller".red(),
+                            e
+                        ),
+                    };
+                    return;
                 }
             }
 
@@ -174,6 +181,25 @@ impl eframe::App for SimCtrlGUI {
     
                                 // Buttons to change the color of the selected drone
                                 ui.horizontal_centered(|ui| {
+                                    /*if ui.button("Crash").clicked() {
+                                        match self.sender.send(GUICommands::Crash(instance.id)) {
+                                            Ok(()) => {
+                                                instance.color = egui::Color32::RED;
+                                                self.edges
+                                            },
+                                            Err(_) => todo!(),
+                                        }
+                                    }
+                                    if ui.button("RemoveSender").clicked() {
+
+                                    }
+                                    if ui.button("AddSender").clicked() {
+
+                                    }
+                                    if ui.button("Set PacketDropRate").clicked() {
+
+                                    }*/
+                                    
                                     if ui.button("Red").clicked() {
                                         instance.color = egui::Color32::RED;
                                     }
