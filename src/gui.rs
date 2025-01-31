@@ -39,7 +39,7 @@ impl SimCtrlGUI {
     }
 
     fn topology(&mut self, topology: Vec<ConfigDrone>) {
-        let mut i = 1;
+        let mut i = 0;
 
         for drone in topology {
             let new_drone = DroneGUI {
@@ -121,7 +121,7 @@ impl eframe::App for SimCtrlGUI {
     
                 // Allocating space for drawing and preparing the painter for rendering
                 let (_response, painter) =
-                    ui.allocate_painter(egui::Vec2::new(400.0, 400.0), egui::Sense::hover());
+                    ui.allocate_painter(egui::Vec2::new(900.0, 900.0), egui::Sense::hover());
     
                 // Drawing edges (connections) between drones
                 for (start_id, neighbor) in self.edges.clone() {
