@@ -264,23 +264,19 @@ impl eframe::App for SimCtrlGUI {
                                                                 if let Some(edge) = self.edges.get_mut(&instance.id) {
                                                                     // If edge exists
                                                                     if edge.contains(&neighbor) {
+                                                                        println!("case 1");
                                                                         edge.retain(|&node| node != neighbor);
                                                                     } else {
                                                                         if let Some(other_edge) = self.edges.get_mut(&neighbor) {
-                                                                            let before = other_edge.clone();
+                                                                            println!("case 2");
                                                                             other_edge.retain(|&node| node != neighbor);
-                                                                            instance.color = Color32::GREEN;
-                                                                            let after = other_edge.clone();
-
-
-                                                                            println!("before: {:?}, after: {:?}", before, after);
-
                                                                         } else {
                                                                             panic!("DIO SANTO");
                                                                         }
                                                                     }
                                                                 } else {
                                                                     if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+                                                                        println!("case 3");
                                                                         other_edge.retain(|&node| node != neighbor);
                                                                     } else {
                                                                         panic!("DIO SANTO");
