@@ -244,54 +244,51 @@ impl eframe::App for SimCtrlGUI {
                                                 options.push(numbers.to_string());
                                             }
 
-                                            println!("{:?}", options);
-
                                             for option in options {
                                                 if ui.selectable_label(
                                                     instance.remove_sender_value.as_deref() == Some(&option),
                                                     &option,
-                                                )
-                                                .clicked()
-                                                {
+                                                ).clicked() {
                                                     instance.remove_sender_value = Some(option.to_string());
+
+                                                    if let Some(string) = instance.remove_sender_value.clone() {
+                                                        let neighbor: NodeId;
+                                                        match string.parse::<u8>() {
+                                                            Ok(num) => neighbor = num,
+                                                            Err(e) => panic!("Failed to convert: {}", e),
+                                                        }
+                
+                                                        match self.sender.send(GUICommands::RemoveSender(instance.id, neighbor)) {
+                                                            Ok(_) => {
+                                                                // get edges of instance
+                                                                if let Some(edge) = self.edges.get_mut(&instance.id) {
+                                                                    // If edge exists
+                                                                    if edge.contains(&neighbor) {
+                                                                        edge.retain(|&node| node != neighbor);
+                                                                    } else {
+                                                                        if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+                                                                            other_edge.retain(|&node| node != neighbor);
+                                                                        } else {
+                                                                            panic!("DIO SANTO");
+                                                                        }
+                                                                    }
+                                                                } else {
+                                                                    if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+                                                                        other_edge.retain(|&node| node != neighbor);
+                                                                    } else {
+                                                                        panic!("DIO SANTO");
+                                                                    }
+                                                                }
+                                                                
+                                                            },
+                                                            Err(e) => panic!("IO ODIO IL GOVERNO"),
+                                                        }
+                                                    }
+
                                                     instance.remove_sender = false;
                                                 }
                                             }
                                         });
-
-                                    if let Some(string) = instance.remove_sender_value.clone() {
-                                        let neighbor: NodeId;
-                                        match string.parse::<u8>() {
-                                            Ok(num) => neighbor = num,
-                                            Err(e) => panic!("Failed to convert: {}", e),
-                                        }
-
-                                        match self.sender.send(GUICommands::RemoveSender(instance.id, neighbor)) {
-                                            Ok(_) => {
-                                                // get edges of instance
-                                                if let Some(edge) = self.edges.get_mut(&instance.id) {
-                                                    // If edge exists
-                                                    if edge.contains(&neighbor) {
-                                                        edge.retain(|&node| node != neighbor);
-                                                    } else {
-                                                        if let Some(other_edge) = self.edges.get_mut(&neighbor) {
-                                                            other_edge.retain(|&node| node != neighbor);
-                                                        } else {
-                                                            panic!("DIO SANTO");
-                                                        }
-                                                    }
-                                                } else {
-                                                    if let Some(other_edge) = self.edges.get_mut(&neighbor) {
-                                                        other_edge.retain(|&node| node != neighbor);
-                                                    } else {
-                                                        panic!("DIO SANTO");
-                                                    }
-                                                }
-                                                
-                                            },
-                                            Err(e) => panic!("IO ODIO IL GOVERNO"),
-                                        }
-                                    }
                                 }
 
                                 ui.add_space(10.0);
