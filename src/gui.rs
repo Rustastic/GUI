@@ -232,16 +232,6 @@ impl eframe::App for SimCtrlGUI {
                                         if ui.button("Set PacketDropRate").clicked() {
 
                                         }
-                                        
-                                        /*if ui.button("Red").clicked() {
-                                            instance.color = egui::Color32::RED;
-                                        }
-                                        if ui.button("Green").clicked() {
-                                            instance.color = egui::Color32::GREEN;
-                                        }
-                                        if ui.button("Blue").clicked() {
-                                            instance.color = egui::Color32::BLUE;
-                                        }*/
                                     });
                                 }
 
@@ -268,6 +258,40 @@ impl eframe::App for SimCtrlGUI {
                                                 }
                                             }
                                         });
+
+                                    if let Some(string) = instance.remove_sender_value.clone() {
+                                        let neighbor: NodeId;
+                                        match string.parse::<u8>() {
+                                            Ok(num) => neighbor = num,
+                                            Err(e) => panic!("Failed to convert: {}", e),
+                                        }
+
+                                        match self.sender.send(GUICommands::RemoveSender(instance.id, neighbor)) {
+                                            Ok(_) => {
+                                                // get edges of instance
+                                                if let Some(edge) = self.edges.get_mut(&instance.id) {
+                                                    // If edge exists
+                                                    if edge.contains(&neighbor) {
+                                                        edge.retain(|&node| node != neighbor);
+                                                    } else {
+                                                        if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+                                                            other_edge.retain(|&node| node != neighbor);
+                                                        } else {
+                                                            panic!("DIO SANTO");
+                                                        }
+                                                    }
+                                                } else {
+                                                    if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+                                                        other_edge.retain(|&node| node != neighbor);
+                                                    } else {
+                                                        panic!("DIO SANTO");
+                                                    }
+                                                }
+                                                
+                                            },
+                                            Err(e) => panic!("IO ODIO IL GOVERNO"),
+                                        }
+                                    }
                                 }
 
                                 ui.add_space(10.0);
