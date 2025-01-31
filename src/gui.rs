@@ -185,8 +185,27 @@ impl eframe::App for SimCtrlGUI {
                                     if ui.button("Crash").clicked() {
                                         match self.sender.send(GUICommands::Crash(instance.id)) {
                                             Ok(()) => {
+                                                // change color to red
                                                 instance.color = egui::Color32::RED;
+
+                                                // remove from edge hashmap
                                                 self.edges.remove(&instance.id);
+
+                                                // remove edges starting from neighbor
+                                                for neighbor_id in instance.neighbor.iter() {
+                                                    // get edges starting from neighbor
+                                                    let neighbor_drone = self.edges.get_mut(neighbor_id).unwrap();
+                                                    for (index, drone) in neighbor_drone.clone().iter_mut().enumerate() {
+                                                        // if they end in the crashing drone
+                                                        if *drone == instance.id {
+                                                            neighbor_drone.remove(index);
+                                                        }
+                                                    }
+                                                }
+
+
+                                                // remove from drone hashmap
+                                                //self.nodes.remove(&instance.id);
                                             },
                                             Err(_) => todo!(),
                                         }
