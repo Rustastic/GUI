@@ -266,18 +266,12 @@ impl eframe::App for SimCtrlGUI {
                                                                     if edge.contains(&neighbor) {
                                                                         println!("case 1");
                                                                         edge.retain(|&node| node != neighbor);
-                                                                    } else {
-                                                                        if let Some(other_edge) = self.edges.get_mut(&neighbor) {
-                                                                            println!("case 2");
-                                                                            other_edge.retain(|&node| node != neighbor);
-                                                                        } else {
-                                                                            panic!("DIO SANTO");
-                                                                        }
                                                                     }
-                                                                } else {
-                                                                    if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+                                                                } 
+                                                                if let Some(edge) = self.edges.get_mut(&neighbor) {
+                                                                    if edge.contains(&instance.id) {
                                                                         println!("case 3");
-                                                                        other_edge.retain(|&node| node != neighbor);
+                                                                        edge.retain(|&node| node != neighbor);
                                                                     } else {
                                                                         panic!("DIO SANTO");
                                                                     }
