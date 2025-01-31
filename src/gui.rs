@@ -213,6 +213,9 @@ impl eframe::App for SimCtrlGUI {
                                                         }
                                                     }
 
+                                                    instance.neighbor.clear();
+                                                    instance.pdr = 0.0;
+
                                                     self.crashed = true;
                                                 },
                                                 Err(e) => panic!("Voglio la mamma: {}", e),
