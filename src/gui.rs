@@ -110,17 +110,18 @@ impl eframe::App for SimCtrlGUI {
         } else {
             match self.receiver.try_recv() {
                 Ok(event) => self.handle_events(event),
-                Err(e)=> {
-                    match e {
-                        crossbeam_channel::TryRecvError::Empty => (),
-                        crossbeam_channel::TryRecvError::Disconnected => eprintln!(
+                Err(e)=> match e {
+                    crossbeam_channel::TryRecvError::Empty => (),
+                    crossbeam_channel::TryRecvError::Disconnected => {
+                        eprintln!(
                             "[ {} ]: GUICommands receiver channel disconnected: {}",
                             "Simulation Controller".red(),
                             e
-                        ),
-                    };
-                    return;
+                        );
+                        return;
+                    }
                 }
+                
             }
 
             egui::CentralPanel::default().show(ctx, |ui| {
