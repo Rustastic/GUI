@@ -194,11 +194,12 @@ impl eframe::App for SimCtrlGUI {
                                                 // remove edges starting from neighbor
                                                 for neighbor_id in instance.neighbor.iter() {
                                                     // get edges starting from neighbor
-                                                    let neighbor_drone = self.edges.get_mut(neighbor_id).unwrap();
-                                                    for (index, drone) in neighbor_drone.clone().iter_mut().enumerate() {
-                                                        // if they end in the crashing drone
-                                                        if *drone == instance.id {
-                                                            neighbor_drone.remove(index);
+                                                    if let Some(neighbor_drone) = self.edges.get_mut(neighbor_id) {
+                                                        for (index, drone) in neighbor_drone.clone().iter_mut().enumerate() {
+                                                            // if they end in the crashing drone
+                                                            if *drone == instance.id {
+                                                                neighbor_drone.remove(index);
+                                                            }
                                                         }
                                                     }
                                                 }
