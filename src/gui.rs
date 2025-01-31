@@ -37,7 +37,6 @@ impl SimCtrlGUI {
             sender,
             receiver,
             initialized: false,
-            crashed: false,
             nodes: HashMap::new(),
             edges: HashMap::new()
         }
@@ -62,6 +61,7 @@ impl SimCtrlGUI {
                 color: Color32::BLUE,
 
                 selected: false,
+                crashed: false,
                 remove_sender: false,
                 remove_sender_value: None,
             };
