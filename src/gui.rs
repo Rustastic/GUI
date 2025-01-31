@@ -249,14 +249,7 @@ impl eframe::App for SimCtrlGUI {
                                     egui::ComboBox::from_label("Select Sender to remove: ")
                                         .selected_text(instance.remove_sender_value.clone().unwrap_or("None".to_string()))
                                         .show_ui(ui, |ui| {
-                                            let options: Vec<String>;
-                                            match String::from_utf8(instance.neighbor.clone()) {
-                                                Ok(string) => {
-                                                    options = string.split_whitespace().map(String::from).collect();
-                                                },
-                                                Err(_) => panic!("mamma mia"),
-                                            };
-
+                                            let options: Vec<String> = instance.neighbor.clone().iter().map(|b| (*b as char).to_string()).collect();
                                             println!("{:?}", options);
 
 
