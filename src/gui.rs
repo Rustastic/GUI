@@ -96,6 +96,26 @@ impl SimCtrlGUI {
             GUIEvents::Topology(topology) => self.topology(topology)
         }
     }
+
+    // Helper function to remove sender from edges
+    fn remove_sender_from_edges(&mut self, instance: &DroneGUI, neighbor: u8) -> Result<(), String> {
+        // Try to remove from the edge of the instance
+        if let Some(edge) = self.edges.get_mut(&instance.id) {
+            if edge.contains(&neighbor) {
+                edge.retain(|&node| node != neighbor);
+            } else if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+                other_edge.retain(|&node| node != instance.id);
+            } else {
+                return Err("Neighbor edge not found".to_string());
+            }
+        } else if let Some(other_edge) = self.edges.get_mut(&neighbor) {
+            other_edge.retain(|&node| node != instance.id);
+        } else {
+            return Err("Edge not found for instance or neighbor".to_string());
+        }
+
+        Ok(())
+    }
 }
 
 impl eframe::App for SimCtrlGUI {
@@ -239,52 +259,27 @@ impl eframe::App for SimCtrlGUI {
                                     egui::ComboBox::from_label("Select Sender to remove: ")
                                         .selected_text(instance.remove_sender_value.clone().unwrap_or("None".to_string()))
                                         .show_ui(ui, |ui| {
-                                            let mut options = Vec::<String>::new();
-                                            for numbers in instance.neighbor.clone() {
-                                                options.push(numbers.to_string());
-                                            }
-
+                                            let options: Vec<String> = instance.neighbor.iter().map(|n| n.to_string()).collect();
+                                
                                             for option in options {
                                                 if ui.selectable_label(
                                                     instance.remove_sender_value.as_deref() == Some(&option),
                                                     &option,
                                                 ).clicked() {
-                                                    instance.remove_sender_value = Some(option.to_string());
-
-                                                    if let Some(string) = instance.remove_sender_value.clone() {
-                                                        let neighbor: NodeId;
-                                                        match string.parse::<u8>() {
-                                                            Ok(num) => neighbor = num,
-                                                            Err(e) => panic!("Failed to convert: {}", e),
+                                                    // Save the selected value
+                                                    instance.remove_sender_value = Some(option.clone());
+                                
+                                                    // Parse the selected string into a NodeId
+                                                    if let Ok(neighbor) = option.parse::<u8>() {
+                                                        // Handle removal operation
+                                                        if let Err(e) = self.remove_sender_from_edges(instance, neighbor) {
+                                                            eprintln!("Error removing sender: {}", e);
                                                         }
-                
-                                                        match self.sender.send(GUICommands::RemoveSender(instance.id, neighbor)) {
-                                                            Ok(_) => {
-                                                                // get edges of instance
-                                                                if let Some(edge) = self.edges.get_mut(&instance.id) {
-                                                                    // If edge exists
-                                                                    if edge.contains(&neighbor) {
-                                                                        edge.retain(|&node| node != neighbor);
-                                                                    } else {
-                                                                        if let Some(other_edge) = self.edges.get_mut(&neighbor) {
-                                                                            other_edge.retain(|&node| node != neighbor);
-                                                                        } else {
-                                                                            panic!("DIO SANTO");
-                                                                        }
-                                                                    }
-                                                                } else {
-                                                                    if let Some(other_edge) = self.edges.get_mut(&neighbor) {
-                                                                        other_edge.retain(|&node| node != neighbor);
-                                                                    } else {
-                                                                        panic!("DIO SANTO");
-                                                                    }
-                                                                }
-                                                                
-                                                            },
-                                                            Err(e) => panic!("IO ODIO IL GOVERNO"),
-                                                        }
+                                                    } else {
+                                                        eprintln!("Failed to parse option: {}", option);
                                                     }
-
+                                
+                                                    // Close the dropdown
                                                     instance.remove_sender = false;
                                                 }
                                             }
