@@ -13,7 +13,6 @@ pub struct SimCtrlGUI {
     receiver: Receiver<GUIEvents>,
 
     initialized: bool,
-    crashed: bool,
     nodes: HashMap<NodeId, DroneGUI>,
     edges: HashMap<NodeId, Vec<NodeId>>
 }
@@ -27,6 +26,7 @@ struct DroneGUI {
     color: egui::Color32,
 
     selected: bool,
+    crashed: bool,
     remove_sender: bool,
     remove_sender_value: Option<String>
 }
@@ -181,15 +181,17 @@ impl eframe::App for SimCtrlGUI {
                             .show(ctx, |ui| {
                                 // Displaying information about the selected drone.
                                 ui.label(format!("Id: {}", instance.id));
-                                ui.label(format!(
-                                    "Neighbors: {:?}",
-                                    instance.neighbor
-                                ));
-                                ui.label(format!("PDR: {}", instance.pdr));
+                                if !instance.crashed {
+                                    ui.label(format!(
+                                        "Neighbors: {:?}",
+                                        instance.neighbor
+                                    ));
+                                    ui.label(format!("PDR: {}", instance.pdr));
+                                }
                                 ui.add_space(10.0);
     
                                 // Buttons to change the color of the selected drone
-                                if !self.crashed {
+                                if !instance.crashed {
                                     ui.horizontal_centered(|ui| {
                                         if ui.button("Crash").clicked() {
                                             match self.sender.send(GUICommands::Crash(instance.id)) {
@@ -216,7 +218,7 @@ impl eframe::App for SimCtrlGUI {
                                                     instance.neighbor.clear();
                                                     instance.pdr = 0.0;
 
-                                                    self.crashed = true;
+                                                    instance.crashed = true;
                                                 },
                                                 Err(e) => panic!("Voglio la mamma: {}", e),
                                             }
@@ -239,7 +241,7 @@ impl eframe::App for SimCtrlGUI {
                                                             .clicked()
                                                             {
                                                                 instance.remove_sender_value = Some(option.to_string());
-                                                                instance.remove_sender = false; // Hide dropdown after selection
+                                                                instance.remove_sender = false;
                                                             }
                                                         }
                                                     });
