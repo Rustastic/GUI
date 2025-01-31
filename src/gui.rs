@@ -228,24 +228,6 @@ impl eframe::App for SimCtrlGUI {
                                             /*match self.sender.send(GUICommands::RemoveSender(instance, ())) {
                                                 
                                             }*/
-
-                                            if instance.remove_sender {
-                                                egui::ComboBox::from_label("Select an option")
-                                                    .selected_text(instance.remove_sender_value.clone().unwrap_or("None".to_string()))
-                                                    .show_ui(ui, |ui| {
-                                                        for option in &["Option 1", "Option 2", "Option 3"] {
-                                                            if ui.selectable_label(
-                                                                instance.remove_sender_value.as_deref() == Some(*option),
-                                                                *option,
-                                                            )
-                                                            .clicked()
-                                                            {
-                                                                instance.remove_sender_value = Some(option.to_string());
-                                                                instance.remove_sender = false;
-                                                            }
-                                                        }
-                                                    });
-                                            }
                                         }
                                         if ui.button("AddSender").clicked() {
 
@@ -264,6 +246,24 @@ impl eframe::App for SimCtrlGUI {
                                             instance.color = egui::Color32::BLUE;
                                         }*/
                                     });
+                                }
+
+                                if instance.remove_sender {
+                                    egui::ComboBox::from_label("Select an option")
+                                        .selected_text(instance.remove_sender_value.clone().unwrap_or("None".to_string()))
+                                        .show_ui(ui, |ui| {
+                                            for option in &["Option 1", "Option 2", "Option 3"] {
+                                                if ui.selectable_label(
+                                                    instance.remove_sender_value.as_deref() == Some(*option),
+                                                    *option,
+                                                )
+                                                .clicked()
+                                                {
+                                                    instance.remove_sender_value = Some(option.to_string());
+                                                    instance.remove_sender = false;
+                                                }
+                                            }
+                                        });
                                 }
 
                                 ui.add_space(10.0);
