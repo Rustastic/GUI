@@ -39,9 +39,9 @@ impl SimCtrlGUI {
     }
 
     fn topology(&mut self, topology: Vec<ConfigDrone>) {
-        let radius = 50.0;
-        let center_x = 100.0;
-        let center_y = 100.0;
+        let radius = 200.0;
+        let center_x = 400.0;
+        let center_y = 400.0;
 
         for (i, drone) in topology.iter().enumerate() {
             let angle = i as f32 * (2.0 * PI / 10.0);
