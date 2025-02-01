@@ -34,6 +34,7 @@ struct DroneGUI {
     remove_sender: bool,
     add_sender: bool,
     set_pdr: bool,
+    pdr_value: Option<String>
 }
 
 impl SimCtrlGUI {
@@ -372,33 +373,34 @@ impl eframe::App for SimCtrlGUI {
                                         });
                                 }
 
-                                if instance.set_pdr {
-                                    let mut value: Option<String> = None;
-                                    ui.horizontal(|ui| {
-                                        ui.label("Enter desired PDR:");
+                                ui.horizontal(|ui| {
+                                    ui.label("Enter desired PDR:");
                                 
-                                        // Create a mutable text field
-                                        let mut text_input = value.clone().unwrap_or_default();
-                                        let text_edit = ui.text_edit_singleline(&mut text_input);
+                                    // Ensure there's a default value for the input field
+                                    let text_input = instance.pdr_value.clone().unwrap_or_default();
+                                    let mut buffer = text_input.clone(); // Copy for mutation
                                 
-                                        // Add a "Confirm" button to process the input
-                                        if ui.button("Confirm").clicked() {
-                                            // Update instance.remove_sender_value when the user types
-                                            if text_edit.changed() {
-                                                value = Some(text_input);
-                                            }
-
-                                            if let Some(pdr_value) = &value {
-                                                match pdr_value.parse::<f32>() {
-                                                    Ok(digit) => instance.command = Some(GUICommands::SetPDR(instance.id, digit)),
-                                                    Err(_) => panic!(""),
+                                    let text_edit = ui.text_edit_singleline(&mut buffer);
+                                
+                                    // Update instance.remove_sender_value only if the text changed
+                                    if text_edit.changed() {
+                                        instance.pdr_value = Some(buffer);
+                                    }
+                                
+                                    // "Confirm" button to process input
+                                    if ui.button("Confirm").clicked() {
+                                        if let Some(pdr_value) = &instance.pdr_value {
+                                            match pdr_value.parse::<f32>() {
+                                                Ok(digit) => {
+                                                    instance.command = Some(GUICommands::SetPDR(instance.id, digit));
+                                                    instance.remove_sender = false; // Close input mode
                                                 }
-                                                // Close the text field input mode
-                                                instance.remove_sender = false;
+                                                Err(_) => eprintln!("Invalid PDR input"),
                                             }
                                         }
-                                    });
-                                }
+                                    }
+                                });
+                                
 
                                 ui.add_space(10.0);
     
