@@ -207,9 +207,6 @@ impl SimCtrlGUI {
     fn spawn(&mut self, id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
         match self.sender.send(GUICommands::Spawn(*id, neighbors.clone(), pdr)) {
             Ok(()) => {
-                self.spawn_toggle = false;
-                self.spawn_button = true;
-
                 self.spawn_id = None;
                 self.spawn_neighbors.clear();
                 self.spawn_pdr = None;
@@ -340,6 +337,9 @@ impl eframe::App for SimCtrlGUI {
                                         let neighbors = self.spawn_neighbors.clone();
 
                                         self.spawn_command = Some(GUICommands::Spawn(id, neighbors, pdr));
+
+                                        self.spawn_toggle = false;
+                                        self.spawn_button = true;
                                     } else {
                                         eprintln!("Invalid PDR value");
                                     }
@@ -541,12 +541,19 @@ impl eframe::App for SimCtrlGUI {
         for (_, instance) in self.nodes.clone() {
             if let Some(command) = &instance.command {
                 match command {
-                    GUICommands::Spawn(id, neighbor, pdr) => self.spawn(id, neighbor, *pdr),
                     GUICommands::Crash(drone) => self.crash(drone),
                     GUICommands::RemoveSender(drone, to_remove) => self.remove_sender(drone, *to_remove),
                     GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),
                     GUICommands::SetPDR(drone, pdr) => self.set_pdr(drone, pdr),
+                    _ => ()
                 }       
+            }
+        }
+
+        if let Some(command) = &self.spawn_command.clone() {
+            match command {
+                GUICommands::Spawn(id, neighbor, pdr) => self.spawn(id, &neighbor.clone(), *pdr),
+                _ => ()
             }
         }
     }
