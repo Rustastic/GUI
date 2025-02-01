@@ -143,7 +143,7 @@ impl SimCtrlGUI {
         instance.neighbor.clear();
         instance.pdr = 1.0;
         instance.crashed = true;
-        instance.command = None
+        instance.command = None;
     }
 
     fn remove_sender(&mut self, drone: &NodeId, to_remove: NodeId) {
@@ -218,10 +218,10 @@ impl SimCtrlGUI {
                     pdr,
                     x: 400.0,
                     y: 400.0,
-
                     color: Color32::BLUE,
                     
                     command: None,
+
                     selected: false,
                     crashed: false,
                     remove_sender: false,
@@ -238,6 +238,8 @@ impl SimCtrlGUI {
                 for drone in neighbors {
                     self.nodes.get_mut(drone).unwrap().neighbor.push(*drone);
                 }
+
+                self.spawn_command = None;
             },
             Err(_) => panic!(""),
         };
@@ -282,7 +284,6 @@ impl eframe::App for SimCtrlGUI {
                 ui.heading("Simulation Controller");
 
                 if self.spawn_toggle {
-                    self.spawn_button = false;
                     ui.vertical(|ui| {
                         ui.heading("Spawn a New Drone");
                 
@@ -355,6 +356,7 @@ impl eframe::App for SimCtrlGUI {
                     // Button to Open the Spawn Form
                     if ui.button("Spawn Drone").clicked() {
                         self.spawn_toggle = true;
+                        self.spawn_button = false;
                     }
                 }
     
