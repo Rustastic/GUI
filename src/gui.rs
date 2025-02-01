@@ -115,9 +115,6 @@ impl SimCtrlGUI {
         let instance = self.nodes.get_mut(drone).unwrap();
         match self.sender.send(GUICommands::Crash(instance.id)) {
             Ok(()) => {
-                // change color to red
-                instance.color = egui::Color32::RED;
-
                 // remove from edge hashmap
                 self.edges.remove(&instance.id);
 
@@ -128,6 +125,8 @@ impl SimCtrlGUI {
                         neighbor_drone.retain(|drone| *drone != instance.id);
                     }
                 }
+                let id = instance.id;
+                self.nodes.remove(&id);
             },
             Err(e) => panic!("Voglio la mamma: {}", e),
         }
