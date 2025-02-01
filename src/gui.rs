@@ -318,90 +318,93 @@ impl eframe::App for SimCtrlGUI {
                                     });
                                 }
 
-                                if instance.remove_sender {
-                                    let mut value: Option<String> = None;
-                                    egui::ComboBox::from_label("Select Sender to remove: ")
-                                        .selected_text(value.clone().unwrap_or("None".to_string()))
-                                        .show_ui(ui, |ui| {
-                                            let mut options = Vec::<String>::new();
-                                            for numbers in instance.neighbor.clone() {
-                                                options.push(numbers.to_string());
-                                            }
-
-                                            for option in options {
-                                                if ui.selectable_label(
-                                                    false,
-                                                    &option,
-                                                ).clicked() {
-                                                    value = Some(option.to_string());
-                                                    instance.remove_sender = false;
-
-                                                    match value.unwrap().parse::<u8>() {
-                                                        Ok(digit) => instance.command = Some(GUICommands::RemoveSender(instance.id, digit)),
-                                                        Err(_) => panic!(""),
-                                                    }
-                                                }
-                                            }
-                                        });
-                                }
-
-                                if instance.add_sender {
-                                    let mut value: Option<String> = None;
-                                    egui::ComboBox::from_label("Select Sender to add: ")
-                                        .selected_text(value.clone().unwrap_or("None".to_string()))
-                                        .show_ui(ui, |ui| {
-                                            let mut options = Vec::<String>::new();
-                                            for (numbers, _) in self.edges.iter() {
-                                                if !instance.neighbor.contains(numbers) && *numbers != instance.id {
+                                if !instance.crashed {
+                                    if instance.remove_sender {
+                                        let mut value: Option<String> = None;
+                                        egui::ComboBox::from_label("Select Sender to remove: ")
+                                            .selected_text(value.clone().unwrap_or("None".to_string()))
+                                            .show_ui(ui, |ui| {
+                                                let mut options = Vec::<String>::new();
+                                                for numbers in instance.neighbor.clone() {
                                                     options.push(numbers.to_string());
                                                 }
+
+                                                for option in options {
+                                                    if ui.selectable_label(
+                                                        false,
+                                                        &option,
+                                                    ).clicked() {
+                                                        value = Some(option.to_string());
+                                                        instance.remove_sender = false;
+
+                                                        match value.unwrap().parse::<u8>() {
+                                                            Ok(digit) => instance.command = Some(GUICommands::RemoveSender(instance.id, digit)),
+                                                            Err(_) => panic!(""),
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                    }
+
+                                    if instance.add_sender {
+                                        let mut value: Option<String> = None;
+                                        egui::ComboBox::from_label("Select Sender to add: ")
+                                            .selected_text(value.clone().unwrap_or("None".to_string()))
+                                            .show_ui(ui, |ui| {
+                                                let mut options = Vec::<String>::new();
+                                                for (numbers, _) in self.edges.iter() {
+                                                    if !instance.neighbor.contains(numbers) && *numbers != instance.id {
+                                                        options.push(numbers.to_string());
+                                                    }
+                                                }
+
+                                                for option in options {
+                                                    if ui.selectable_label(
+                                                        false,
+                                                        &option,
+                                                    ).clicked() {
+                                                        value = Some(option.to_string());
+                                                        instance.remove_sender = false;
+
+                                                        match value.unwrap().parse::<u8>() {
+                                                            Ok(digit) => instance.command = Some(GUICommands::AddSender(instance.id, digit)),
+                                                            Err(_) => panic!(""),
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                    }
+
+                                    if instance.set_pdr{
+                                        ui.horizontal(|ui| {
+                                            ui.label("Enter desired PDR:");
+                                        
+                                            // Ensure there's a default value for the input field
+                                            let text_input = instance.pdr_value.clone().unwrap_or_default();
+                                            let mut buffer = text_input.clone(); // Copy for mutation
+                                        
+                                            let text_edit = ui.text_edit_singleline(&mut buffer);
+                                        
+                                            // Update instance.remove_sender_value only if the text changed
+                                            if text_edit.changed() {
+                                                instance.pdr_value = Some(buffer);
                                             }
-
-                                            for option in options {
-                                                if ui.selectable_label(
-                                                    false,
-                                                    &option,
-                                                ).clicked() {
-                                                    value = Some(option.to_string());
-                                                    instance.remove_sender = false;
-
-                                                    match value.unwrap().parse::<u8>() {
-                                                        Ok(digit) => instance.command = Some(GUICommands::AddSender(instance.id, digit)),
-                                                        Err(_) => panic!(""),
+                                        
+                                            // "Confirm" button to process input
+                                            if ui.button("Confirm").clicked() {
+                                                if let Some(pdr_value) = &instance.pdr_value {
+                                                    match pdr_value.parse::<f32>() {
+                                                        Ok(digit) => {
+                                                            instance.command = Some(GUICommands::SetPDR(instance.id, digit));
+                                                            instance.set_pdr = false; // Close input mode
+                                                        }
+                                                        Err(_) => eprintln!("Invalid PDR input"),
                                                     }
                                                 }
                                             }
                                         });
+                                    }
                                 }
-
-                                ui.horizontal(|ui| {
-                                    ui.label("Enter desired PDR:");
-                                
-                                    // Ensure there's a default value for the input field
-                                    let text_input = instance.pdr_value.clone().unwrap_or_default();
-                                    let mut buffer = text_input.clone(); // Copy for mutation
-                                
-                                    let text_edit = ui.text_edit_singleline(&mut buffer);
-                                
-                                    // Update instance.remove_sender_value only if the text changed
-                                    if text_edit.changed() {
-                                        instance.pdr_value = Some(buffer);
-                                    }
-                                
-                                    // "Confirm" button to process input
-                                    if ui.button("Confirm").clicked() {
-                                        if let Some(pdr_value) = &instance.pdr_value {
-                                            match pdr_value.parse::<f32>() {
-                                                Ok(digit) => {
-                                                    instance.command = Some(GUICommands::SetPDR(instance.id, digit));
-                                                    instance.remove_sender = false; // Close input mode
-                                                }
-                                                Err(_) => eprintln!("Invalid PDR input"),
-                                            }
-                                        }
-                                    }
-                                });
-                                
 
                                 ui.add_space(10.0);
     

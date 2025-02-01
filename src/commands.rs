@@ -1,4 +1,4 @@
-use wg_2024::{config::Drone as ConfigDrone, drone::Drone, network::NodeId, packet::Packet};
+use wg_2024::{config::Drone as ConfigDrone, network::NodeId, packet::Packet};
 
 // From SimCtrl to GUI
 #[derive(Debug, Clone)]
