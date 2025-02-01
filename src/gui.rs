@@ -403,8 +403,6 @@ impl eframe::App for SimCtrlGUI {
                 // Displaying a pop-up with detailed information when a drone is selected
                 for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
-                        info!("[ {} ] Inspecting Drone: {}", "GUI".green(), instance.id);
-                        
                         egui::Window::new(format!("Node {}", instance.id))
                             .fixed_size([100.0, 100.0]) // Window size
                             .resizable(false) // disable resizable
