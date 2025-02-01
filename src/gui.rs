@@ -125,24 +125,19 @@ impl SimCtrlGUI {
                         neighbor_drone.retain(|drone| *drone != instance.id);
                     }
                 }
-                let id = instance.id;
+
+                let neighbors = self.nodes.get(drone).unwrap().neighbor.clone();
+                let id = self.nodes.get(drone).unwrap().id.clone();
+                for node in neighbors {
+                    let a =self.nodes.get_mut(&node).unwrap();
+                    a.neighbor.retain(|&x| x != id);
+                }
+
+                let id = self.nodes.get(drone).unwrap().id;
                 self.nodes.remove(&id);
             },
             Err(e) => panic!("Voglio la mamma: {}", e),
         }
-
-        let neighbors = self.nodes.get(drone).unwrap().neighbor.clone();
-        let id = self.nodes.get(drone).unwrap().id.clone();
-        for node in neighbors {
-            let a =self.nodes.get_mut(&node).unwrap();
-            a.neighbor.retain(|&x| x != id);
-        }
-
-        let instance = self.nodes.get_mut(drone).unwrap();
-        instance.neighbor.clear();
-        instance.pdr = 1.0;
-        instance.crashed = true;
-        instance.command = None;
     }
 
     fn remove_sender(&mut self, drone: &NodeId, to_remove: NodeId) {
