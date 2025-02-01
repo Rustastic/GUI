@@ -1,5 +1,5 @@
 use std::{collections::HashMap, f32::consts::PI};
-use crossbeam_channel::{Receiver, Sender, TryRecvError};
+use crossbeam_channel::{Receiver, Sender};
 
 use colored::Colorize;
 use eframe::egui::{self, Color32};
@@ -8,15 +8,17 @@ use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
 
 use crate::{GUICommands, GUIEvents};
 
+#[derive(Clone, Debug)]
 pub struct SimCtrlGUI {
     sender: Sender<GUICommands>,
     receiver: Receiver<GUIEvents>,
 
     initialized: bool,
     nodes: HashMap<NodeId, DroneGUI>,
-    edges: HashMap<NodeId, Vec<NodeId>>
+    edges: HashMap<NodeId, Vec<NodeId>>,
 }
 
+#[derive(Clone, Debug)]
 struct DroneGUI {
     id: NodeId,
     neighbor: Vec<NodeId>,
@@ -25,10 +27,13 @@ struct DroneGUI {
     y: f32,
     color: egui::Color32,
 
+    command: Option<GUICommands>,
+
     selected: bool,
     crashed: bool,
     remove_sender: bool,
-    remove_sender_value: Option<String>
+    add_sender: bool,
+    set_pdr: bool,
 }
 
 impl SimCtrlGUI {
@@ -38,7 +43,7 @@ impl SimCtrlGUI {
             receiver,
             initialized: false,
             nodes: HashMap::new(),
-            edges: HashMap::new()
+            edges: HashMap::new(),
         }
     }
 
@@ -60,10 +65,13 @@ impl SimCtrlGUI {
                 y,
                 color: Color32::BLUE,
 
+                command: None,
+
                 selected: false,
                 crashed: false,
                 remove_sender: false,
-                remove_sender_value: None,
+                add_sender: false,
+                set_pdr: false,
             };
 
             for drone in new_drone.neighbor.clone() {
@@ -95,6 +103,101 @@ impl SimCtrlGUI {
             GUIEvents::PacketDropped(src, packet) => (),
             GUIEvents::Topology(topology) => self.topology(topology)
         }
+    }
+
+    fn crash(&mut self, drone: &NodeId) {
+        let instance = self.nodes.get_mut(drone).unwrap();
+        match self.sender.send(GUICommands::Crash(instance.id)) {
+            Ok(()) => {
+                // change color to red
+                instance.color = egui::Color32::RED;
+
+                // remove from edge hashmap
+                self.edges.remove(&instance.id);
+
+                // remove edges starting from neighbor
+                for neighbor_id in instance.neighbor.iter() {
+                    // get edges starting from neighbor
+                    if let Some(neighbor_drone) = self.edges.get_mut(neighbor_id) {
+                        for (index, drone) in neighbor_drone.clone().iter_mut().enumerate() {
+                            // if they end in the crashing drone
+                            if *drone == instance.id {
+                                neighbor_drone.remove(index);
+                            }
+                        }
+                    }
+                }
+
+                instance.neighbor.clear();
+                instance.pdr = 0.0;
+
+                instance.crashed = true;
+
+                instance.command = None
+            },
+            Err(e) => panic!("Voglio la mamma: {}", e),
+        }
+    }
+
+    fn remove_sender(&mut self, drone: &NodeId, to_remove: NodeId) {
+        let instance = self.nodes.get_mut(drone).unwrap();
+        match self.sender.send(GUICommands::RemoveSender(instance.id, to_remove)) {
+            Ok(_) => {
+                // get edges of instance
+                if let Some(edge) = self.edges.get_mut(&instance.id) {
+                    if edge.contains(&to_remove) {
+                        edge.retain(|&node| node != to_remove);
+                    }
+                } 
+                if let Some(edge) = self.edges.get_mut(&to_remove) {
+                    if edge.contains(&instance.id) {
+                        edge.retain(|&node| node != instance.id);
+                    }
+                }
+                
+            },
+            Err(e) => panic!("IO ODIO IL GOVERNO"),
+        }
+
+        // Remove neighbor from the current instance.
+        instance.neighbor.retain(|&drone| drone != to_remove);
+        
+    }
+
+    fn add_sender(&mut self, drone: &NodeId, to_add: NodeId) {
+        let instance = self.nodes.get_mut(drone).unwrap();
+        match self.sender.send(GUICommands::RemoveSender(instance.id, to_add)) {
+            Ok(_) => {
+                // get edges of instance
+                if let Some(edge) = self.edges.get_mut(&instance.id) {
+                    if edge.contains(&to_add) {
+                        edge.retain(|&node| node != to_add);
+                    }
+                } 
+                if let Some(edge) = self.edges.get_mut(&to_add) {
+                    if edge.contains(&instance.id) {
+                        edge.retain(|&node| node != instance.id);
+                    }
+                }
+                
+            },
+            Err(e) => panic!("IO ODIO IL GOVERNO"),
+        }
+
+        // Remove neighbor from the current instance.
+        instance.neighbor.retain(|&drone| drone != to_add);
+    }
+
+    fn set_pdr(&mut self, drone: &NodeId, pdr: &f32) {
+        let instance = self.nodes.get_mut(drone).unwrap();
+        match self.sender.send(GUICommands::SetPDR(instance.id, *pdr)) {
+            Ok(_) => {
+                instance.pdr = *pdr;                
+            },
+            Err(e) => panic!("IO ODIO IL GOVERNO"),
+        }
+
+        instance.command = None;
     }
 }
 
@@ -170,9 +273,7 @@ impl eframe::App for SimCtrlGUI {
                     // Drawing the drone as a filled circle
                     painter.circle_filled(screen_pos, radius, pos.color);
                 }
-    
-                let mut neighbor_that_remove: NodeId = 255;
-                let mut instance_drone: NodeId = 255;
+
                 // Displaying a pop-up with detailed information when a drone is selected
                 for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
@@ -196,50 +297,31 @@ impl eframe::App for SimCtrlGUI {
                                 if !instance.crashed {
                                     ui.horizontal_centered(|ui| {
                                         if ui.button("Crash").clicked() {
-                                            match self.sender.send(GUICommands::Crash(instance.id)) {
-                                                Ok(()) => {
-                                                    // change color to red
-                                                    instance.color = egui::Color32::RED;
-
-                                                    // remove from edge hashmap
-                                                    self.edges.remove(&instance.id);
-
-                                                    // remove edges starting from neighbor
-                                                    for neighbor_id in instance.neighbor.iter() {
-                                                        // get edges starting from neighbor
-                                                        if let Some(neighbor_drone) = self.edges.get_mut(neighbor_id) {
-                                                            for (index, drone) in neighbor_drone.clone().iter_mut().enumerate() {
-                                                                // if they end in the crashing drone
-                                                                if *drone == instance.id {
-                                                                    neighbor_drone.remove(index);
-                                                                }
-                                                            }
-                                                        }
-                                                    }
-
-                                                    instance.neighbor.clear();
-                                                    instance.pdr = 0.0;
-
-                                                    instance.crashed = true;
-                                                },
-                                                Err(e) => panic!("Voglio la mamma: {}", e),
-                                            }
+                                            instance.command = Some(GUICommands::Crash(instance.id));
                                         }
                                         if ui.button("RemoveSender").clicked() {
                                             instance.remove_sender = !instance.remove_sender;
+                                            instance.add_sender = false;
+                                            instance.set_pdr = false;
                                         }
                                         if ui.button("AddSender").clicked() {
-
+                                            instance.add_sender = !instance.add_sender;
+                                            instance.remove_sender = false;
+                                            instance.set_pdr = false;
                                         }
                                         if ui.button("Set PacketDropRate").clicked() {
+                                            instance.set_pdr =! instance.set_pdr;
+                                            instance.remove_sender = false;
+                                            instance.add_sender = false;
 
                                         }
                                     });
                                 }
 
                                 if instance.remove_sender {
+                                    let mut value: Option<String> = None;
                                     egui::ComboBox::from_label("Select Sender to remove: ")
-                                        .selected_text(instance.remove_sender_value.clone().unwrap_or("None".to_string()))
+                                        .selected_text(value.clone().unwrap_or("None".to_string()))
                                         .show_ui(ui, |ui| {
                                             let mut options = Vec::<String>::new();
                                             for numbers in instance.neighbor.clone() {
@@ -248,47 +330,76 @@ impl eframe::App for SimCtrlGUI {
 
                                             for option in options {
                                                 if ui.selectable_label(
-                                                    instance.remove_sender_value.as_deref() == Some(&option),
+                                                    false,
                                                     &option,
                                                 ).clicked() {
-                                                    instance.remove_sender_value = Some(option.to_string());
-
-                                                    if let Some(string) = instance.remove_sender_value.clone() {
-                                                        let neighbor: NodeId;
-                                                        match string.parse::<u8>() {
-                                                            Ok(num) => neighbor = num,
-                                                            Err(e) => panic!("Failed to convert: {}", e),
-                                                        }
-                
-                                                        match self.sender.send(GUICommands::RemoveSender(instance.id, neighbor)) {
-                                                            Ok(_) => {
-                                                                // get edges of instance
-                                                                if let Some(edge) = self.edges.get_mut(&instance.id) {
-                                                                    if edge.contains(&neighbor) {
-                                                                        edge.retain(|&node| node != neighbor);
-                                                                    }
-                                                                } 
-                                                                if let Some(edge) = self.edges.get_mut(&neighbor) {
-                                                                    if edge.contains(&instance.id) {
-                                                                        edge.retain(|&node| node != instance.id);
-                                                                    }
-                                                                }
-                                                                
-                                                            },
-                                                            Err(e) => panic!("IO ODIO IL GOVERNO"),
-                                                        }
-
-                                                        // Remove neighbor from the current instance.
-                                                        instance.neighbor.retain(|&drone| drone != neighbor);
-                                                        neighbor_that_remove = neighbor;
-                                                        instance_drone = instance.id;
-                                                        
-                                                    }
-
+                                                    value = Some(option.to_string());
                                                     instance.remove_sender = false;
+
+                                                    match value.unwrap().parse::<u8>() {
+                                                        Ok(digit) => instance.command = Some(GUICommands::RemoveSender(instance.id, digit)),
+                                                        Err(_) => panic!(""),
+                                                    }
                                                 }
                                             }
                                         });
+                                }
+
+                                if instance.add_sender {
+                                    let mut value: Option<String> = None;
+                                    egui::ComboBox::from_label("Select Sender to add: ")
+                                        .selected_text(value.clone().unwrap_or("None".to_string()))
+                                        .show_ui(ui, |ui| {
+                                            let mut options = Vec::<String>::new();
+                                            for (numbers, _) in self.edges.iter() {
+                                                if !instance.neighbor.contains(numbers) && *numbers != instance.id {
+                                                    options.push(numbers.to_string());
+                                                }
+                                            }
+
+                                            for option in options {
+                                                if ui.selectable_label(
+                                                    false,
+                                                    &option,
+                                                ).clicked() {
+                                                    value = Some(option.to_string());
+                                                    instance.remove_sender = false;
+
+                                                    match value.unwrap().parse::<u8>() {
+                                                        Ok(digit) => instance.command = Some(GUICommands::AddSender(instance.id, digit)),
+                                                        Err(_) => panic!(""),
+                                                    }
+                                                }
+                                            }
+                                        });
+                                }
+
+                                if instance.set_pdr {
+                                    let mut value: Option<String> = None;
+                                    ui.horizontal(|ui| {
+                                        ui.label("Enter desired PDR:");
+                                
+                                        // Create a mutable text field
+                                        let mut text_input = value.clone().unwrap_or_default();
+                                        let text_edit = ui.text_edit_singleline(&mut text_input);
+                                
+                                        // Update instance.remove_sender_value when the user types
+                                        if text_edit.changed() {
+                                            value = Some(text_input);
+                                        }
+                                
+                                        // Add a "Confirm" button to process the input
+                                        if ui.button("Confirm").clicked() {
+                                            if let Some(pdr_value) = &value {
+                                                match pdr_value.parse::<f32>() {
+                                                    Ok(digit) => instance.command = Some(GUICommands::SetPDR(instance.id, digit)),
+                                                    Err(_) => panic!(""),
+                                                }
+                                                // Close the text field input mode
+                                                instance.remove_sender = false;
+                                            }
+                                        }
+                                    });
                                 }
 
                                 ui.add_space(10.0);
@@ -300,12 +411,19 @@ impl eframe::App for SimCtrlGUI {
                             });
                     }
                 }
-
-                // Also remove current instance from the neighbor's list.
-                if let Some(neighbor_drone) = self.nodes.get_mut(&neighbor_that_remove) {
-                    neighbor_drone.neighbor.retain(|&drone| drone != instance_drone);
-                }
             });
+        }
+
+        for (_, instance) in self.nodes.clone() {
+            if let Some(command) = &instance.command {
+                match command {
+                    GUICommands::Spawn => (),
+                    GUICommands::Crash(drone) => self.crash(drone),
+                    GUICommands::RemoveSender(drone, to_remove) => self.remove_sender(drone, *to_remove),
+                    GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),
+                    GUICommands::SetPDR(drone, pdr) => self.set_pdr(drone, pdr),
+                }       
+            }
         }
     }
 }
