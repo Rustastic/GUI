@@ -73,6 +73,7 @@ impl SimCtrlGUI {
                 remove_sender: false,
                 add_sender: false,
                 set_pdr: false,
+                pdr_value: None,
             };
 
             for drone in new_drone.neighbor.clone() {
