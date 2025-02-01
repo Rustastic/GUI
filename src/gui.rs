@@ -286,19 +286,7 @@ impl eframe::App for SimCtrlGUI {
                                 self.spawn_id = Some(buffer_id);
                             }
                         });
-                
-                        // PDR Input
-                        ui.horizontal(|ui| {
-                            ui.label("Enter PDR:");
-                            let text_pdr = self.spawn_pdr.clone().unwrap_or_default().to_string();
-                            let mut buffer_pdr = text_pdr.clone(); // Buffer for mutation
-                
-                            let text_edit = ui.text_edit_singleline(&mut buffer_pdr);
-                            if text_edit.changed() {
-                                self.spawn_pdr = Some(buffer_pdr);
-                            }
-                        });
-                
+
                         // Multi-Select Neighbor Dropdown
                         ui.label("Select Neighbors:");
                         egui::ComboBox::from_label("Neighbors")
@@ -318,6 +306,18 @@ impl eframe::App for SimCtrlGUI {
                                 }
                             });
                 
+                        // PDR Input
+                        ui.horizontal(|ui| {
+                            ui.label("Enter PDR:");
+                            let text_pdr = self.spawn_pdr.clone().unwrap_or_default().to_string();
+                            let mut buffer_pdr = text_pdr.clone(); // Buffer for mutation
+                
+                            let text_edit = ui.text_edit_singleline(&mut buffer_pdr);
+                            if text_edit.changed() {
+                                self.spawn_pdr = Some(buffer_pdr);
+                            }
+                        });
+                
                         // "Spawn" Button
                         if ui.button("Spawn").clicked() {
                             if let (Some(id_str), Some(pdr_str)) = (&self.spawn_id, &self.spawn_pdr) {
@@ -325,9 +325,18 @@ impl eframe::App for SimCtrlGUI {
                                     if let Ok(pdr) = pdr_str.parse::<f32>() {
                                         let neighbors = self.spawn_neighbors.clone();
                 
+                                        println!("id: {:?} -> {}", self.spawn_id, id);
+                                        println!("neighbors: {:?}", self.spawn_neighbors);
+                                        println!("pdr: {:?} -> {}", self.spawn_pdr, pdr);
+
                                         self.sender.send(GUICommands::Spawn(id, neighbors, pdr)).unwrap();
                                         self.spawn_toggle = false;
                                         self.spawn_button = true;
+
+                                        self.spawn_id = None;
+                                        self.spawn_neighbors.clear();
+                                        self.spawn_pdr = None;
+
                                     } else {
                                         eprintln!("Invalid PDR value");
                                     }
