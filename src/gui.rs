@@ -22,6 +22,7 @@ pub struct SimCtrlGUI {
     spawn_id: Option<String>,
     spawn_neighbors: Vec<NodeId>,
     spawn_pdr: Option<String>,
+    spawn_command: Option<GUICommands>
 }
 
 #[derive(Clone, Debug)]
@@ -56,7 +57,8 @@ impl SimCtrlGUI {
             spawn_toggle: false,
             spawn_id: None,
             spawn_neighbors: Vec::new(),
-            spawn_pdr: None
+            spawn_pdr: None,
+            spawn_command: None
         }
     }
 
@@ -203,33 +205,45 @@ impl SimCtrlGUI {
     }
 
     fn spawn(&mut self, id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
-        // add to nodes
-        let new_drone = DroneGUI {
-            id: *id,
-            neighbor: neighbors.clone(),
-            pdr,
-            x: 400.0,
-            y: 400.0,
+        match self.sender.send(GUICommands::Spawn(*id, neighbors.clone(), pdr)) {
+            Ok(()) => {
+                self.spawn_toggle = false;
+                self.spawn_button = true;
 
-            color: Color32::BLUE,
-            
-            command: None,
-            selected: false,
-            crashed: false,
-            remove_sender: false,
-            add_sender: false,
-            set_pdr: false,
-            pdr_value: None,
+                self.spawn_id = None;
+                self.spawn_neighbors.clear();
+                self.spawn_pdr = None;
+
+                // add to nodes
+                let new_drone = DroneGUI {
+                    id: *id,
+                    neighbor: neighbors.clone(),
+                    pdr,
+                    x: 400.0,
+                    y: 400.0,
+
+                    color: Color32::BLUE,
+                    
+                    command: None,
+                    selected: false,
+                    crashed: false,
+                    remove_sender: false,
+                    add_sender: false,
+                    set_pdr: false,
+                    pdr_value: None,
+                };
+                self.nodes.insert(*id, new_drone);
+
+                // add edges
+                self.edges.insert(*id, neighbors.clone());
+
+                // ad to various instances neighbors
+                for drone in neighbors {
+                    self.nodes.get_mut(drone).unwrap().neighbor.push(*drone);
+                }
+            },
+            Err(_) => panic!(""),
         };
-        self.nodes.insert(*id, new_drone);
-
-        // add edges
-        self.edges.insert(*id, neighbors.clone());
-
-        // ad to various instances neighbors
-        for drone in neighbors {
-            self.nodes.get_mut(drone).unwrap().neighbor.push(*drone);
-        }
     }
 }
 
@@ -325,18 +339,7 @@ impl eframe::App for SimCtrlGUI {
                                     if let Ok(pdr) = pdr_str.parse::<f32>() {
                                         let neighbors = self.spawn_neighbors.clone();
 
-                                        match self.sender.send(GUICommands::Spawn(id, neighbors, pdr)) {
-                                            Ok(()) => {
-                                                self.spawn_toggle = false;
-                                                self.spawn_button = true;
-
-                                                self.spawn_id = None;
-                                                self.spawn_neighbors.clear();
-                                                self.spawn_pdr = None;
-                                            },
-                                            Err(_) => panic!(""),
-                                        };
-
+                                        self.spawn_command = Some(GUICommands::Spawn(id, neighbors, pdr));
                                     } else {
                                         eprintln!("Invalid PDR value");
                                     }
