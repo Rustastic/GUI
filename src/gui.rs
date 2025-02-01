@@ -4,6 +4,7 @@ use crossbeam_channel::{Receiver, Sender};
 use colored::Colorize;
 use eframe::egui::{self, Color32};
 
+use log::error;
 use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
 
 use crate::{GUICommands, GUIEvents};
@@ -136,7 +137,7 @@ impl SimCtrlGUI {
                 let id = self.nodes.get(drone).unwrap().id;
                 self.nodes.remove(&id);
             },
-            Err(e) => panic!("Voglio la mamma: {}", e),
+            Err(e) => error!("[ {} ] Unable to send Crash GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
         }
     }
 
@@ -157,7 +158,7 @@ impl SimCtrlGUI {
                 }
                 
             },
-            Err(e) => panic!("IO ODIO IL GOVERNO"),
+            Err(e) => error!("[ {} ] Unable to send RemoveSender GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
         }
 
         // Remove neighbor from the current instance.
@@ -180,7 +181,7 @@ impl SimCtrlGUI {
                 let neighbor = self.nodes.get_mut(&to_add).unwrap();
                 neighbor.neighbor.push(*drone);
             },
-            Err(e) => panic!("IO ODIO IL GOVERNO"),
+            Err(e) => error!("[ {} ] Unable to send AddSender GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
         }
 
         self.nodes.get_mut(drone).unwrap().command = None;
@@ -192,7 +193,7 @@ impl SimCtrlGUI {
             Ok(_) => {
                 instance.pdr = *pdr;                
             },
-            Err(e) => panic!("IO ODIO IL GOVERNO"),
+            Err(e) => error!("[ {} ] Unable to send SetPacketDropRate GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
         }
 
         instance.command = None;
@@ -235,7 +236,7 @@ impl SimCtrlGUI {
 
                 self.spawn_command = None;
             },
-            Err(_) => panic!(""),
+            Err(e) => error!("[ {} ] Unable to send Spawn GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
         };
     }
 }
@@ -246,7 +247,7 @@ impl eframe::App for SimCtrlGUI {
             match self.receiver.try_recv() {
                 Ok(event) => match event.clone() {
                     GUIEvents::Topology(_) => self.handle_events(event),
-                    _ => panic!("CAZZZOOOOOOOOOOOOOOOOOOOOOOOOOOOO"),
+                    _ => error!("[ {} ] Received NON-Topology GUIEvent before Initialization", "GUI".red()),
                 },
                 Err(e)=> match e {
                     crossbeam_channel::TryRecvError::Empty => (),
@@ -336,10 +337,10 @@ impl eframe::App for SimCtrlGUI {
                                         self.spawn_toggle = false;
                                         self.spawn_button = true;
                                     } else {
-                                        eprintln!("Invalid PDR value");
+                                        error!("[ {} ] Invalid PDR value", "GUI".red());
                                     }
                                 } else {
-                                    eprintln!("Invalid ID value");
+                                    error!("[ {} ] Invalid ID value", "GUI".red());
                                 }
                             }
                         }
@@ -455,7 +456,7 @@ impl eframe::App for SimCtrlGUI {
 
                                                         match value.unwrap().parse::<u8>() {
                                                             Ok(digit) => instance.command = Some(GUICommands::RemoveSender(instance.id, digit)),
-                                                            Err(_) => panic!(""),
+                                                            Err(e) => error!("[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}", "GUI".red(), e),
                                                         }
                                                     }
                                                 }
@@ -484,7 +485,7 @@ impl eframe::App for SimCtrlGUI {
 
                                                         match value.unwrap().parse::<u8>() {
                                                             Ok(digit) => instance.command = Some(GUICommands::AddSender(instance.id, digit)),
-                                                            Err(_) => panic!(""),
+                                                            Err(e) => error!("[ {} ] Unable to parse neighbor NodeId in AddSender GUICommand: {}", "GUI".red(), e),
                                                         }
                                                     }
                                                 }
@@ -514,7 +515,7 @@ impl eframe::App for SimCtrlGUI {
                                                             instance.command = Some(GUICommands::SetPDR(instance.id, digit));
                                                             instance.set_pdr = false; // Close input mode
                                                         }
-                                                        Err(_) => eprintln!("Invalid PDR input"),
+                                                        Err(e) => error!("[ {} ] Invalid PDR input: {}", "GUI".red(), e),
                                                     }
                                                 }
                                             }
