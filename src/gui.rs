@@ -119,12 +119,7 @@ impl SimCtrlGUI {
                 for neighbor_id in instance.neighbor.iter() {
                     // get edges starting from neighbor
                     if let Some(neighbor_drone) = self.edges.get_mut(neighbor_id) {
-                        for (index, drone) in neighbor_drone.clone().iter_mut().enumerate() {
-                            // if they end in the crashing drone
-                            if *drone == instance.id {
-                                neighbor_drone.remove(index);
-                            }
-                        }
+                        neighbor_drone.retain(|drone| *drone != instance.id);
                     }
                 }
 
@@ -166,26 +161,18 @@ impl SimCtrlGUI {
 
     fn add_sender(&mut self, drone: &NodeId, to_add: NodeId) {
         let instance = self.nodes.get_mut(drone).unwrap();
-        match self.sender.send(GUICommands::RemoveSender(instance.id, to_add)) {
+        match self.sender.send(GUICommands::AddSender(instance.id, to_add)) {
             Ok(_) => {
-                // get edges of instance
-                if let Some(edge) = self.edges.get_mut(&instance.id) {
-                    if edge.contains(&to_add) {
-                        edge.retain(|&node| node != to_add);
-                    }
-                } 
-                if let Some(edge) = self.edges.get_mut(&to_add) {
-                    if edge.contains(&instance.id) {
-                        edge.retain(|&node| node != instance.id);
-                    }
-                }
-                
+                instance.neighbor.push(to_add);
+                self.edges.entry(*drone).or_insert_with(Vec::new).push(to_add);
+
+                let neighbor = self.nodes.get_mut(&to_add).unwrap();
+                neighbor.neighbor.push(*drone);
             },
             Err(e) => panic!("IO ODIO IL GOVERNO"),
         }
 
-        // Remove neighbor from the current instance.
-        instance.neighbor.retain(|&drone| drone != to_add);
+        self.nodes.get_mut(drone).unwrap().command = None;
     }
 
     fn set_pdr(&mut self, drone: &NodeId, pdr: &f32) {
@@ -383,13 +370,13 @@ impl eframe::App for SimCtrlGUI {
                                         let mut text_input = value.clone().unwrap_or_default();
                                         let text_edit = ui.text_edit_singleline(&mut text_input);
                                 
-                                        // Update instance.remove_sender_value when the user types
-                                        if text_edit.changed() {
-                                            value = Some(text_input);
-                                        }
-                                
                                         // Add a "Confirm" button to process the input
                                         if ui.button("Confirm").clicked() {
+                                            // Update instance.remove_sender_value when the user types
+                                            if text_edit.changed() {
+                                                value = Some(text_input);
+                                            }
+
                                             if let Some(pdr_value) = &value {
                                                 match pdr_value.parse::<f32>() {
                                                     Ok(digit) => instance.command = Some(GUICommands::SetPDR(instance.id, digit)),
