@@ -129,6 +129,8 @@ impl SimCtrlGUI {
                     }
                 }
 
+                instance.command = None;
+
                 let neighbors = self.nodes.get(drone).unwrap().neighbor.clone();
                 let id = self.nodes.get(drone).unwrap().id.clone();
                 for node in neighbors {
@@ -158,19 +160,18 @@ impl SimCtrlGUI {
                         edge.retain(|&node| node != instance.id);
                     }
                 }
-                
+
+                // Remove neighbor from the current instance.
+                instance.neighbor.retain(|&x| x != to_remove);
+                instance.command = None;
+
+                // Remove neighbor from to_remove
+                let id = self.nodes.get(drone).unwrap().id.clone();
+                let neighbor = self.nodes.get_mut(&to_remove).unwrap();
+                neighbor.neighbor.retain(|&x| x != id);
             },
             Err(e) => error!("[ {} ] Unable to send RemoveSender GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
-        }
-
-        // Remove neighbor from the current instance.
-        instance.neighbor.retain(|&x| x != to_remove);
-
-        // Remove neighbor from to_remove
-        let id = self.nodes.get(drone).unwrap().id.clone();
-        let neighbor = self.nodes.get_mut(&to_remove).unwrap();
-        neighbor.neighbor.retain(|&x| x != id);
-        
+        }        
     }
 
     fn add_sender(&mut self, drone: &NodeId, to_add: NodeId) {
