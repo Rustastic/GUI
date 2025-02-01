@@ -101,7 +101,7 @@ impl SimCtrlGUI {
 
     fn handle_commands(&mut self, drone: NodeId, command: GUICommands) {
         match command {
-            GUICommands::Spawn => (),
+            GUICommands::Spawn(id, neighbors, pdr ) => (),
             GUICommands::Crash(node_id) => (),
             GUICommands::RemoveSender(drone, neighborz) => (),
             GUICommands::AddSender(drone, neighbor) => (),
@@ -210,7 +210,7 @@ impl SimCtrlGUI {
         instance.command = None;
     }
 
-    fn spawn(id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
+    fn spawn(&mut self, id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
         // add to nodes
 
         // add edges
@@ -511,7 +511,7 @@ impl eframe::App for SimCtrlGUI {
         for (_, instance) in self.nodes.clone() {
             if let Some(command) = &instance.command {
                 match command {
-                    GUICommands::Spawn(id, neighbor, pdr) => self.spawn(id, neighbor, pdr),
+                    GUICommands::Spawn(id, neighbor, pdr) => self.spawn(id, neighbor, *pdr),
                     GUICommands::Crash(drone) => self.crash(drone),
                     GUICommands::RemoveSender(drone, to_remove) => self.remove_sender(drone, *to_remove),
                     GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),
