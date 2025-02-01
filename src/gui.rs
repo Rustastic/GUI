@@ -248,8 +248,6 @@ impl SimCtrlGUI {
 
 impl eframe::App for SimCtrlGUI {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
-        std::thread::sleep(std::time::Duration::from_millis(10));
-        
         if !self.initialized {
             warn!("[ {} ] Waiting for initialization", "GUI".green());
             match self.receiver.try_recv() {
