@@ -17,6 +17,7 @@ pub struct SimCtrlGUI {
     nodes: HashMap<NodeId, DroneGUI>,
     edges: HashMap<NodeId, Vec<NodeId>>,
 
+    spawn_button: bool,
     spawn_toggle: bool,
     spawn_id: Option<String>,
     spawn_neighbors: Vec<NodeId>,
@@ -51,6 +52,7 @@ impl SimCtrlGUI {
             nodes: HashMap::new(),
             edges: HashMap::new(),
 
+            spawn_button: true,
             spawn_toggle: false,
             spawn_id: None,
             spawn_neighbors: Vec::new(),
@@ -97,16 +99,6 @@ impl SimCtrlGUI {
         }
 
         self.initialized = true;
-    }
-
-    fn handle_commands(&mut self, drone: NodeId, command: GUICommands) {
-        match command {
-            GUICommands::Spawn(id, neighbors, pdr ) => (),
-            GUICommands::Crash(node_id) => (),
-            GUICommands::RemoveSender(drone, neighborz) => (),
-            GUICommands::AddSender(drone, neighbor) => (),
-            GUICommands::SetPDR(drone, pdr) => (),
-        }
     }
 
     fn handle_events(&mut self, event: GUIEvents) {
@@ -257,6 +249,7 @@ impl eframe::App for SimCtrlGUI {
                 ui.heading("Simulation Controller");
 
                 if self.spawn_toggle {
+                    self.spawn_button = false;
                     ui.vertical(|ui| {
                         ui.heading("Spawn a New Drone");
                 
@@ -312,6 +305,7 @@ impl eframe::App for SimCtrlGUI {
                 
                                         self.sender.send(GUICommands::Spawn(id, neighbors, pdr)).unwrap();
                                         self.spawn_toggle = false;
+                                        self.spawn_button = true;
                                     } else {
                                         eprintln!("Invalid PDR value");
                                     }
@@ -323,9 +317,11 @@ impl eframe::App for SimCtrlGUI {
                     });
                 }
                 
-                // Button to Open the Spawn Form
-                if ui.button("Spawn Drone").clicked() {
-                    self.spawn_toggle = true;
+                if self.spawn_button { 
+                    // Button to Open the Spawn Form
+                    if ui.button("Spawn Drone").clicked() {
+                        self.spawn_toggle = true;
+                    }
                 }
     
                 // Allocating space for drawing and preparing the painter for rendering
