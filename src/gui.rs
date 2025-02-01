@@ -4,7 +4,7 @@ use crossbeam_channel::{Receiver, Sender};
 use colored::Colorize;
 use eframe::egui::{self, Color32};
 
-use log::error;
+use log::{error, info};
 use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
 
 use crate::{GUICommands, GUIEvents};
@@ -99,6 +99,7 @@ impl SimCtrlGUI {
             }
 
             self.nodes.insert(new_drone.id, new_drone);
+            info!("[ {} ] Successfully composed the topology", "GUI".green());
         }
 
         self.initialized = true;
