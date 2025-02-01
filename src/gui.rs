@@ -99,9 +99,9 @@ impl SimCtrlGUI {
             }
 
             self.nodes.insert(new_drone.id, new_drone);
-            info!("[ {} ] Successfully composed the topology", "GUI".green());
         }
 
+        info!("[ {} ] Successfully composed the topology", "GUI".green());
         self.initialized = true;
     }
 
