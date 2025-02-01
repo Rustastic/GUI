@@ -204,10 +204,32 @@ impl SimCtrlGUI {
 
     fn spawn(&mut self, id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
         // add to nodes
+        let new_drone = DroneGUI {
+            id: *id,
+            neighbor: neighbors.clone(),
+            pdr,
+            x: 400.0,
+            y: 400.0,
+
+            color: Color32::BLUE,
+            
+            command: None,
+            selected: false,
+            crashed: false,
+            remove_sender: false,
+            add_sender: false,
+            set_pdr: false,
+            pdr_value: None,
+        };
+        self.nodes.insert(*id, new_drone);
 
         // add edges
+        self.edges.insert(*id, neighbors.clone());
 
         // ad to various instances neighbors
+        for drone in neighbors {
+            self.nodes.get_mut(drone).unwrap().neighbor.push(*drone);
+        }
     }
 }
 
