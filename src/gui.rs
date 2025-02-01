@@ -155,7 +155,12 @@ impl SimCtrlGUI {
         }
 
         // Remove neighbor from the current instance.
-        instance.neighbor.retain(|&drone| drone != to_remove);
+        instance.neighbor.retain(|&x| x != to_remove);
+
+        // Remove neighbor from to_remove
+        let id = self.nodes.get(drone).unwrap().id.clone();
+        let neighbor = self.nodes.get_mut(&to_remove).unwrap();
+        neighbor.neighbor.retain(|&x| x != id);
         
     }
 
