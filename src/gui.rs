@@ -262,23 +262,32 @@ impl eframe::App for SimCtrlGUI {
                                                             Ok(_) => {
                                                                 // get edges of instance
                                                                 if let Some(edge) = self.edges.get_mut(&instance.id) {
-                                                                    // If edge exists
                                                                     if edge.contains(&neighbor) {
-                                                                        println!("case 1");
                                                                         edge.retain(|&node| node != neighbor);
                                                                     }
                                                                 } 
                                                                 if let Some(edge) = self.edges.get_mut(&neighbor) {
                                                                     if edge.contains(&instance.id) {
-                                                                        println!("case 3");
                                                                         edge.retain(|&node| node != instance.id);
-                                                                    } else {
-                                                                        panic!("DIO SANTO");
                                                                     }
                                                                 }
                                                                 
                                                             },
                                                             Err(e) => panic!("IO ODIO IL GOVERNO"),
+                                                        }
+
+                                                        // remove neighbor in gui
+                                                        for (index, drone) in instance.neighbor.clone().iter().enumerate() {
+                                                            if *drone == neighbor {
+                                                                instance.neighbor.remove(index);
+                                                            }
+                                                        }
+
+                                                        let neighbor_drone = self.nodes.get_mut(&neighbor).unwrap();
+                                                        for (index, drone) in neighbor_drone.neighbor.clone().iter().enumerate() {
+                                                            if *drone == instance.id {
+                                                                neighbor_drone.neighbor.remove(index);
+                                                            } 
                                                         }
                                                     }
 
