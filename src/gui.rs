@@ -16,6 +16,11 @@ pub struct SimCtrlGUI {
     initialized: bool,
     nodes: HashMap<NodeId, DroneGUI>,
     edges: HashMap<NodeId, Vec<NodeId>>,
+
+    spawn_toggle: bool,
+    spawn_id: Option<String>,
+    spawn_neighbors: Vec<NodeId>,
+    spawn_pdr: Option<String>,
 }
 
 #[derive(Clone, Debug)]
@@ -45,6 +50,11 @@ impl SimCtrlGUI {
             initialized: false,
             nodes: HashMap::new(),
             edges: HashMap::new(),
+
+            spawn_toggle: false,
+            spawn_id: None,
+            spawn_neighbors: Vec::new(),
+            spawn_pdr: None
         }
     }
 
@@ -199,6 +209,14 @@ impl SimCtrlGUI {
 
         instance.command = None;
     }
+
+    fn spawn(id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
+        // add to nodes
+
+        // add edges
+
+        // ad to various instances neighbors
+    }
 }
 
 impl eframe::App for SimCtrlGUI {
@@ -237,6 +255,78 @@ impl eframe::App for SimCtrlGUI {
 
             egui::CentralPanel::default().show(ctx, |ui| {
                 ui.heading("Simulation Controller");
+
+                if self.spawn_toggle {
+                    ui.vertical(|ui| {
+                        ui.heading("Spawn a New Drone");
+                
+                        // ID Input
+                        ui.horizontal(|ui| {
+                            ui.label("Enter Drone ID:");
+                            let text_id = self.spawn_id.clone().unwrap_or_default().to_string();
+                            let mut buffer_id = text_id.clone(); // Buffer for mutation
+                
+                            let text_edit = ui.text_edit_singleline(&mut buffer_id);
+                            if text_edit.changed() {
+                                self.spawn_id = Some(buffer_id);
+                            }
+                        });
+                
+                        // PDR Input
+                        ui.horizontal(|ui| {
+                            ui.label("Enter PDR:");
+                            let text_pdr = self.spawn_pdr.clone().unwrap_or_default().to_string();
+                            let mut buffer_pdr = text_pdr.clone(); // Buffer for mutation
+                
+                            let text_edit = ui.text_edit_singleline(&mut buffer_pdr);
+                            if text_edit.changed() {
+                                self.spawn_pdr = Some(buffer_pdr);
+                            }
+                        });
+                
+                        // Multi-Select Neighbor Dropdown
+                        ui.label("Select Neighbors:");
+                        egui::ComboBox::from_label("Neighbors")
+                            .selected_text(format!("{:?}", self.spawn_neighbors))
+                            .show_ui(ui, |ui| {
+                                for &neighbor in self.nodes.keys() {
+                                    let label = format!("{}", neighbor);
+                                    let is_selected = self.spawn_neighbors.contains(&neighbor);
+                
+                                    if ui.selectable_label(is_selected, label).clicked() {
+                                        if is_selected {
+                                            self.spawn_neighbors.retain(|&n| n != neighbor);
+                                        } else {
+                                            self.spawn_neighbors.push(neighbor);
+                                        }
+                                    }
+                                }
+                            });
+                
+                        // "Spawn" Button
+                        if ui.button("Spawn").clicked() {
+                            if let (Some(id_str), Some(pdr_str)) = (&self.spawn_id, &self.spawn_pdr) {
+                                if let Ok(id) = id_str.parse::<u8>() {
+                                    if let Ok(pdr) = pdr_str.parse::<f32>() {
+                                        let neighbors = self.spawn_neighbors.clone();
+                
+                                        self.sender.send(GUICommands::Spawn(id, neighbors, pdr)).unwrap();
+                                        self.spawn_toggle = false;
+                                    } else {
+                                        eprintln!("Invalid PDR value");
+                                    }
+                                } else {
+                                    eprintln!("Invalid ID value");
+                                }
+                            }
+                        }
+                    });
+                }
+                
+                // Button to Open the Spawn Form
+                if ui.button("Spawn Drone").clicked() {
+                    self.spawn_toggle = true;
+                }
     
                 // Allocating space for drawing and preparing the painter for rendering
                 let (_response, painter) =
@@ -421,7 +511,7 @@ impl eframe::App for SimCtrlGUI {
         for (_, instance) in self.nodes.clone() {
             if let Some(command) = &instance.command {
                 match command {
-                    GUICommands::Spawn => (),
+                    GUICommands::Spawn(id, neighbor, pdr) => self.spawn(id, neighbor, pdr),
                     GUICommands::Crash(drone) => self.crash(drone),
                     GUICommands::RemoveSender(drone, to_remove) => self.remove_sender(drone, *to_remove),
                     GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),

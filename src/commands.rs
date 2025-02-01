@@ -11,7 +11,7 @@ pub enum GUIEvents {
 // From GUI to SimCtrl
 #[derive(Debug, Clone)]
 pub enum GUICommands {
-    Spawn,
+    Spawn(NodeId, Vec<NodeId>, f32),
     Crash(NodeId),
     RemoveSender(NodeId, NodeId),
     AddSender(NodeId, NodeId),
