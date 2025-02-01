@@ -171,6 +171,8 @@ impl eframe::App for SimCtrlGUI {
                     painter.circle_filled(screen_pos, radius, pos.color);
                 }
     
+                let mut neighbor_that_remove: NodeId = 255;
+                let mut instance_drone: NodeId = 255;
                 // Displaying a pop-up with detailed information when a drone is selected
                 for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
@@ -276,19 +278,11 @@ impl eframe::App for SimCtrlGUI {
                                                             Err(e) => panic!("IO ODIO IL GOVERNO"),
                                                         }
 
-                                                        // remove neighbor in gui
-                                                        for (index, drone) in instance.neighbor.clone().iter().enumerate() {
-                                                            if *drone == neighbor {
-                                                                instance.neighbor.remove(index);
-                                                            }
-                                                        }
-
-                                                        let neighbor_drone = self.nodes.get_mut(&neighbor).unwrap();
-                                                        for (index, drone) in neighbor_drone.neighbor.clone().iter().enumerate() {
-                                                            if *drone == instance.id {
-                                                                neighbor_drone.neighbor.remove(index);
-                                                            } 
-                                                        }
+                                                        // Remove neighbor from the current instance.
+                                                        instance.neighbor.retain(|&drone| drone != neighbor);
+                                                        neighbor_that_remove = neighbor;
+                                                        instance_drone = instance.id;
+                                                        
                                                     }
 
                                                     instance.remove_sender = false;
@@ -305,6 +299,11 @@ impl eframe::App for SimCtrlGUI {
                                 }
                             });
                     }
+                }
+
+                // Also remove current instance from the neighbor's list.
+                if let Some(neighbor_drone) = self.nodes.get_mut(&neighbor_that_remove) {
+                    neighbor_drone.neighbor.retain(|&drone| drone != instance_drone);
                 }
             });
         }
