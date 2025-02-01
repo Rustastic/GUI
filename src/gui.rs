@@ -324,18 +324,18 @@ impl eframe::App for SimCtrlGUI {
                                 if let Ok(id) = id_str.parse::<u8>() {
                                     if let Ok(pdr) = pdr_str.parse::<f32>() {
                                         let neighbors = self.spawn_neighbors.clone();
-                
-                                        println!("id: {:?} -> {}", self.spawn_id, id);
-                                        println!("neighbors: {:?}", self.spawn_neighbors);
-                                        println!("pdr: {:?} -> {}", self.spawn_pdr, pdr);
 
-                                        self.sender.send(GUICommands::Spawn(id, neighbors, pdr)).unwrap();
-                                        self.spawn_toggle = false;
-                                        self.spawn_button = true;
+                                        match self.sender.send(GUICommands::Spawn(id, neighbors, pdr)) {
+                                            Ok(()) => {
+                                                self.spawn_toggle = false;
+                                                self.spawn_button = true;
 
-                                        self.spawn_id = None;
-                                        self.spawn_neighbors.clear();
-                                        self.spawn_pdr = None;
+                                                self.spawn_id = None;
+                                                self.spawn_neighbors.clear();
+                                                self.spawn_pdr = None;
+                                            },
+                                            Err(_) => panic!(""),
+                                        };
 
                                     } else {
                                         eprintln!("Invalid PDR value");
