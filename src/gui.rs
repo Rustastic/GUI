@@ -156,7 +156,7 @@ impl SimCtrlGUI {
         let instance = self.nodes.get_mut(drone).unwrap();
         match self.sender.send(GUICommands::RemoveSender(instance.id, to_remove)) {
             Ok(_) => {
-                info!("[ {} ] Successfully sent GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, to_add);
+                info!("[ {} ] Successfully sent GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, to_remove);
                 if let Some(edge) = self.edges.get_mut(&instance.id) {
                     if edge.contains(&to_remove) {
                         edge.retain(|&node| node != to_remove);
