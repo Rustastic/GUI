@@ -1,5 +1,5 @@
-use std::{collections::HashMap, f32::consts::PI};
 use crossbeam_channel::{Receiver, Sender};
+use std::{collections::HashMap, f32::consts::PI};
 
 use colored::Colorize;
 use eframe::egui::{self, Color32};
@@ -23,7 +23,7 @@ pub struct SimCtrlGUI {
     spawn_id: Option<String>,
     spawn_neighbors: Vec<NodeId>,
     spawn_pdr: Option<String>,
-    spawn_command: Option<GUICommands>
+    spawn_command: Option<GUICommands>,
 }
 
 #[derive(Clone, Debug)]
@@ -42,7 +42,7 @@ struct DroneGUI {
     remove_sender: bool,
     add_sender: bool,
     set_pdr: bool,
-    pdr_value: Option<String>
+    pdr_value: Option<String>,
 }
 
 impl SimCtrlGUI {
@@ -59,7 +59,7 @@ impl SimCtrlGUI {
             spawn_id: None,
             spawn_neighbors: Vec::new(),
             spawn_pdr: None,
-            spawn_command: None
+            spawn_command: None,
         }
     }
 
@@ -109,7 +109,7 @@ impl SimCtrlGUI {
         match event {
             GUIEvents::PacketSent(src, dest, packet) => (),
             GUIEvents::PacketDropped(src, packet) => (),
-            GUIEvents::Topology(topology) => self.topology(topology)
+            GUIEvents::Topology(topology) => self.topology(topology),
         }
     }
 
@@ -117,7 +117,10 @@ impl SimCtrlGUI {
         let instance = self.nodes.get_mut(drone).unwrap();
         match self.sender.send(GUICommands::Crash(instance.id)) {
             Ok(()) => {
-                info!("[ {} ] Successfully sent GUICommand::Crash from GUI to Simulation Controller", "GUI".green());
+                info!(
+                    "[ {} ] Successfully sent GUICommand::Crash from GUI to Simulation Controller",
+                    "GUI".green()
+                );
                 // remove from edge hashmap
                 self.edges.remove(&instance.id);
 
@@ -134,14 +137,18 @@ impl SimCtrlGUI {
                 let neighbors = self.nodes.get(drone).unwrap().neighbor.clone();
                 let id = self.nodes.get(drone).unwrap().id.clone();
                 for node in neighbors {
-                    let a =self.nodes.get_mut(&node).unwrap();
+                    let a = self.nodes.get_mut(&node).unwrap();
                     a.neighbor.retain(|&x| x != id);
                 }
 
                 let id = self.nodes.get(drone).unwrap().id;
                 self.nodes.remove(&id);
-            },
-            Err(e) => error!("[ {} ] Unable to send Crash GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
+            }
+            Err(e) => error!(
+                "[ {} ] Unable to send GUICommand::Crash from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                e
+            ),
         }
     }
 
@@ -154,7 +161,7 @@ impl SimCtrlGUI {
                     if edge.contains(&to_remove) {
                         edge.retain(|&node| node != to_remove);
                     }
-                } 
+                }
                 if let Some(edge) = self.edges.get_mut(&to_remove) {
                     if edge.contains(&instance.id) {
                         edge.retain(|&node| node != instance.id);
@@ -170,22 +177,32 @@ impl SimCtrlGUI {
                 let neighbor = self.nodes.get_mut(&to_remove).unwrap();
                 neighbor.neighbor.retain(|&x| x != id);
             },
-            Err(e) => error!("[ {} ] Unable to send RemoveSender GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
-        }        
+            Err(e) => error!("[ {} ] Unable to send GUICommand::RemoveSender from GUI to Simulation Controller: {}", "GUI".red(), e),
+        }
     }
 
     fn add_sender(&mut self, drone: &NodeId, to_add: NodeId) {
         let instance = self.nodes.get_mut(drone).unwrap();
-        match self.sender.send(GUICommands::AddSender(instance.id, to_add)) {
+        match self
+            .sender
+            .send(GUICommands::AddSender(instance.id, to_add))
+        {
             Ok(_) => {
-                info!("[ {} ] Successfully sent GUICommand::AddSender from GUI to Simulation Controller", "GUI".green());
+                info!("[ {} ] Successfully sent GUICommand::AddSender({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, to_add);
                 instance.neighbor.push(to_add);
-                self.edges.entry(*drone).or_insert_with(Vec::new).push(to_add);
+                self.edges
+                    .entry(*drone)
+                    .or_insert_with(Vec::new)
+                    .push(to_add);
 
                 let neighbor = self.nodes.get_mut(&to_add).unwrap();
                 neighbor.neighbor.push(*drone);
-            },
-            Err(e) => error!("[ {} ] Unable to send AddSender GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
+            }
+            Err(e) => error!(
+                "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                e
+            ),
         }
 
         self.nodes.get_mut(drone).unwrap().command = None;
@@ -195,17 +212,27 @@ impl SimCtrlGUI {
         let instance = self.nodes.get_mut(drone).unwrap();
         match self.sender.send(GUICommands::SetPDR(instance.id, *pdr)) {
             Ok(_) => {
-                info!("[ {} ] Successfully sent GUICommand::SetPDR from GUI to Simulation Controller", "GUI".green());
-                instance.pdr = *pdr;                
-            },
-            Err(e) => error!("[ {} ] Unable to send SetPacketDropRate GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
+                info!(
+                    "[ {} ] Successfully sent GUICommand::SetPDR from GUI to Simulation Controller",
+                    "GUI".green()
+                );
+                instance.pdr = *pdr;
+            }
+            Err(e) => error!(
+                "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                e
+            ),
         }
 
         instance.command = None;
     }
 
     fn spawn(&mut self, id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
-        match self.sender.send(GUICommands::Spawn(*id, neighbors.clone(), pdr)) {
+        match self
+            .sender
+            .send(GUICommands::Spawn(*id, neighbors.clone(), pdr))
+        {
             Ok(()) => {
                 self.spawn_id = None;
                 self.spawn_neighbors.clear();
@@ -219,7 +246,7 @@ impl SimCtrlGUI {
                     x: 400.0,
                     y: 400.0,
                     color: Color32::BLUE,
-                    
+
                     command: None,
 
                     selected: false,
@@ -240,8 +267,12 @@ impl SimCtrlGUI {
                 }
 
                 self.spawn_command = None;
-            },
-            Err(e) => error!("[ {} ] Unable to send Spawn GUICommand from GUI to Simulation Controller: {}", "GUI".red(), e),
+            }
+            Err(e) => error!(
+                "[ {} ] Unable to send Spawn GUICommand from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                e
+            ),
         };
     }
 }
@@ -253,21 +284,24 @@ impl eframe::App for SimCtrlGUI {
             match self.receiver.try_recv() {
                 Ok(event) => match event.clone() {
                     GUIEvents::Topology(_) => self.handle_events(event),
-                    _ => error!("[ {} ] Received NON-Topology GUIEvent before Initialization", "GUI".red()),
+                    _ => error!(
+                        "[ {} ] Received NON-Topology GUIEvent before Initialization",
+                        "GUI".red()
+                    ),
                 },
-                Err(e)=> match e {
+                Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => (),
                     crossbeam_channel::TryRecvError::Disconnected => eprintln!(
                         "[ {} ]: GUICommands receiver channel disconnected: {}",
                         "Simulation Controller".red(),
                         e
                     ),
-                }
+                },
             }
         } else {
             match self.receiver.try_recv() {
                 Ok(event) => self.handle_events(event),
-                Err(e)=> match e {
+                Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => (),
                     crossbeam_channel::TryRecvError::Disconnected => {
                         eprintln!(
@@ -277,8 +311,7 @@ impl eframe::App for SimCtrlGUI {
                         );
                         return;
                     }
-                }
-                
+                },
             }
 
             egui::CentralPanel::default().show(ctx, |ui| {
@@ -287,13 +320,13 @@ impl eframe::App for SimCtrlGUI {
                 if self.spawn_toggle {
                     ui.vertical(|ui| {
                         ui.heading("Spawn a New Drone");
-                
+
                         // ID Input
                         ui.horizontal(|ui| {
                             ui.label("Enter Drone ID:");
                             let text_id = self.spawn_id.clone().unwrap_or_default().to_string();
                             let mut buffer_id = text_id.clone(); // Buffer for mutation
-                
+
                             let text_edit = ui.text_edit_singleline(&mut buffer_id);
                             if text_edit.changed() {
                                 self.spawn_id = Some(buffer_id);
@@ -308,7 +341,7 @@ impl eframe::App for SimCtrlGUI {
                                 for &neighbor in self.nodes.keys() {
                                     let label = format!("{}", neighbor);
                                     let is_selected = self.spawn_neighbors.contains(&neighbor);
-                
+
                                     if ui.selectable_label(is_selected, label).clicked() {
                                         if is_selected {
                                             self.spawn_neighbors.retain(|&n| n != neighbor);
@@ -318,19 +351,19 @@ impl eframe::App for SimCtrlGUI {
                                     }
                                 }
                             });
-                
+
                         // PDR Input
                         ui.horizontal(|ui| {
                             ui.label("Enter PDR:");
                             let text_pdr = self.spawn_pdr.clone().unwrap_or_default().to_string();
                             let mut buffer_pdr = text_pdr.clone(); // Buffer for mutation
-                
+
                             let text_edit = ui.text_edit_singleline(&mut buffer_pdr);
                             if text_edit.changed() {
                                 self.spawn_pdr = Some(buffer_pdr);
                             }
                         });
-                
+
                         // "Spawn" Button
                         if ui.button("Spawn").clicked() {
                             if let (Some(id_str), Some(pdr_str)) = (&self.spawn_id, &self.spawn_pdr) {
@@ -354,8 +387,8 @@ impl eframe::App for SimCtrlGUI {
                         }
                     });
                 }
-                
-                if self.spawn_button { 
+
+                if self.spawn_button {
                     // Button to Open the Spawn Form
                     if ui.button("Spawn Drone").clicked() {
                         self.spawn_toggle = true;
@@ -363,11 +396,11 @@ impl eframe::App for SimCtrlGUI {
                         info!("[ {} ] Spawn button pressed", "GUI".green());
                     }
                 }
-    
+
                 // Allocating space for drawing and preparing the painter for rendering
                 let (_response, painter) =
                     ui.allocate_painter(egui::Vec2::new(900.0, 900.0), egui::Sense::hover());
-    
+
                 // Drawing edges (connections) between drones
                 for (start_id, neighbor) in self.edges.clone() {
                     let start = self.nodes.get(&start_id).unwrap();
@@ -379,23 +412,23 @@ impl eframe::App for SimCtrlGUI {
                         );
                     }
                 }
-    
+
                 // Drawing the nodes (drones) and handling user interaction for selection
                 for (_, pos) in self.nodes.iter_mut() {
                     let screen_pos = egui::pos2(pos.x, pos.y);
                     let radius = 10.0;
-    
+
                     // Allocating space for each drone's graphical representation
                     let response = ui.allocate_rect(
                         egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.0)),
                         egui::Sense::click(),
                     );
-    
+
                     // Detecting if the drone is clicked and updating its selected status
                     if response.clicked() {
                         pos.selected = true;
                     }
-    
+
                     // Drawing the drone as a filled circle
                     painter.circle_filled(screen_pos, radius, pos.color);
                 }
@@ -418,7 +451,7 @@ impl eframe::App for SimCtrlGUI {
                                     ui.label(format!("PDR: {}", instance.pdr));
                                 }
                                 ui.add_space(10.0);
-    
+
                                 // Buttons to change the color of the selected drone
                                 if !instance.crashed {
                                     ui.horizontal_centered(|ui| {
@@ -510,18 +543,18 @@ impl eframe::App for SimCtrlGUI {
                                     if instance.set_pdr{
                                         ui.horizontal(|ui| {
                                             ui.label("Enter desired PDR:");
-                                        
+
                                             // Ensure there's a default value for the input field
                                             let text_input = instance.pdr_value.clone().unwrap_or_default();
                                             let mut buffer = text_input.clone(); // Copy for mutation
-                                        
+
                                             let text_edit = ui.text_edit_singleline(&mut buffer);
-                                        
+
                                             // Update instance.remove_sender_value only if the text changed
                                             if text_edit.changed() {
                                                 instance.pdr_value = Some(buffer);
                                             }
-                                        
+
                                             // "Confirm" button to process input
                                             if ui.button("Confirm").clicked() {
                                                 if let Some(pdr_value) = &instance.pdr_value {
@@ -540,7 +573,7 @@ impl eframe::App for SimCtrlGUI {
                                 }
 
                                 ui.add_space(10.0);
-    
+
                                 // Button to close the window
                                 if ui.button("Close").clicked() {
                                     instance.selected = false;
@@ -556,11 +589,13 @@ impl eframe::App for SimCtrlGUI {
                 info!("[ {} ] Handling {:?}", "GUI".green(), command);
                 match command {
                     GUICommands::Crash(drone) => self.crash(drone),
-                    GUICommands::RemoveSender(drone, to_remove) => self.remove_sender(drone, *to_remove),
+                    GUICommands::RemoveSender(drone, to_remove) => {
+                        self.remove_sender(drone, *to_remove)
+                    }
                     GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),
                     GUICommands::SetPDR(drone, pdr) => self.set_pdr(drone, pdr),
                     _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
-                }       
+                }
             }
         }
 
