@@ -256,7 +256,11 @@ impl SimCtrlGUI {
 
                 // ad to various instances neighbors
                 for drone in neighbors {
-                    self.nodes.get_mut(drone).unwrap().neighbor.push(new_drone.id);
+                    self.nodes
+                        .get_mut(drone)
+                        .unwrap()
+                        .neighbor
+                        .push(new_drone.id);
                 }
 
                 self.nodes.insert(*id, new_drone);
