@@ -152,29 +152,29 @@ impl SimCtrlGUI {
         }
     }
 
-    fn remove_sender(&mut self, drone: &NodeId, to_remove: NodeId) {
+    fn remove_sender(&mut self, drone: &NodeId, to_remove: &NodeId) {
         let instance = self.nodes.get_mut(drone).unwrap();
-        match self.sender.send(GUICommands::RemoveSender(instance.id, to_remove)) {
+        match self.sender.send(GUICommands::RemoveSender(instance.id, *to_remove)) {
             Ok(_) => {
                 info!("[ {} ] Successfully sent GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, to_remove);
                 if let Some(edge) = self.edges.get_mut(&instance.id) {
-                    if edge.contains(&to_remove) {
-                        edge.retain(|&node| node != to_remove);
+                    if edge.contains(to_remove) {
+                        edge.retain(|&node| node != *to_remove);
                     }
                 }
-                if let Some(edge) = self.edges.get_mut(&to_remove) {
+                if let Some(edge) = self.edges.get_mut(to_remove) {
                     if edge.contains(&instance.id) {
                         edge.retain(|&node| node != instance.id);
                     }
                 }
 
                 // Remove neighbor from the current instance.
-                instance.neighbor.retain(|&x| x != to_remove);
+                instance.neighbor.retain(|&x| x != *to_remove);
                 instance.command = None;
 
                 // Remove neighbor from to_remove
                 let id = self.nodes.get(drone).unwrap().id.clone();
-                let neighbor = self.nodes.get_mut(&to_remove).unwrap();
+                let neighbor = self.nodes.get_mut(to_remove).unwrap();
                 neighbor.neighbor.retain(|&x| x != id);
             },
             Err(e) => error!("[ {} ] Unable to send GUICommand::RemoveSender from GUI to Simulation Controller: {}", "GUI".red(), e),
@@ -253,20 +253,21 @@ impl SimCtrlGUI {
                     set_pdr: false,
                     pdr_value: None,
                 };
+
+                // ad to various instances neighbors
+                for drone in neighbors {
+                    self.nodes.get_mut(drone).unwrap().neighbor.push(new_drone.id);
+                }
+
                 self.nodes.insert(*id, new_drone);
 
                 // add edges
                 self.edges.insert(*id, neighbors.clone());
 
-                // ad to various instances neighbors
-                for drone in neighbors {
-                    self.nodes.get_mut(drone).unwrap().neighbor.push(*drone);
-                }
-
                 self.spawn_command = None;
             }
             Err(e) => error!(
-                "[ {} ] Unable to send Spawn GUICommand from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::Spawn from GUI to Simulation Controller: {}",
                 "GUI".red(),
                 e
             ),
@@ -587,7 +588,7 @@ impl eframe::App for SimCtrlGUI {
                 match command {
                     GUICommands::Crash(drone) => self.crash(drone),
                     GUICommands::RemoveSender(drone, to_remove) => {
-                        self.remove_sender(drone, *to_remove)
+                        self.remove_sender(drone, to_remove)
                     }
                     GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),
                     GUICommands::SetPDR(drone, pdr) => self.set_pdr(drone, pdr),
