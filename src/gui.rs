@@ -299,9 +299,9 @@ impl eframe::App for SimCtrlGUI {
 
                                 if !instance.crashed {
                                     if instance.remove_sender {
-                                        let mut value: Option<String> = None;
+                                        let mut _value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Sender to remove: ")
-                                            .selected_text(value.clone().unwrap_or("None".to_string()))
+                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 let mut options = Vec::<String>::new();
                                                 for numbers in instance.neighbor.clone() {
@@ -313,10 +313,10 @@ impl eframe::App for SimCtrlGUI {
                                                         false,
                                                         &option,
                                                     ).clicked() {
-                                                        value = Some(option.to_string());
+                                                        _value = Some(option.to_string());
                                                         instance.remove_sender = false;
 
-                                                        match value.unwrap().parse::<u8>() {
+                                                        match _value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
                                                                 info!("[ {} ] Passing to handler GUICommands::RemoveSender({}, {})", "GUI".green(), instance.id, digit);
                                                                 instance.command = Some(GUICommands::RemoveSender(instance.id, digit))
@@ -329,9 +329,9 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.add_sender {
-                                        let mut value: Option<String> = None;
+                                        let mut _value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Sender to add: ")
-                                            .selected_text(value.clone().unwrap_or("None".to_string()))
+                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 let mut options = Vec::<String>::new();
                                                 for (numbers, _) in self.edges.iter() {
@@ -345,10 +345,10 @@ impl eframe::App for SimCtrlGUI {
                                                         false,
                                                         &option,
                                                     ).clicked() {
-                                                        value = Some(option.to_string());
+                                                        _value = Some(option.to_string());
                                                         instance.remove_sender = false;
 
-                                                        match value.unwrap().parse::<u8>() {
+                                                        match _value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
                                                                 info!("[ {} ] Passing to handler GUICommands::AddSender({}, {})", "GUI".green(), instance.id, digit);
                                                                 instance.command = Some(GUICommands::AddSender(instance.id, digit))
