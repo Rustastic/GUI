@@ -4,7 +4,7 @@ use colored::Colorize;
 use log::{error, info};
 use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
 
-use crate::{DroneGUI, GUICommands, SimCtrlGUI};
+use crate::{commands::GUICommands, DroneGUI, SimCtrlGUI};
 
 pub fn topology(sim_ctrl: &mut SimCtrlGUI, topology: Vec<ConfigDrone>) {
     let radius = 200.0;

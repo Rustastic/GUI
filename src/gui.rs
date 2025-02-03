@@ -7,7 +7,10 @@ use eframe::egui::{self, Color32};
 use log::{error, info, warn};
 use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
 
-use crate::{actions, GUICommands, GUIEvents};
+use crate::{
+    actions,
+    commands::{GUICommands, GUIEvents},
+};
 
 #[derive(Clone, Debug)]
 pub struct SimCtrlGUI {
