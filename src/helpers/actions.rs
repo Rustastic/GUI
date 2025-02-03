@@ -201,6 +201,8 @@ pub fn spawn(sim_ctrl: &mut SimCtrlGUI, id: &NodeId, neighbors: &Vec<NodeId>, pd
             sim_ctrl.edges.insert(*id, neighbors.clone());
 
             sim_ctrl.spawn_command = None;
+
+            info!("[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller", "GUI".green(), id, neighbors, pdr)
         }
         Err(e) => error!(
             "[ {} ] Unable to send GUICommand::Spawn from GUI to Simulation Controller: {}",
