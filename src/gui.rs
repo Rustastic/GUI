@@ -1,5 +1,5 @@
 use crossbeam_channel::{Receiver, Sender};
-use std::{collections::HashMap, f32::consts::PI};
+use std::collections::HashMap;
 
 use colored::Colorize;
 use eframe::egui::{self, Color32};
@@ -7,35 +7,35 @@ use eframe::egui::{self, Color32};
 use log::{error, info, warn};
 use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
 
-use crate::{GUICommands, GUIEvents};
+use crate::{actions, GUICommands, GUIEvents};
 
 #[derive(Clone, Debug)]
 pub struct SimCtrlGUI {
-    sender: Sender<GUICommands>,
+    pub sender: Sender<GUICommands>,
     receiver: Receiver<GUIEvents>,
 
-    initialized: bool,
-    nodes: HashMap<NodeId, DroneGUI>,
-    edges: HashMap<NodeId, Vec<NodeId>>,
+    pub initialized: bool,
+    pub nodes: HashMap<NodeId, DroneGUI>,
+    pub edges: HashMap<NodeId, Vec<NodeId>>,
 
     spawn_button: bool,
     spawn_toggle: bool,
-    spawn_id: Option<String>,
-    spawn_neighbors: Vec<NodeId>,
-    spawn_pdr: Option<String>,
-    spawn_command: Option<GUICommands>,
+    pub spawn_id: Option<String>,
+    pub spawn_neighbors: Vec<NodeId>,
+    pub spawn_pdr: Option<String>,
+    pub spawn_command: Option<GUICommands>,
 }
 
 #[derive(Clone, Debug)]
-struct DroneGUI {
-    id: NodeId,
-    neighbor: Vec<NodeId>,
-    pdr: f32,
+pub struct DroneGUI {
+    pub id: NodeId,
+    pub neighbor: Vec<NodeId>,
+    pub pdr: f32,
     x: f32,
     y: f32,
     color: egui::Color32,
 
-    command: Option<GUICommands>,
+    pub command: Option<GUICommands>,
 
     selected: bool,
     crashed: bool,
@@ -43,6 +43,28 @@ struct DroneGUI {
     add_sender: bool,
     set_pdr: bool,
     pdr_value: Option<String>,
+}
+
+impl DroneGUI {
+    pub fn new(drone: ConfigDrone, x: f32, y: f32) -> Self {
+        Self {
+            id: drone.id,
+            neighbor: drone.connected_node_ids.clone(),
+            pdr: drone.pdr,
+            x,
+            y,
+            color: Color32::BLUE,
+
+            command: None,
+
+            selected: false,
+            crashed: false,
+            remove_sender: false,
+            add_sender: false,
+            set_pdr: false,
+            pdr_value: None,
+        }
+    }
 }
 
 impl SimCtrlGUI {
@@ -63,219 +85,12 @@ impl SimCtrlGUI {
         }
     }
 
-    fn topology(&mut self, topology: Vec<ConfigDrone>) {
-        let radius = 200.0;
-        let center_x = 400.0;
-        let center_y = 400.0;
-
-        for (i, drone) in topology.iter().enumerate() {
-            let angle = i as f32 * (2.0 * PI / 10.0);
-            let x = center_x + radius * angle.cos();
-            let y = center_y + radius * angle.sin();
-
-            let new_drone = DroneGUI {
-                id: drone.id,
-                neighbor: drone.connected_node_ids.clone(),
-                pdr: drone.pdr,
-                x,
-                y,
-                color: Color32::BLUE,
-
-                command: None,
-
-                selected: false,
-                crashed: false,
-                remove_sender: false,
-                add_sender: false,
-                set_pdr: false,
-                pdr_value: None,
-            };
-
-            for drone in new_drone.neighbor.clone() {
-                if !self.edges.contains_key(&drone) {
-                    let vec = self.edges.entry(new_drone.id).or_insert_with(Vec::new);
-                    vec.push(drone);
-                }
-            }
-
-            self.nodes.insert(new_drone.id, new_drone);
-        }
-
-        info!("[ {} ] Successfully composed the topology", "GUI".green());
-        self.initialized = true;
-    }
-
     fn handle_events(&mut self, event: GUIEvents) {
         match event {
             GUIEvents::PacketSent(src, dest, packet) => (),
             GUIEvents::PacketDropped(src, packet) => (),
-            GUIEvents::Topology(topology) => self.topology(topology),
+            GUIEvents::Topology(topology) => actions::topology(self, topology),
         }
-    }
-
-    fn crash(&mut self, drone: &NodeId) {
-        let instance = self.nodes.get_mut(drone).unwrap();
-        match self.sender.send(GUICommands::Crash(instance.id)) {
-            Ok(()) => {
-                info!(
-                    "[ {} ] Successfully sent GUICommand::Crash from GUI to Simulation Controller",
-                    "GUI".green()
-                );
-                // remove from edge hashmap
-                self.edges.remove(&instance.id);
-
-                // remove edges starting from neighbor
-                for neighbor_id in instance.neighbor.iter() {
-                    // get edges starting from neighbor
-                    if let Some(neighbor_drone) = self.edges.get_mut(neighbor_id) {
-                        neighbor_drone.retain(|drone| *drone != instance.id);
-                    }
-                }
-
-                instance.command = None;
-
-                let neighbors = self.nodes.get(drone).unwrap().neighbor.clone();
-                let id = self.nodes.get(drone).unwrap().id.clone();
-                for node in neighbors {
-                    let a = self.nodes.get_mut(&node).unwrap();
-                    a.neighbor.retain(|&x| x != id);
-                }
-
-                let id = self.nodes.get(drone).unwrap().id;
-                self.nodes.remove(&id);
-            }
-            Err(e) => error!(
-                "[ {} ] Unable to send GUICommand::Crash from GUI to Simulation Controller: {}",
-                "GUI".red(),
-                e
-            ),
-        }
-    }
-
-    fn remove_sender(&mut self, drone: &NodeId, to_remove: &NodeId) {
-        let instance = self.nodes.get_mut(drone).unwrap();
-        match self.sender.send(GUICommands::RemoveSender(instance.id, *to_remove)) {
-            Ok(_) => {
-                info!("[ {} ] Successfully sent GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, to_remove);
-                if let Some(edge) = self.edges.get_mut(&instance.id) {
-                    if edge.contains(to_remove) {
-                        edge.retain(|&node| node != *to_remove);
-                    }
-                }
-                if let Some(edge) = self.edges.get_mut(to_remove) {
-                    if edge.contains(&instance.id) {
-                        edge.retain(|&node| node != instance.id);
-                    }
-                }
-
-                // Remove neighbor from the current instance.
-                instance.neighbor.retain(|&x| x != *to_remove);
-                instance.command = None;
-
-                // Remove neighbor from to_remove
-                let id = self.nodes.get(drone).unwrap().id.clone();
-                let neighbor = self.nodes.get_mut(to_remove).unwrap();
-                neighbor.neighbor.retain(|&x| x != id);
-            },
-            Err(e) => error!("[ {} ] Unable to send GUICommand::RemoveSender from GUI to Simulation Controller: {}", "GUI".red(), e),
-        }
-    }
-
-    fn add_sender(&mut self, drone: &NodeId, to_add: NodeId) {
-        let instance = self.nodes.get_mut(drone).unwrap();
-        match self
-            .sender
-            .send(GUICommands::AddSender(instance.id, to_add))
-        {
-            Ok(_) => {
-                info!("[ {} ] Successfully sent GUICommand::AddSender({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, to_add);
-                instance.neighbor.push(to_add);
-                self.edges
-                    .entry(*drone)
-                    .or_insert_with(Vec::new)
-                    .push(to_add);
-
-                let neighbor = self.nodes.get_mut(&to_add).unwrap();
-                neighbor.neighbor.push(*drone);
-            }
-            Err(e) => error!(
-                "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
-                "GUI".red(),
-                e
-            ),
-        }
-
-        self.nodes.get_mut(drone).unwrap().command = None;
-    }
-
-    fn set_pdr(&mut self, drone: &NodeId, pdr: &f32) {
-        let instance = self.nodes.get_mut(drone).unwrap();
-        match self.sender.send(GUICommands::SetPDR(instance.id, *pdr)) {
-            Ok(_) => {
-                info!("[ {} ] Successfully sent GUICommand::SetPDR({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, pdr);
-                instance.pdr = *pdr;
-            }
-            Err(e) => error!(
-                "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
-                "GUI".red(),
-                e
-            ),
-        }
-
-        instance.command = None;
-    }
-
-    fn spawn(&mut self, id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
-        match self
-            .sender
-            .send(GUICommands::Spawn(*id, neighbors.clone(), pdr))
-        {
-            Ok(()) => {
-                self.spawn_id = None;
-                self.spawn_neighbors.clear();
-                self.spawn_pdr = None;
-
-                // add to nodes
-                let new_drone = DroneGUI {
-                    id: *id,
-                    neighbor: neighbors.clone(),
-                    pdr,
-                    x: 400.0,
-                    y: 400.0,
-                    color: Color32::BLUE,
-
-                    command: None,
-
-                    selected: false,
-                    crashed: false,
-                    remove_sender: false,
-                    add_sender: false,
-                    set_pdr: false,
-                    pdr_value: None,
-                };
-
-                // ad to various instances neighbors
-                for drone in neighbors {
-                    self.nodes
-                        .get_mut(drone)
-                        .unwrap()
-                        .neighbor
-                        .push(new_drone.id);
-                }
-
-                self.nodes.insert(*id, new_drone);
-
-                // add edges
-                self.edges.insert(*id, neighbors.clone());
-
-                self.spawn_command = None;
-            }
-            Err(e) => error!(
-                "[ {} ] Unable to send GUICommand::Spawn from GUI to Simulation Controller: {}",
-                "GUI".red(),
-                e
-            ),
-        };
     }
 }
 
@@ -535,7 +350,13 @@ impl eframe::App for SimCtrlGUI {
                                                                 info!("[ {} ] Passing to handler GUICommands::AddSender({}, {})", "GUI".green(), instance.id, digit);
                                                                 instance.command = Some(GUICommands::AddSender(instance.id, digit))
                                                             },
-                                                            Err(e) => error!("[ {} ] Unable to parse neighbor NodeId in AddSender GUICommand: {}", "GUI".red(), e),
+                                                            Err(e) => {
+                                                                error!(
+                                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::AddSender: {}",
+                                                                    "GUI".red(),
+                                                                    e
+                                                                );
+                                                            }
                                                         }
                                                     }
                                                 }
@@ -562,7 +383,12 @@ impl eframe::App for SimCtrlGUI {
                                                 if let Some(pdr_value) = &instance.pdr_value {
                                                     match pdr_value.parse::<f32>() {
                                                         Ok(digit) => {
-                                                            info!("[ {} ] Passing to handler GUICommands::SetPDR({}, {})", "GUI".green(), instance.id, digit);
+                                                            info!(
+                                                                "[ {} ] Passing to handler GUICommands::SetPDR({}, {})",
+                                                                "GUI".green(),
+                                                                instance.id,
+                                                                digit
+                                                            );
                                                             instance.command = Some(GUICommands::SetPDR(instance.id, digit));
                                                             instance.set_pdr = false;
                                                         }
@@ -590,12 +416,14 @@ impl eframe::App for SimCtrlGUI {
             if let Some(command) = &instance.command {
                 info!("[ {} ] Handling {:?}", "GUI".green(), command);
                 match command {
-                    GUICommands::Crash(drone) => self.crash(drone),
+                    GUICommands::Crash(drone) => actions::crash(self, drone),
                     GUICommands::RemoveSender(drone, to_remove) => {
-                        self.remove_sender(drone, to_remove)
+                        actions::remove_sender(self, drone, to_remove)
                     }
-                    GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),
-                    GUICommands::SetPDR(drone, pdr) => self.set_pdr(drone, pdr),
+                    GUICommands::AddSender(drone, to_add) => {
+                        actions::add_sender(self, drone, *to_add)
+                    }
+                    GUICommands::SetPDR(drone, pdr) => actions::set_pdr(self, drone, pdr),
                     _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
                 }
             }
@@ -604,7 +432,9 @@ impl eframe::App for SimCtrlGUI {
         if let Some(command) = &self.spawn_command.clone() {
             info!("[ {} ] Handling {:?}", "GUI".green(), command);
             match command {
-                GUICommands::Spawn(id, neighbor, pdr) => self.spawn(id, &neighbor.clone(), *pdr),
+                GUICommands::Spawn(id, neighbor, pdr) => {
+                    actions::spawn(self, id, &neighbor.clone(), *pdr)
+                }
                 _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
             }
         }
