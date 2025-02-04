@@ -7,7 +7,7 @@ pub enum GUIEvents {
     PacketDropped(NodeId, Packet),
     Topology(Vec<ConfigDrone>),
 
-    PacketReceived(NodeId, NodeId, String),
+    MessageReceived(NodeId, NodeId, String),
 }
 
 // From GUI to SimCtrl
