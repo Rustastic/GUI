@@ -1,10 +1,11 @@
-use std::{collections::HashMap, f32::consts::PI};
+use std::collections::HashMap;
+use petgraph::{graph::NodeIndex, Graph, Undirected};
+use rand::Rng;
+
+use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
 
 use colored::Colorize;
 use log::{error, info};
-use petgraph::{graph::NodeIndex, Graph, Undirected};
-use rand::Rng;
-use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
 
 use crate::{commands::GUICommands, DroneGUI, SimCtrlGUI, HEIGHT, WIDTH};
 
