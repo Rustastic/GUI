@@ -106,8 +106,10 @@ impl SimCtrlGUI {
 
 impl eframe::App for SimCtrlGUI {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
+        // Not initialized from Network Initializer message
         if !self.initialized {
             warn!("[ {} ] Waiting for initialization", "GUI".green());
+            // Wait for Topology message
             match self.receiver.try_recv() {
                 Ok(event) => match event.clone() {
                     GUIEvents::Topology(_) => self.handle_events(event),
@@ -126,6 +128,7 @@ impl eframe::App for SimCtrlGUI {
                 },
             }
         } else {
+            // Check for messages
             match self.receiver.try_recv() {
                 Ok(event) => self.handle_events(event),
                 Err(e) => match e {
@@ -141,18 +144,21 @@ impl eframe::App for SimCtrlGUI {
                 },
             }
 
+            // GUI
             egui::CentralPanel::default().show(ctx, |ui| {
                 ui.heading("Simulation Controller");
 
+                // Spawn button
                 if self.spawn_toggle {
                     ui.vertical(|ui| {
+                        // Title
                         ui.heading("Spawn a New Drone");
 
                         // ID Input
                         ui.horizontal(|ui| {
                             ui.label("Enter Drone ID:");
                             let text_id = self.spawn_id.clone().unwrap_or_default().to_string();
-                            let mut buffer_id = text_id.clone(); // Buffer for mutation
+                            let mut buffer_id = text_id.clone();
 
                             let text_edit = ui.text_edit_singleline(&mut buffer_id);
                             if text_edit.changed() {
@@ -214,9 +220,7 @@ impl eframe::App for SimCtrlGUI {
                         }
                     });
                 }
-
                 if self.spawn_button {
-                    // Button to Open the Spawn Form
                     if ui.button("Spawn Drone").clicked() {
                         self.spawn_toggle = true;
                         self.spawn_button = false;
@@ -228,7 +232,7 @@ impl eframe::App for SimCtrlGUI {
                 let (_response, painter) =
                     ui.allocate_painter(egui::Vec2::new(900.0, 900.0), egui::Sense::hover());
 
-                // Drawing edges (connections) between drones
+                // Drawing connections between drones
                 for (start_id, neighbor) in self.edges.clone() {
                     let start = self.nodes.get(&start_id).unwrap();
                     for end_id in neighbor {
@@ -240,12 +244,11 @@ impl eframe::App for SimCtrlGUI {
                     }
                 }
 
-                // Drawing the nodes (drones) and handling user interaction for selection
+                // Drawing the drones
                 for (_, pos) in self.nodes.iter_mut() {
                     let screen_pos = egui::pos2(pos.x, pos.y);
                     let radius = 10.0;
 
-                    // Allocating space for each drone's graphical representation
                     let response = ui.allocate_rect(
                         egui::Rect::from_center_size(screen_pos, egui::Vec2::splat(radius * 2.0)),
                         egui::Sense::click(),
@@ -256,11 +259,11 @@ impl eframe::App for SimCtrlGUI {
                         pos.selected = true;
                     }
 
-                    // Drawing the drone as a filled circle
+                    // Draw the drone
                     painter.circle_filled(screen_pos, radius, pos.color);
                 }
 
-                // Displaying a pop-up with detailed information when a drone is selected
+                // Displaying a pop-up with drone's information
                 for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
                         egui::Window::new(format!("Node {}", instance.id))
@@ -268,7 +271,8 @@ impl eframe::App for SimCtrlGUI {
                             .resizable(false) // disable resizable
                             .collapsible(true) // activate collapsable
                             .show(ctx, |ui| {
-                                // Displaying information about the selected drone.
+
+                                // Display information
                                 ui.label(format!("Id: {}", instance.id));
                                 if !instance.crashed {
                                     ui.label(format!(
@@ -279,7 +283,7 @@ impl eframe::App for SimCtrlGUI {
                                 }
                                 ui.add_space(10.0);
 
-                                // Buttons to change the color of the selected drone
+                                // Action buttons
                                 if !instance.crashed {
                                     ui.horizontal_centered(|ui| {
                                         if ui.button("Crash").clicked() {
@@ -304,57 +308,79 @@ impl eframe::App for SimCtrlGUI {
                                     });
                                 }
 
+                                // if not crashed
                                 if !instance.crashed {
+                                    // if pressed RemoveSender button
                                     if instance.remove_sender {
                                         let mut _value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Sender to remove: ")
                                             .selected_text(_value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
+                                                // Get options
                                                 let mut options = Vec::<String>::new();
                                                 for numbers in instance.neighbor.clone() {
                                                     options.push(numbers.to_string());
                                                 }
 
+                                                // Check if option is selected
                                                 for option in options {
+                                                    // If something selected
                                                     if ui.selectable_label(
                                                         false,
                                                         &option,
                                                     ).clicked() {
+                                                        // Get selected option
                                                         _value = Some(option.to_string());
                                                         instance.remove_sender = false;
 
+                                                        // Parse and handle
                                                         match _value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
-                                                                info!("[ {} ] Passing to handler GUICommands::RemoveSender({}, {})", "GUI".green(), instance.id, digit);
+                                                                info!(
+                                                                    "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
+                                                                    "GUI".green(),
+                                                                    instance.id,
+                                                                    digit
+                                                                );
                                                                 instance.command = Some(GUICommands::RemoveSender(instance.id, digit))
                                                             },
-                                                            Err(e) => error!("[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}", "GUI".red(), e),
+                                                            Err(e) => error!(
+                                                                "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
+                                                                "GUI".red(),
+                                                                e
+                                                            ),
                                                         }
                                                     }
                                                 }
                                             });
                                     }
 
+                                    // if pressed AddSender button
                                     if instance.add_sender {
                                         let mut _value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Sender to add: ")
                                             .selected_text(_value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
+                                                // Get options
                                                 let mut options = Vec::<String>::new();
                                                 for (numbers, _) in self.edges.iter() {
                                                     if !instance.neighbor.contains(numbers) && *numbers != instance.id {
                                                         options.push(numbers.to_string());
                                                     }
                                                 }
-
+                                                
+                                                // If something selected
                                                 for option in options {
+                                                    // If something selected
                                                     if ui.selectable_label(
                                                         false,
                                                         &option,
                                                     ).clicked() {
+                                                        // Get selected option
                                                         _value = Some(option.to_string());
                                                         instance.remove_sender = false;
 
+                                                        // Parse and handle
                                                         match _value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
                                                                 info!("[ {} ] Passing to handler GUICommands::AddSender({}, {})", "GUI".green(), instance.id, digit);
@@ -377,13 +403,14 @@ impl eframe::App for SimCtrlGUI {
                                         ui.horizontal(|ui| {
                                             ui.label("Enter desired PDR:");
 
-                                            // Ensure there's a default value for the input field
+                                            // Default value
                                             let text_input = instance.pdr_value.clone().unwrap_or_default();
-                                            let mut buffer = text_input.clone(); // Copy for mutation
+                                            // Copy for mutation
+                                            let mut buffer = text_input.clone(); 
 
                                             let text_edit = ui.text_edit_singleline(&mut buffer);
 
-                                            // Update instance.remove_sender_value only if the text changed
+                                            // Update only if changed
                                             if text_edit.changed() {
                                                 instance.pdr_value = Some(buffer);
                                             }
@@ -422,6 +449,7 @@ impl eframe::App for SimCtrlGUI {
             });
         }
 
+        // Handle Commands
         for (_, instance) in self.nodes.clone() {
             if let Some(command) = &instance.command {
                 info!("[ {} ] Handling {:?}", "GUI".green(), command);
