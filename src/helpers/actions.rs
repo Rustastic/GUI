@@ -29,9 +29,9 @@ fn fruchterman_reingold(
         );
     }
 
-    let k = 50.0; // Repulsion strength (adjust as needed)
-    let attraction_multiplier = 0.05; // Attraction strength (adjust as needed)
-    let mut temperature = 1.0; // Start with a high temperature
+    let k = 100.0; // Repulsion strength (adjust as needed)
+    let attraction_multiplier = 0.01; // Attraction strength (adjust as needed)
+    let mut temperature = 10.0; // Start with a high temperature
 
     for _ in 0..iterations {
         let mut displacements: HashMap<NodeIndex, (f32, f32)> = HashMap::with_capacity(node_count);
@@ -134,7 +134,7 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, topology: Vec<ConfigDrone>) {
         }
     }
 
-    let coordinates = fruchterman_reingold(&graph, 250, WIDTH, HEIGHT);
+    let coordinates = fruchterman_reingold(&graph, 300, WIDTH, HEIGHT);
 
     for drone in topology.iter() {
         let (x, y) = coordinates.get(vertexes.get(&drone.id).unwrap()).unwrap();
