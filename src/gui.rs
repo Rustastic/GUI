@@ -12,6 +12,9 @@ use crate::{
     commands::{GUICommands, GUIEvents},
 };
 
+pub const HEIGHT: f32 = 900.0;
+pub const WIDTH: f32 = 900.0;
+
 #[derive(Clone, Debug)]
 pub struct SimCtrlGUI {
     pub sender: Sender<GUICommands>,
