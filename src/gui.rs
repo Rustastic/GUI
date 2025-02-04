@@ -99,6 +99,7 @@ impl SimCtrlGUI {
 
             GUIEvents::MessageReceived(src, dest, msg) => (),
             GUIEvents::UnreachableClient(client) => (),
+            GUIEvents::ErrorNotRunning => (),
         }
     }
 }

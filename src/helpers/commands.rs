@@ -9,6 +9,7 @@ pub enum GUIEvents {
 
     MessageReceived(NodeId, NodeId, String),
     UnreachableClient(NodeId),
+    ErrorNotRunning,
 }
 
 // From GUI to SimCtrl
