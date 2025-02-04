@@ -29,9 +29,9 @@ fn fruchterman_reingold(
         );
     }
 
-    let k = 100.0; // Repulsion strength (adjust as needed)
-    let attraction_multiplier = 0.01; // Attraction strength (adjust as needed)
-    let mut temperature = 10.0; // Start with a high temperature
+    let k = 1000.0; // Repulsion strength (adjust as needed)
+    let attraction_multiplier = 0.5; // Attraction strength (adjust as needed)
+    let mut temperature = 5.0; // Start with a high temperature
 
     for _ in 0..iterations {
         let mut displacements: HashMap<NodeIndex, (f32, f32)> = HashMap::with_capacity(node_count);
