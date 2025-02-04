@@ -29,7 +29,7 @@ fn fruchterman_reingold(
         );
     }
 
-    let k = 1.0; // Repulsion strength (adjust as needed)
+    let k = 20.0; // Repulsion strength (adjust as needed)
     let attraction_multiplier = 0.1; // Attraction strength (adjust as needed)
     let mut temperature = 1.0; // Start with a high temperature
 
