@@ -8,6 +8,7 @@ pub enum GUIEvents {
     Topology(Vec<ConfigDrone>),
 
     MessageReceived(NodeId, NodeId, String),
+    UnreachableClient(NodeId),
 }
 
 // From GUI to SimCtrl

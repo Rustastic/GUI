@@ -98,6 +98,7 @@ impl SimCtrlGUI {
             GUIEvents::Topology(topology) => actions::topology(self, topology),
 
             GUIEvents::MessageReceived(src, dest, msg) => (),
+            GUIEvents::UnreachableClient(client) => (),
         }
     }
 }
