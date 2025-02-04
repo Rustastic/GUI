@@ -18,7 +18,7 @@ fn fruchterman_reingold(
     let mut positions: HashMap<NodeIndex, (f32, f32)> = HashMap::with_capacity(node_count);
 
     // 1. Initialize node positions (randomly, within bounds)
-    let mut rng = rand::rng();
+    let mut rng = rand::rng(); // Use thread_rng for better randomness
     for node_index in graph.node_indices() {
         positions.insert(
             node_index,
@@ -29,8 +29,9 @@ fn fruchterman_reingold(
         );
     }
 
-    let k = 0.2; // Repulsion strength
-    let attraction_multiplier = 0.1; // Attraction strength
+    let k = 0.2; // Repulsion strength (adjust as needed)
+    let attraction_multiplier = 0.1; // Attraction strength (adjust as needed)
+    let mut temperature = 1.0; // Start with a high temperature
 
     for _ in 0..iterations {
         let mut displacements: HashMap<NodeIndex, (f32, f32)> = HashMap::with_capacity(node_count);
@@ -38,78 +39,64 @@ fn fruchterman_reingold(
             displacements.insert(node_index, (0.0, 0.0));
         }
 
-        // 2. Calculate repulsive forces
+        let mut distances: HashMap<(NodeIndex, NodeIndex), f32> = HashMap::new();
         for i in graph.node_indices() {
             for j in graph.node_indices() {
                 if i != j {
                     let dx = positions[&j].0 - positions[&i].0;
                     let dy = positions[&j].1 - positions[&i].1;
                     let distance = (dx * dx + dy * dy).sqrt();
+                    distances.insert((i, j), distance);
+                }
+            }
+        }
+
+        // 2. Calculate repulsive forces (optimized)
+        for i in graph.node_indices() {
+            for j in graph.node_indices() {
+                if i != j {
+                    let distance = distances[&(i, j)];
                     if distance > 0.0 {
                         let repulsion_force = k / distance;
+                        let dx = positions[&j].0 - positions[&i].0;
+                        let dy = positions[&j].1 - positions[&i].1;
+
                         *displacements.get_mut(&i).unwrap() = (
                             displacements[&i].0 - repulsion_force * dx / distance,
                             displacements[&i].1 - repulsion_force * dy / distance,
+                        );
+                        *displacements.get_mut(&j).unwrap() = (
+                            displacements[&j].0 + repulsion_force * dx / distance,
+                            displacements[&j].1 + repulsion_force * dy / distance,
                         );
                     }
                 }
             }
         }
 
-        // 3. Calculate attractive forces
+        // 3. Calculate attractive forces (optimized)
         for edge in graph.edge_indices() {
             let (u, v) = graph.edge_endpoints(edge).unwrap();
             let dx = positions[&v].0 - positions[&u].0;
             let dy = positions[&v].1 - positions[&u].1;
-            let attraction_force = attraction_multiplier * (dx * dx + dy * dy).sqrt();
+            let attraction_force = attraction_multiplier; // No need for sqrt or normalization
+
             *displacements.get_mut(&u).unwrap() = (
-                displacements[&u].0 + attraction_force * dx / (dx * dx + dy * dy).sqrt(),
-                displacements[&u].1 + attraction_force * dy / (dx * dx + dy * dy).sqrt(),
+                displacements[&u].0 + attraction_force * dx,
+                displacements[&u].1 + attraction_force * dy,
             );
             *displacements.get_mut(&v).unwrap() = (
-                displacements[&v].0 - attraction_force * dx / (dx * dx + dy * dy).sqrt(),
-                displacements[&v].1 - attraction_force * dy / (dx * dx + dy * dy).sqrt(),
+                displacements[&v].0 - attraction_force * dx,
+                displacements[&v].1 - attraction_force * dy,
             );
         }
 
-        // 4. Update positions (with a limit to prevent wild swings)
-        let max_displacement = 0.1 * f32::min(max_width, max_height);
+        // 4. Update positions (with temperature-controlled limit)
+        let max_displacement = temperature * f32::min(max_width, max_height);
         for node_index in graph.node_indices() {
-            let mut displacement = (0.0, 0.0);
+            let displacement = displacements.get(&node_index).unwrap();
+            let displacement_magnitude = (displacement.0 * displacement.0 + displacement.1 * displacement.1).sqrt();
 
-            // Calculate net displacement for this node (from repulsion and attraction forces)
-            for other_node in graph.node_indices() {
-                if node_index != other_node {
-                    let dx = positions[&other_node].0 - positions[&node_index].0;
-                    let dy = positions[&other_node].1 - positions[&node_index].1;
-                    let distance = (dx * dx + dy * dy).sqrt();
-                    if distance > 0.0 {
-                        let repulsion_force = k / distance;
-                        displacement.0 -= repulsion_force * dx / distance;
-                        displacement.1 -= repulsion_force * dy / distance;
-                    }
-                }
-            }
-
-            for edge in graph.edge_indices() {
-                let (u, v) = graph.edge_endpoints(edge).unwrap();
-                if u == node_index || v == node_index {
-                    let other_node = if u == node_index { v } else { u };
-                    let dx = positions[&other_node].0 - positions[&node_index].0;
-                    let dy = positions[&other_node].1 - positions[&node_index].1;
-                    let attraction_force = attraction_multiplier * (dx * dx + dy * dy).sqrt();
-                    if u == node_index {
-                        displacement.0 += attraction_force * dx / (dx * dx + dy * dy).sqrt();
-                        displacement.1 += attraction_force * dy / (dx * dx + dy * dy).sqrt();
-                    } else {
-                        displacement.0 -= attraction_force * dx / (dx * dx + dy * dy).sqrt();
-                        displacement.1 -= attraction_force * dy / (dx * dx + dy * dy).sqrt();
-                    }
-                }
-            }
-
-            let displacement_magnitude =
-                (displacement.0 * displacement.0 + displacement.1 * displacement.1).sqrt();
             if displacement_magnitude > 0.0 {
                 let scale = f32::min(1.0, max_displacement / displacement_magnitude);
                 let new_x = positions[&node_index].0 + displacement.0 * scale;
@@ -121,6 +108,8 @@ fn fruchterman_reingold(
                 );
             }
         }
+
+        temperature *= 0.99; // Cool down
     }
 
     positions
