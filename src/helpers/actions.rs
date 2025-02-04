@@ -29,8 +29,8 @@ fn fruchterman_reingold(
         );
     }
 
-    let k = 20.0; // Repulsion strength (adjust as needed)
-    let attraction_multiplier = 0.1; // Attraction strength (adjust as needed)
+    let k = 50.0; // Repulsion strength (adjust as needed)
+    let attraction_multiplier = 0.05; // Attraction strength (adjust as needed)
     let mut temperature = 1.0; // Start with a high temperature
 
     for _ in 0..iterations {
@@ -134,7 +134,7 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, topology: Vec<ConfigDrone>) {
         }
     }
 
-    let coordinates = fruchterman_reingold(&graph, 150, WIDTH, HEIGHT);
+    let coordinates = fruchterman_reingold(&graph, 250, WIDTH, HEIGHT);
 
     for drone in topology.iter() {
         let (x, y) = coordinates.get(vertexes.get(&drone.id).unwrap()).unwrap();
