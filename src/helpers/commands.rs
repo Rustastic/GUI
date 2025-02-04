@@ -6,7 +6,6 @@ pub enum GUIEvents {
     PacketSent(NodeId, NodeId, Packet),
     PacketDropped(NodeId, Packet),
     Topology(Vec<ConfigDrone>),
-
     MessageReceived(NodeId, NodeId, String),
     UnreachableClient(NodeId),
     ErrorNotRunning,
