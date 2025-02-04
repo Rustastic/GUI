@@ -305,7 +305,9 @@ pub fn spawn(sim_ctrl: &mut SimCtrlGUI, id: &NodeId, neighbors: &Vec<NodeId>, pd
             };
 
             // add to nodes
-            let new_drone = DroneGUI::new(drone, 400.0, 400.0);
+            let mut rng = rand::rng();
+            let (x, y) = (rng.random_range(0.0..WIDTH), rng.random_range(0.0..HEIGHT))
+            let new_drone = DroneGUI::new(drone, x, y);
 
             // ad to various instances neighbors
             for drone in neighbors {
