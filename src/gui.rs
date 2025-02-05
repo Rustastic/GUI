@@ -1,11 +1,11 @@
 use crossbeam_channel::{Receiver, Sender};
-use std::collections::HashMap;
+use std::{collections::HashMap, thread};
 
 use colored::Colorize;
 use eframe::egui::{self, Color32};
 
 use log::{error, info, warn};
-use wg_2024::{config::{Drone as ConfigDrone, Client as ConfigClient}, network::NodeId};
+use wg_2024::{config::{Client as ConfigClient, Drone as ConfigDrone}, network::NodeId, packet::NodeType};
 
 use crate::{
     actions,
@@ -22,7 +22,7 @@ pub struct SimCtrlGUI {
 
     pub initialized: bool,
     pub nodes: HashMap<NodeId, NodeGUI>,
-    pub edges: HashMap<NodeId, Vec<NodeId>>,
+    pub edges: HashMap<NodeId, (Vec<NodeId>, Color32)>,
 
     spawn_button: bool,
     spawn_toggle: bool,
@@ -39,6 +39,7 @@ pub struct NodeGUI {
     pub pdr: f32,
     x: f32,
     y: f32,
+    pub node_type: NodeType,
     color: egui::Color32,
 
     pub command: Option<GUICommands>,
@@ -59,6 +60,7 @@ impl NodeGUI {
             pdr: drone.pdr,
             x,
             y,
+            node_type: NodeType::Drone,
             color: Color32::BLUE,
 
             command: None,
@@ -79,7 +81,8 @@ impl NodeGUI {
             pdr: 0.0,
             x,
             y,
-            color: Color32::GREEN,
+            node_type: NodeType::Client,
+            color: Color32::YELLOW,
 
             command: None,
 
@@ -113,16 +116,33 @@ impl SimCtrlGUI {
 
     fn handle_events(&mut self, event: GUIEvents) {
         match event {
-            GUIEvents::PacketSent(src, dest, packet) => (),
-            GUIEvents::PacketDropped(src, packet) => (),
+            // light up edge for 0.5 sec in green
+            GUIEvents::PacketSent(src, dest, _) => {
+                if self.edges.get(&src).unwrap().0.contains(&dest) {
+                    self.edges.get_mut(&src).unwrap().1 = Color32::GREEN;
+                    thread::sleep(std::time::Duration::from_secs_f32(0.5));
+                    self.edges.get_mut(&src).unwrap().1 = Color32::GRAY;
+                } else if self.edges.get(&dest).unwrap().0.contains(&src) {
+                    self.edges.get_mut(&dest).unwrap().1 = Color32::GREEN;
+                    thread::sleep(std::time::Duration::from_secs_f32(0.5));
+                    self.edges.get_mut(&dest).unwrap().1 = Color32::GRAY;
+                }
+
+            },
+            // light up node  for 0.5 sec in red
+            GUIEvents::PacketDropped(src, _) => {
+                self.nodes.get_mut(&src).unwrap().color = Color32::RED;
+                thread::sleep(std::time::Duration::from_secs_f32(0.5));
+                self.nodes.get_mut(&src).unwrap().color = Color32::BLUE;
+            },
             GUIEvents::Topology(drones, clients) => actions::topology(self, drones, clients),
 
+            // show message
             GUIEvents::MessageReceived(src, msg) => (),
+            // support for pop-up
             GUIEvents::CommunicationServerList(items) => (),
+            // support for pop-up
             GUIEvents::ClientList(items) => (),
-            GUIEvents::UnreachableClient(client) => (),
-            GUIEvents::ErrorNotRunning => (),
-            GUIEvents::ErrorNotRegistered => (),
         }
     }
 }
@@ -258,11 +278,11 @@ impl eframe::App for SimCtrlGUI {
                 // Drawing connections between drones
                 for (start_id, neighbor) in self.edges.clone() {
                     let start = self.nodes.get(&start_id).unwrap();
-                    for end_id in neighbor {
+                    for end_id in neighbor.0 {
                         let end = self.nodes.get(&end_id).unwrap();
                         painter.line_segment(
                             [egui::pos2(start.x, start.y), egui::pos2(end.x, end.y)],
-                            egui::Stroke::new(2.0, Color32::LIGHT_GRAY),
+                            egui::Stroke::new(2.0, neighbor.1),
                         );
                     }
                 }

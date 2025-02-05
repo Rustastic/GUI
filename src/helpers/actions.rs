@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use eframe::egui::Color32;
 use petgraph::{graph::NodeIndex, Graph, Undirected};
 use rand::Rng;
 
@@ -158,7 +159,7 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
 
         for drone in new_drone.neighbor.clone() {
             if !sim_ctrl.edges.contains_key(&drone) {
-                let vec = sim_ctrl.edges.entry(new_drone.id).or_insert_with(Vec::new);
+                let (vec, _) = sim_ctrl.edges.entry(new_drone.id).or_insert_with(|| (Vec::new(), Color32::GRAY));
                 vec.push(drone);
             }
         }
@@ -172,7 +173,7 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
 
         for client in new_client.neighbor.clone() {
             if !sim_ctrl.edges.contains_key(&client) {
-                let vec = sim_ctrl.edges.entry(new_client.id).or_insert_with(Vec::new);
+                let (vec, _) = sim_ctrl.edges.entry(new_client.id).or_insert_with(|| (Vec::new(), Color32::GRAY));
                 vec.push(client);
             }
         }
@@ -199,7 +200,7 @@ pub fn crash(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId) {
             for neighbor_id in instance.neighbor.iter() {
                 // get edges starting from neighbor
                 if let Some(neighbor_drone) = sim_ctrl.edges.get_mut(neighbor_id) {
-                    neighbor_drone.retain(|drone| *drone != instance.id);
+                    neighbor_drone.0.retain(|drone| *drone != instance.id);
                 }
             }
 
@@ -238,13 +239,13 @@ pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &No
             );
 
             if let Some(edge) = sim_ctrl.edges.get_mut(&instance.id) {
-                if edge.contains(to_remove) {
-                    edge.retain(|&node| node != *to_remove);
+                if edge.0.contains(to_remove) {
+                    edge.0.retain(|&node| node != *to_remove);
                 }
             }
             if let Some(edge) = sim_ctrl.edges.get_mut(to_remove) {
-                if edge.contains(&instance.id) {
-                    edge.retain(|&node| node != instance.id);
+                if edge.0.contains(&instance.id) {
+                    edge.0.retain(|&node| node != instance.id);
                 }
             }
 
@@ -282,11 +283,8 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
             );
 
             instance.neighbor.push(to_add);
-            sim_ctrl
-                .edges
-                .entry(*node_id)
-                .or_insert_with(Vec::new)
-                .push(to_add);
+            let (vec, _) = sim_ctrl.edges.entry(*node_id).or_insert_with(|| (Vec::new(), Color32::GRAY));
+            vec.push(to_add);
 
             let neighbor = sim_ctrl.nodes.get_mut(&to_add).unwrap();
             neighbor.neighbor.push(*node_id);
@@ -352,7 +350,7 @@ pub fn spawn(sim_ctrl: &mut SimCtrlGUI, id: &NodeId, neighbors: &Vec<NodeId>, pd
             sim_ctrl.nodes.insert(*id, new_drone);
 
             // add edges
-            sim_ctrl.edges.insert(*id, neighbors.clone());
+            sim_ctrl.edges.insert(*id, (neighbors.clone(), Color32::GRAY));
 
             sim_ctrl.spawn_command = None;
 

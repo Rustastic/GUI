@@ -10,9 +10,6 @@ pub enum GUIEvents {
     CommunicationServerList(Vec<NodeId>),
     MessageReceived(NodeId, String),
     ClientList(Vec<NodeId>),
-    UnreachableClient(NodeId),
-    ErrorNotRunning,
-    ErrorNotRegistered,
 }
 
 // From GUI to SimCtrl
