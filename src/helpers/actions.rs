@@ -110,7 +110,7 @@ fn fruchterman_reingold(
             }
         }
 
-        temperature *= 0.99; // Cool down
+        temperature *= 0.99;
     }
 
     positions

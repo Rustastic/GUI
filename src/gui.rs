@@ -97,9 +97,12 @@ impl SimCtrlGUI {
             GUIEvents::PacketDropped(src, packet) => (),
             GUIEvents::Topology(topology) => actions::topology(self, topology),
 
-            GUIEvents::MessageReceived(src, dest, msg) => (),
+            GUIEvents::MessageReceived(src, msg) => (),
+            GUIEvents::CommunicationServerList(items) => (),
+            GUIEvents::ClientList(items) => (),
             GUIEvents::UnreachableClient(client) => (),
             GUIEvents::ErrorNotRunning => (),
+            GUIEvents::ErrorNotRegistered => (),
         }
     }
 }

@@ -6,9 +6,13 @@ pub enum GUIEvents {
     PacketSent(NodeId, NodeId, Packet),
     PacketDropped(NodeId, Packet),
     Topology(Vec<ConfigDrone>),
-    MessageReceived(NodeId, NodeId, String),
+
+    CommunicationServerList(Vec<NodeId>),
+    MessageReceived(NodeId, String),
+    ClientList(Vec<NodeId>),
     UnreachableClient(NodeId),
     ErrorNotRunning,
+    ErrorNotRegistered,
 }
 
 // From GUI to SimCtrl
