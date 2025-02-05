@@ -5,7 +5,7 @@ use colored::Colorize;
 use eframe::egui::{self, Color32};
 
 use log::{error, info, warn};
-use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
+use wg_2024::{config::{Drone as ConfigDrone, Client as ConfigClient}, network::NodeId};
 
 use crate::{
     actions,
@@ -21,7 +21,7 @@ pub struct SimCtrlGUI {
     receiver: Receiver<GUIEvents>,
 
     pub initialized: bool,
-    pub nodes: HashMap<NodeId, DroneGUI>,
+    pub nodes: HashMap<NodeId, NodeGUI>,
     pub edges: HashMap<NodeId, Vec<NodeId>>,
 
     spawn_button: bool,
@@ -33,7 +33,7 @@ pub struct SimCtrlGUI {
 }
 
 #[derive(Clone, Debug)]
-pub struct DroneGUI {
+pub struct NodeGUI {
     pub id: NodeId,
     pub neighbor: Vec<NodeId>,
     pub pdr: f32,
@@ -51,8 +51,8 @@ pub struct DroneGUI {
     pdr_value: Option<String>,
 }
 
-impl DroneGUI {
-    pub fn new(drone: ConfigDrone, x: f32, y: f32) -> Self {
+impl NodeGUI {
+    pub fn new_drone(drone: ConfigDrone, x: f32, y: f32) -> Self {
         Self {
             id: drone.id,
             neighbor: drone.connected_node_ids.clone(),
@@ -60,6 +60,26 @@ impl DroneGUI {
             x,
             y,
             color: Color32::BLUE,
+
+            command: None,
+
+            selected: false,
+            crashed: false,
+            remove_sender: false,
+            add_sender: false,
+            set_pdr: false,
+            pdr_value: None,
+        }
+    }
+
+    pub fn new_client(client: ConfigClient, x: f32, y: f32) -> Self {
+        Self {
+            id: client.id,
+            neighbor: client.connected_drone_ids.clone(),
+            pdr: 0.0,
+            x,
+            y,
+            color: Color32::GREEN,
 
             command: None,
 
@@ -95,7 +115,7 @@ impl SimCtrlGUI {
         match event {
             GUIEvents::PacketSent(src, dest, packet) => (),
             GUIEvents::PacketDropped(src, packet) => (),
-            GUIEvents::Topology(topology) => actions::topology(self, topology),
+            GUIEvents::Topology(drones, clients) => actions::topology(self, drones, clients),
 
             GUIEvents::MessageReceived(src, msg) => (),
             GUIEvents::CommunicationServerList(items) => (),
@@ -115,7 +135,7 @@ impl eframe::App for SimCtrlGUI {
             // Wait for Topology message
             match self.receiver.try_recv() {
                 Ok(event) => match event.clone() {
-                    GUIEvents::Topology(_) => self.handle_events(event),
+                    GUIEvents::Topology(_, _) => self.handle_events(event),
                     _ => error!(
                         "[ {} ] Received NON-Topology GUIEvent before Initialization",
                         "GUI".red()

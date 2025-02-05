@@ -2,12 +2,12 @@ use std::collections::HashMap;
 use petgraph::{graph::NodeIndex, Graph, Undirected};
 use rand::Rng;
 
-use wg_2024::{config::Drone as ConfigDrone, network::NodeId};
+use wg_2024::{config::{Drone as ConfigDrone, Client as ConfigClient}, network::NodeId};
 
 use colored::Colorize;
 use log::{error, info};
 
-use crate::{commands::GUICommands, DroneGUI, SimCtrlGUI, HEIGHT, WIDTH};
+use crate::{commands::GUICommands, NodeGUI, SimCtrlGUI, HEIGHT, WIDTH};
 
 fn fruchterman_reingold(
     graph: &Graph<(), (), Undirected>,
@@ -116,16 +116,21 @@ fn fruchterman_reingold(
     positions
 }
 
-pub fn topology(sim_ctrl: &mut SimCtrlGUI, topology: Vec<ConfigDrone>) {
+pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Vec<ConfigClient>) {
     let mut graph = Graph::<(), (), Undirected>::new_undirected();
     let mut vertexes = HashMap::<NodeId, NodeIndex>::new();
 
-    for drone in topology.iter() {
+    for drone in drones.iter() {
         let vertex_id = graph.add_node(());
         vertexes.insert(drone.id, vertex_id);
     }
 
-    for drone in topology.iter() {
+    for client in clients.iter() {
+        let vertex_id = graph.add_node(());
+        vertexes.insert(client.id, vertex_id);
+    }
+
+    for drone in drones.iter() {
         for neighbor in drone.connected_node_ids.iter() {
             graph.add_edge(
                 *vertexes.get(&drone.id).unwrap(),
@@ -135,11 +140,21 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, topology: Vec<ConfigDrone>) {
         }
     }
 
+    for client in clients.iter() {
+        for neighbor in client.connected_drone_ids.iter() {
+            graph.add_edge(
+                *vertexes.get(&client.id).unwrap(),
+                *vertexes.get(neighbor).unwrap(),
+                (),
+            );
+        }
+    }
+
     let coordinates = fruchterman_reingold(&graph, 300, WIDTH, HEIGHT);
 
-    for drone in topology.iter() {
+    for drone in drones.iter() {
         let (x, y) = coordinates.get(vertexes.get(&drone.id).unwrap()).unwrap();
-        let new_drone = DroneGUI::new(drone.clone(), *x, *y);
+        let new_drone = NodeGUI::new_drone(drone.clone(), *x, *y);
 
         for drone in new_drone.neighbor.clone() {
             if !sim_ctrl.edges.contains_key(&drone) {
@@ -149,6 +164,20 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, topology: Vec<ConfigDrone>) {
         }
 
         sim_ctrl.nodes.insert(new_drone.id, new_drone);
+    }
+
+    for client in clients.iter() {
+        let (x, y) = coordinates.get(vertexes.get(&client.id).unwrap()).unwrap();
+        let new_client = NodeGUI::new_client(client.clone(), *x, *y);
+
+        for client in new_client.neighbor.clone() {
+            if !sim_ctrl.edges.contains_key(&client) {
+                let vec = sim_ctrl.edges.entry(new_client.id).or_insert_with(Vec::new);
+                vec.push(client);
+            }
+        }
+
+        sim_ctrl.nodes.insert(new_client.id, new_client);
     }
 
     info!("[ {} ] Successfully composed the topology", "GUI".green());
@@ -194,8 +223,8 @@ pub fn crash(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId) {
     }
 }
 
-pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId, to_remove: &NodeId) {
-    let instance = sim_ctrl.nodes.get_mut(drone).unwrap();
+pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &NodeId) {
+    let instance = sim_ctrl.nodes.get_mut(node_id).unwrap();
     match sim_ctrl
         .sender
         .send(GUICommands::RemoveSender(instance.id, *to_remove))
@@ -224,7 +253,7 @@ pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId, to_remove: &Node
             instance.command = None;
 
             // Remove neighbor from to_remove
-            let id = sim_ctrl.nodes.get(drone).unwrap().id.clone();
+            let id = sim_ctrl.nodes.get(node_id).unwrap().id.clone();
             let neighbor = sim_ctrl.nodes.get_mut(to_remove).unwrap();
             neighbor.neighbor.retain(|&x| x != id);
         }
@@ -238,8 +267,8 @@ pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId, to_remove: &Node
     }
 }
 
-pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId, to_add: NodeId) {
-    let instance = sim_ctrl.nodes.get_mut(drone).unwrap();
+pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
+    let instance = sim_ctrl.nodes.get_mut(node_id).unwrap();
     match sim_ctrl
         .sender
         .send(GUICommands::AddSender(instance.id, to_add))
@@ -255,12 +284,12 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId, to_add: NodeId) {
             instance.neighbor.push(to_add);
             sim_ctrl
                 .edges
-                .entry(*drone)
+                .entry(*node_id)
                 .or_insert_with(Vec::new)
                 .push(to_add);
 
             let neighbor = sim_ctrl.nodes.get_mut(&to_add).unwrap();
-            neighbor.neighbor.push(*drone);
+            neighbor.neighbor.push(*node_id);
         }
         Err(e) => error!(
             "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
@@ -269,7 +298,7 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId, to_add: NodeId) {
         ),
     }
 
-    sim_ctrl.nodes.get_mut(drone).unwrap().command = None;
+    sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
 }
 
 pub fn set_pdr(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId, pdr: &f32) {
@@ -308,7 +337,7 @@ pub fn spawn(sim_ctrl: &mut SimCtrlGUI, id: &NodeId, neighbors: &Vec<NodeId>, pd
             // add to nodes
             let mut rng = rand::rng();
             let (x, y) = (rng.random_range(0.0..WIDTH), rng.random_range(0.0..HEIGHT));
-            let new_drone = DroneGUI::new(drone, x, y);
+            let new_drone = NodeGUI::new_drone(drone, x, y);
 
             // ad to various instances neighbors
             for drone in neighbors {
