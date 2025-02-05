@@ -23,4 +23,8 @@ pub enum GUICommands {
     RemoveSender(NodeId, NodeId),
     AddSender(NodeId, NodeId),
     SetPDR(NodeId, f32),
+
+    SendMessageTo(NodeId, NodeId, String),
+    RegisterTo(NodeId, NodeId),
+    LogOut(NodeId, NodeId)
 }

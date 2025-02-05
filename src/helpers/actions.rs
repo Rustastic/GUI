@@ -336,3 +336,56 @@ pub fn spawn(sim_ctrl: &mut SimCtrlGUI, id: &NodeId, neighbors: &Vec<NodeId>, pd
         ),
     };
 }
+
+pub fn send_message(sim_ctrl: &mut SimCtrlGUI, src: &NodeId, dest: &NodeId, msg: String) {
+    match sim_ctrl.sender.send(GUICommands::SendMessageTo(*src, *dest, msg.clone())) {
+        Ok(()) => info!(
+            "[ {} ] Successfully sent GUICommand::SendMessageTo({}, {}, {}) from GUI to Simulation Controller",
+            "GUI".green(),
+            src,
+            dest,
+            msg
+        ),
+        Err(e) => error!("[ {} ] Unable to send GUICommand::SendMessageTo({}, {}, {}) from GUI to Simulation Controller: {}",
+            "GUI".red(),
+            src,
+            dest,
+            msg,
+            e
+        ),
+    }
+}
+
+pub fn register(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId) {
+    match sim_ctrl.sender.send(GUICommands::RegisterTo(*client, *server)) {
+        Ok(()) => info!(
+            "[ {} ] Successfully sent GUICommand::RegisterTo({}, {}) from GUI to Simulation Controller",
+            "GUI".green(),
+            client,
+            server
+        ),
+        Err(e) => error!("[ {} ] Unable to send GUICommand::RegisterTo({}, {}) from GUI to Simulation Controller: {}",
+            "GUI".red(),
+            client,
+            server,
+            e
+        ),
+    }
+}
+
+pub fn logout(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId) {
+    match sim_ctrl.sender.send(GUICommands::LogOut(*client, *server)) {
+        Ok(()) => info!(
+            "[ {} ] Successfully sent GUICommand::LogOut({}, {}) from GUI to Simulation Controller",
+            "GUI".green(),
+            client,
+            server
+        ),
+        Err(e) => error!("[ {} ] Unable to send GUICommand::LogOut({}, {}) from GUI to Simulation Controller: {}",
+            "GUI".red(),
+            client,
+            server,
+            e
+        ),
+    }
+}

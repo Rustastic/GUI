@@ -465,6 +465,16 @@ impl eframe::App for SimCtrlGUI {
                         actions::add_sender(self, drone, *to_add)
                     }
                     GUICommands::SetPDR(drone, pdr) => actions::set_pdr(self, drone, pdr),
+                    
+                    GUICommands::SendMessageTo(src, dest, msg) => {
+                        actions::send_message(self, src, dest, msg.clone());
+                    },
+                    GUICommands::RegisterTo(client, server) => {
+                        actions::register(self, client, server);
+                    },
+                    GUICommands::LogOut(client, server) => {
+                        actions::logout(self, client, server);
+                    },
                     _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
                 }
             }
