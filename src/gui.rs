@@ -577,7 +577,7 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.register_to {
-                                        let mut _value: Option<String> = None;
+                                        let mut value: Option<String> = None;
 
                                         ui.vertical(|ui| {
                                             // Title
