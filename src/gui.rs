@@ -275,7 +275,7 @@ impl eframe::App for SimCtrlGUI {
                 let (_response, painter) =
                     ui.allocate_painter(egui::Vec2::new(900.0, 900.0), egui::Sense::hover());
 
-                // Drawing connections between drones
+                // Drawing connections between drones/client
                 for (start_id, neighbor) in self.edges.clone() {
                     let start = self.nodes.get(&start_id).unwrap();
                     for end_id in neighbor.0 {
@@ -287,7 +287,7 @@ impl eframe::App for SimCtrlGUI {
                     }
                 }
 
-                // Drawing the drones
+                // Drawing the drones/client
                 for (_, pos) in self.nodes.iter_mut() {
                     let screen_pos = egui::pos2(pos.x, pos.y);
                     let radius = 10.0;
