@@ -181,7 +181,7 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
 
         for client in new_client.neighbor.clone() {
             println!("loop clinet");
-            if !sim_ctrl.edges.contains_key(&client) {
+            if sim_ctrl.edges.contains_key(&client) {
                 println!("add");
                 sim_ctrl.edges.insert(client, (Vec::new(), Color32::GRAY));
             }
