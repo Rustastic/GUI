@@ -577,7 +577,7 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.register_to {
-                                        let mut value: Option<String> = None;
+                                        let mut selected_client: Option<String> = None; // More descriptive name
 
                                         ui.vertical(|ui| {
                                             // Title
@@ -586,26 +586,20 @@ impl eframe::App for SimCtrlGUI {
                                             // Multi-Select Neighbor Dropdown
                                             ui.label("Select a Client:");
                                             egui::ComboBox::from_label("Clients:")
-                                                .selected_text(value.clone().unwrap_or("None".to_string()))
+                                                .selected_text(selected_client.clone().unwrap_or("None".to_string()))
                                                 .show_ui(ui, |ui| {
-                                                    let mut options = Vec::<String>::new();
-                                                    for client in client_list.iter() {
-                                                        options.push(client.to_string());
-                                                    }
+                                                    let options = client_list.iter().cloned().collect::<Vec<String>>(); // More efficient
 
-                                                    for option in options {
-                                                        if ui.selectable_label(false, &option).clicked() {
-                                                            value = Some(option.to_string());
+                                                    for option in &options { // Iterate over references
+                                                        if ui.selectable_label(selected_client.as_ref() == Some(option), option).clicked() {
+                                                            selected_client = Some(option.clone());
                                                             instance.remove_sender = false;
 
                                                             // Parse and handle selection
-                                                            match value.clone().unwrap().parse::<u8>() {
-                                                                Ok(digit) => {
-                                                                    info!("[ {} ] Selected Client: {}", "GUI".green(), digit);
-                                                                }
-                                                                Err(e) => {
-                                                                    error!("[ {} ] Unable to parse client ID: {}", "GUI".red(), e);
-                                                                }
+                                                            if let Ok(digit) = option.parse::<u8>() {
+                                                                info!("[ {} ] Selected Client: {}", "GUI".green(), digit);
+                                                            } else {
+                                                                error!("[ {} ] Unable to parse client ID: {}", "GUI".red(), option); // Use the option string in the error message
                                                             }
                                                         }
                                                     }
@@ -625,20 +619,19 @@ impl eframe::App for SimCtrlGUI {
 
                                             // "Send" Button
                                             if ui.button("Send").clicked() {
-                                                if let (Some(client), Some(message)) = (value.clone(), instance.send_message_value.clone()) {
+                                                if let (Some(client), Some(message)) = (selected_client.clone(), instance.send_message_value.clone()) {
                                                     if let Ok(client_id) = client.parse::<u8>() {
                                                         info!("[ {} ] Sending message to {}: {}", "GUI".green(), client_id, message);
                                                         instance.command = Some(GUICommands::SendMessageTo(instance.id, client_id, message));
                                                     } else {
-                                                        error!("[ {} ] Invalid client ID format", "GUI".red());
+                                                        error!("[ {} ] Invalid client ID format: {}", "GUI".red(), client); // Include the invalid client ID in the error
                                                     }
                                                 } else {
                                                     error!("[ {} ] Missing client or message", "GUI".red());
                                                 }
                                             }
                                         });
-                                    }
-                                }
+                                
 
                                 ui.add_space(10.0);
 
