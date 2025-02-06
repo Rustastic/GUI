@@ -1,9 +1,13 @@
-use std::collections::HashMap;
 use eframe::egui::Color32;
 use petgraph::{graph::NodeIndex, Graph, Undirected};
 use rand::Rng;
+use std::collections::HashMap;
 
-use wg_2024::{config::{Drone as ConfigDrone, Client as ConfigClient}, network::NodeId};
+use wg_2024::{
+    config::{Client as ConfigClient, Drone as ConfigDrone},
+    network::NodeId,
+    packet::NodeType,
+};
 
 use colored::Colorize;
 use log::{error, info};
@@ -97,7 +101,8 @@ fn fruchterman_reingold(
         let max_displacement = temperature * f32::min(max_width, max_height);
         for node_index in graph.node_indices() {
             let displacement = displacements.get(&node_index).unwrap();
-            let displacement_magnitude = (displacement.0 * displacement.0 + displacement.1 * displacement.1).sqrt();
+            let displacement_magnitude =
+                (displacement.0 * displacement.0 + displacement.1 * displacement.1).sqrt();
 
             if displacement_magnitude > 0.0 {
                 let scale = f32::min(1.0, max_displacement / displacement_magnitude);
@@ -159,7 +164,10 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
 
         for drone in new_drone.neighbor.clone() {
             if !sim_ctrl.edges.contains_key(&drone) {
-                let (vec, _) = sim_ctrl.edges.entry(new_drone.id).or_insert_with(|| (Vec::new(), Color32::GRAY));
+                let (vec, _) = sim_ctrl
+                    .edges
+                    .entry(new_drone.id)
+                    .or_insert_with(|| (Vec::new(), Color32::GRAY));
                 vec.push(drone);
             }
         }
@@ -174,7 +182,10 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
         for client in new_client.neighbor.clone() {
             if !sim_ctrl.edges.contains_key(&client) {
                 println!("adding edge client");
-                let (vec, _) = sim_ctrl.edges.entry(new_client.id).or_insert_with(|| (Vec::new(), Color32::GRAY));
+                let (vec, _) = sim_ctrl
+                    .edges
+                    .entry(new_client.id)
+                    .or_insert_with(|| (Vec::new(), Color32::GRAY));
                 vec.push(client);
             }
         }
@@ -270,6 +281,12 @@ pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &No
 }
 
 pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
+    if sim_ctrl.nodes.get(node_id).unwrap().node_type == NodeType::Client
+        && sim_ctrl.nodes.get(&to_add).unwrap().node_type == NodeType::Client
+    {
+        return;
+    }
+
     let instance = sim_ctrl.nodes.get_mut(node_id).unwrap();
     match sim_ctrl
         .sender
@@ -284,7 +301,10 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
             );
 
             instance.neighbor.push(to_add);
-            let (vec, _) = sim_ctrl.edges.entry(*node_id).or_insert_with(|| (Vec::new(), Color32::GRAY));
+            let (vec, _) = sim_ctrl
+                .edges
+                .entry(*node_id)
+                .or_insert_with(|| (Vec::new(), Color32::GRAY));
             vec.push(to_add);
 
             let neighbor = sim_ctrl.nodes.get_mut(&to_add).unwrap();
@@ -351,7 +371,9 @@ pub fn spawn(sim_ctrl: &mut SimCtrlGUI, id: &NodeId, neighbors: &Vec<NodeId>, pd
             sim_ctrl.nodes.insert(*id, new_drone);
 
             // add edges
-            sim_ctrl.edges.insert(*id, (neighbors.clone(), Color32::GRAY));
+            sim_ctrl
+                .edges
+                .insert(*id, (neighbors.clone(), Color32::GRAY));
 
             sim_ctrl.spawn_command = None;
 

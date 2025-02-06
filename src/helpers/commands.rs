@@ -1,4 +1,8 @@
-use wg_2024::{config::{Drone as ConfigDrone, Client as ConfigClient}, network::NodeId, packet::Packet};
+use wg_2024::{
+    config::{Client as ConfigClient, Drone as ConfigDrone},
+    network::NodeId,
+    packet::Packet,
+};
 
 // From SimCtrl to GUI
 #[derive(Debug, Clone)]
@@ -23,5 +27,5 @@ pub enum GUICommands {
 
     SendMessageTo(NodeId, NodeId, String),
     RegisterTo(NodeId, NodeId),
-    LogOut(NodeId, NodeId)
+    LogOut(NodeId, NodeId),
 }

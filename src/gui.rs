@@ -5,7 +5,11 @@ use colored::Colorize;
 use eframe::egui::{self, Color32};
 
 use log::{error, info, warn};
-use wg_2024::{config::{Client as ConfigClient, Drone as ConfigDrone}, network::NodeId, packet::NodeType};
+use wg_2024::{
+    config::{Client as ConfigClient, Drone as ConfigDrone},
+    network::NodeId,
+    packet::NodeType,
+};
 
 use crate::{
     actions,
@@ -127,14 +131,13 @@ impl SimCtrlGUI {
                     thread::sleep(std::time::Duration::from_secs_f32(0.5));
                     self.edges.get_mut(&dest).unwrap().1 = Color32::GRAY;
                 }
-
-            },
+            }
             // light up node  for 0.5 sec in red
             GUIEvents::PacketDropped(src, _) => {
                 self.nodes.get_mut(&src).unwrap().color = Color32::RED;
                 thread::sleep(std::time::Duration::from_secs_f32(0.5));
                 self.nodes.get_mut(&src).unwrap().color = Color32::BLUE;
-            },
+            }
             GUIEvents::Topology(drones, clients) => actions::topology(self, drones, clients),
 
             // show message
@@ -411,7 +414,7 @@ impl eframe::App for SimCtrlGUI {
                                                         options.push(numbers.to_string());
                                                     }
                                                 }
-                                                
+
                                                 // If something selected
                                                 for option in options {
                                                     // If something selected
@@ -449,7 +452,7 @@ impl eframe::App for SimCtrlGUI {
                                             // Default value
                                             let text_input = instance.pdr_value.clone().unwrap_or_default();
                                             // Copy for mutation
-                                            let mut buffer = text_input.clone(); 
+                                            let mut buffer = text_input.clone();
 
                                             let text_edit = ui.text_edit_singleline(&mut buffer);
 
@@ -505,16 +508,16 @@ impl eframe::App for SimCtrlGUI {
                         actions::add_sender(self, drone, *to_add)
                     }
                     GUICommands::SetPDR(drone, pdr) => actions::set_pdr(self, drone, pdr),
-                    
+
                     GUICommands::SendMessageTo(src, dest, msg) => {
                         actions::send_message(self, src, dest, msg.clone());
-                    },
+                    }
                     GUICommands::RegisterTo(client, server) => {
                         actions::register(self, client, server);
-                    },
+                    }
                     GUICommands::LogOut(client, server) => {
                         actions::logout(self, client, server);
-                    },
+                    }
                     _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
                 }
             }
