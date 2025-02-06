@@ -179,12 +179,8 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
         let (x, y) = coordinates.get(vertexes.get(&client.id).unwrap()).unwrap();
         let new_client = NodeGUI::new_client(client.clone(), *x, *y);
 
-        for client in new_client.neighbor.clone() {
-            println!("loop clinet");
-            if sim_ctrl.edges.contains_key(&client) {
-                println!("add");
-                sim_ctrl.edges.insert(client, (Vec::new(), Color32::GRAY));
-            }
+        if !sim_ctrl.edges.contains_key(&new_client.id) {
+            sim_ctrl.edges.insert(new_client.id, (Vec::new(), Color32::GRAY));
         }
 
         sim_ctrl.nodes.insert(new_client.id, new_client);
