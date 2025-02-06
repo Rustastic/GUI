@@ -586,21 +586,17 @@ impl eframe::App for SimCtrlGUI {
                                             // Multi-Select Neighbor Dropdown
                                             ui.label("Select a Client:");
                                             egui::ComboBox::from_label("Clients:")
-                                                .selected_text(selected_client.clone().unwrap_or("None".to_string()))
+                                                .selected_text(selected_client.clone().map(|id| id.to_string()).unwrap_or("None".to_string())) // Display as string
                                                 .show_ui(ui, |ui| {
-                                                    let options = client_list.iter().cloned().collect::<Vec<String>>(); // More efficient
+                                                    let options = client_list.iter().copied().collect::<Vec<u8>>(); // Collect u8s
 
-                                                    for option in &options { // Iterate over references
-                                                        if ui.selectable_label(selected_client.as_ref() == Some(option), option).clicked() {
-                                                            selected_client = Some(option.clone());
+                                                    for option in &options {
+                                                        let display_text = option.to_string(); // Convert u8 to String for display
+                                                        if ui.selectable_label(selected_client.as_ref() == Some(&option.to_string()), &display_text).clicked() {
+                                                            selected_client = Some(option.to_string()); // Dereference to store the u8
                                                             instance.remove_sender = false;
 
-                                                            // Parse and handle selection
-                                                            if let Ok(digit) = option.parse::<u8>() {
-                                                                info!("[ {} ] Selected Client: {}", "GUI".green(), digit);
-                                                            } else {
-                                                                error!("[ {} ] Unable to parse client ID: {}", "GUI".red(), option); // Use the option string in the error message
-                                                            }
+                                                            info!("[ {} ] Selected Client: {}", "GUI".green(), option); // Option is already a u8
                                                         }
                                                     }
                                                 });
@@ -631,7 +627,8 @@ impl eframe::App for SimCtrlGUI {
                                                 }
                                             }
                                         });
-                                
+                                    }
+                                }
 
                                 ui.add_space(10.0);
 
@@ -640,6 +637,7 @@ impl eframe::App for SimCtrlGUI {
                                     instance.selected = false;
                                 }
                             });
+                        
                     }
                 }
             });
