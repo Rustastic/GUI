@@ -186,8 +186,6 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
         sim_ctrl.nodes.insert(new_client.id, new_client);
     }
 
-    println!("{:?}", sim_ctrl.edges);
-
     info!("[ {} ] Successfully composed the topology", "GUI".green());
     sim_ctrl.initialized = true;
 }
@@ -282,10 +280,30 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
         sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
         error!(
         "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
-            "GUI Controller".red(),
-            "Each client must be connected to at most two drones"
+            "GUI".red(),
+            "Two clients can be connected between eachother"
         );
         return;
+    } else if sim_ctrl.nodes.get(node_id).unwrap().node_type == NodeType::Client {
+        if sim_ctrl.nodes.get(node_id).unwrap().neighbor.len() == 2 {
+            sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
+            error!(
+            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                "Each client must be connected to at most two drones"
+            );
+            return;
+        }
+    } else if sim_ctrl.nodes.get(&to_add).unwrap().node_type == NodeType::Client {
+        if sim_ctrl.nodes.get(&to_add).unwrap().neighbor.len() == 2 {
+            sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
+            error!(
+            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                "Each client must be connected to at most two drones"
+            );
+            return;
+        }
     }
 
     let instance = sim_ctrl.nodes.get_mut(node_id).unwrap();
