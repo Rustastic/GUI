@@ -534,14 +534,14 @@ impl eframe::App for SimCtrlGUI {
                                             ui.heading("Send a Message");
                                         
                                             // Multi-Select Neighbor Dropdown
-                                            ui.label("Select a Neighbor:");
-                                            egui::ComboBox::from_label("Neighbors")
-                                                .selected_text(value.map_or("None".to_string(), |n| n.to_string()))
+                                            ui.label("Select a Client:");
+                                            egui::ComboBox::from_label("Clients: ")
+                                                .selected_text(value.clone().map_or("None".to_string(), |n| n.to_string()))
                                                 .show_ui(ui, |ui| {
-                                                    for &neighbor in self.nodes.keys() {
-                                                        let label = format!("{}", neighbor);
-                                                        if ui.selectable_label(Some(neighbor) == value, label).clicked() {
-                                                            value = Some(neighbor);
+                                                    for client in client_list.iter() {
+                                                        let label = format!("{}", client);
+                                                        if ui.selectable_label(Some(client.to_string()) == value, label).clicked() {
+                                                            value = Some(client.to_string());
                                                         }
                                                     }
                                                 });
@@ -549,20 +549,20 @@ impl eframe::App for SimCtrlGUI {
                                             // Message Input
                                             ui.horizontal(|ui| {
                                                 ui.label("Enter Message:");
-                                                let text_message = self.message_text.clone().unwrap_or_default();
+                                                let text_message = instance.send_message_value.clone().unwrap_or_default();
                                                 let mut buffer_message = text_message.clone(); // Buffer for mutation
                                         
                                                 let text_edit = ui.text_edit_singleline(&mut buffer_message);
                                                 if text_edit.changed() {
-                                                    self.message_text = Some(buffer_message);
+                                                    instance.send_message_value = Some(buffer_message);
                                                 }
                                             });
                                         
                                             // "Send" Button
                                             if ui.button("Send").clicked() {
-                                                if let (Some(neighbor), Some(message)) = (value, self.message_text.clone()) {
-                                                    info!("[ {} ] Sending message to {}: {}", "GUI".green(), neighbor, message);
-                                                    self.command = Some(GUICommands::SendMessageTo(self.id, neighbor, message));
+                                                if let (Some(client), Some(message)) = (value, instance.send_message_value.clone()) {
+                                                    info!("[ {} ] Sending message to {}: {}", "GUI".green(), client, message);
+                                                    instance.command = Some(GUICommands::SendMessageTo(instance.id, client.parse::<u8>().unwrap(), message));
                                                 } else {
                                                     error!("[ {} ] Missing neighbor or message", "GUI".red());
                                                 }
