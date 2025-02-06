@@ -447,6 +447,7 @@ pub fn send_message(sim_ctrl: &mut SimCtrlGUI, src: &NodeId, dest: &NodeId, msg:
             e
         ),
     }
+    sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
 }
 
 pub fn register(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId) {
@@ -464,6 +465,7 @@ pub fn register(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId) {
             e
         ),
     }
+    sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
 }
 
 pub fn logout(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId) {
@@ -481,4 +483,5 @@ pub fn logout(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId) {
             e
         ),
     }
+    sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
 }
