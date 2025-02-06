@@ -332,9 +332,6 @@ impl eframe::App for SimCtrlGUI {
                                 // Action buttons
                                 if !instance.crashed {
                                     ui.horizontal_centered(|ui| {
-                                        if ui.button("Crash").clicked() {
-                                            instance.command = Some(GUICommands::Crash(instance.id));
-                                        }
                                         if ui.button("RemoveSender").clicked() {
                                             instance.remove_sender = !instance.remove_sender;
                                             instance.add_sender = false;
@@ -345,11 +342,15 @@ impl eframe::App for SimCtrlGUI {
                                             instance.remove_sender = false;
                                             instance.set_pdr = false;
                                         }
-                                        if ui.button("Set PacketDropRate").clicked() {
-                                            instance.set_pdr =! instance.set_pdr;
-                                            instance.remove_sender = false;
-                                            instance.add_sender = false;
-
+                                        if instance.node_type == NodeType::Drone {
+                                            if ui.button("Crash").clicked() {
+                                                instance.command = Some(GUICommands::Crash(instance.id));
+                                            }
+                                            if ui.button("Set PacketDropRate").clicked() {
+                                                instance.set_pdr =! instance.set_pdr;
+                                                instance.remove_sender = false;
+                                                instance.add_sender = false;
+                                            }
                                         }
                                     });
                                 }
