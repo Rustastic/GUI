@@ -230,6 +230,28 @@ pub fn crash(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId) {
 }
 
 pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &NodeId) {
+    if sim_ctrl.nodes.get(node_id).unwrap().node_type == NodeType::Client {
+        if sim_ctrl.nodes.get(node_id).unwrap().neighbor.len() == 1 {
+            sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
+            error!(
+            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                "Each client must be connected to at most two drones"
+            );
+            return;
+        }
+    } else if sim_ctrl.nodes.get(&to_remove).unwrap().node_type == NodeType::Client {
+        if sim_ctrl.nodes.get(&to_remove).unwrap().neighbor.len() == 1 {
+            sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
+            error!(
+            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                "Each client must be connected to at most two drones"
+            );
+            return;
+        }
+    }
+
     let instance = sim_ctrl.nodes.get_mut(node_id).unwrap();
     match sim_ctrl
         .sender
