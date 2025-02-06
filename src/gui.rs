@@ -1,5 +1,5 @@
 use crossbeam_channel::{Receiver, Sender};
-use std::{collections::HashMap, thread};
+use std::{collections::HashMap, num, thread};
 
 use colored::Colorize;
 use eframe::egui::{self, Color32};
@@ -54,6 +54,11 @@ pub struct NodeGUI {
     add_sender: bool,
     set_pdr: bool,
     pdr_value: Option<String>,
+
+    send_message: bool,
+    send_message_value: Option<String>,
+    register_to: bool,
+    logout: bool,
 }
 
 impl NodeGUI {
@@ -75,6 +80,11 @@ impl NodeGUI {
             add_sender: false,
             set_pdr: false,
             pdr_value: None,
+
+            send_message: false,
+            send_message_value: None,
+            register_to: false,
+            logout: false,
         }
     }
 
@@ -96,6 +106,11 @@ impl NodeGUI {
             add_sender: false,
             set_pdr: false,
             pdr_value: None,
+
+            send_message: false,
+            send_message_value: None,
+            register_to: false,
+            logout: false,
         }
     }
 }
@@ -346,17 +361,34 @@ impl eframe::App for SimCtrlGUI {
                                             if ui.button("Crash").clicked() {
                                                 instance.command = Some(GUICommands::Crash(instance.id));
                                             }
-                                            if ui.button("Set PacketDropRate").clicked() {
-                                                instance.set_pdr =! instance.set_pdr;
+                                            if ui.button("SetPacketDropRate").clicked() {
+                                                instance.set_pdr = !instance.set_pdr;
                                                 instance.remove_sender = false;
                                                 instance.add_sender = false;
+                                            }
+                                        }
+                                        if instance.node_type == NodeType::Client {
+                                            if ui.button("SendMessage").clicked() {
+                                                instance.send_message = !instance.send_message;
+                                                instance.add_sender = false;
+                                                instance.remove_sender = false;
+                                                instance.register_to = false;
+                                            }
+                                            if ui.button("RegisterTo").clicked() {
+                                                instance.register_to = !instance.register_to;
+                                                instance.add_sender = false;
+                                                instance.remove_sender = false;
+                                                instance.send_message = false;
+                                            }
+                                            if ui.button("LogOut").clicked() {
+                                                instance.command = Some(GUICommands::LogOut(instance.id));
                                             }
                                         }
                                     });
                                 }
 
                                 // if not crashed
-                                if !instance.crashed {
+                                if !instance.crashed && !instance.logout{
                                     // if pressed RemoveSender button
                                     if instance.remove_sender {
                                         let mut _value: Option<String> = None;
@@ -481,6 +513,100 @@ impl eframe::App for SimCtrlGUI {
                                                 }
                                             }
                                         });
+                                    }
+
+                                    if instance.send_message {
+                                        let mut _value: Option<String> = None;
+                                        ui.horizontal(|ui| {
+                                            ui.label("Neighbors: ");
+
+                                            let mut options = Vec::<String>::new();
+                                            for (numbers, _) in self.edges.iter() {
+                                                if !instance.neighbor.contains(numbers) && *numbers != instance.id && self.nodes.get(numbers).unwrap().node_type == NodeType::Client {
+                                                    options.push(numbers.to_string());
+                                                }
+                                            }
+
+                                            // If something selected
+                                            for option in options {
+                                                // If something selected
+                                                if ui.selectable_label(
+                                                    false,
+                                                    &option,
+                                                ).clicked() {
+                                                    // Get selected option
+                                                    _value = Some(option.to_string());
+                                                    instance.remove_sender = false;
+
+                                                    // Parse and handle
+                                                    match _value.unwrap().parse::<u8>() {
+                                                        Ok(digit) => {
+
+                                                            let mut extra_info = instance.send_message_value.clone().unwrap_or_default();
+                                                            if ui.text_edit_singleline(&mut extra_info).changed() {
+                                                                instance.send_message_value = Some(extra_info.clone());
+                                                            }
+
+                                                            // Button to print the collected information
+                                                            if ui.button("Send").clicked() {
+                                                                info!("[ {} ] Passing to handler GUICommands::SendMessage({}, {}, {})", "GUI".green(), instance.id, digit, instance.send_message_value.unwrap());
+                                                                instance.command = Some(GUICommands::SendMessageTo(instance.id, digit, instance.send_message_value.unwrap()))
+                                                            }
+                                                        },
+                                                        Err(e) => {
+                                                            error!(
+                                                                "[ {} ] Unable to parse neighbor NodeId in GUICommand::AddSender: {}",
+                                                                "GUI".red(),
+                                                                e
+                                                            );
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        });
+                                    }
+
+                                    if instance.register_to {
+                                        let mut _value: Option<String> = None;
+                                        egui::ComboBox::from_label("Select Sender to add: ")
+                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .show_ui(ui, |ui| {
+                                                // Get options
+                                                let mut options = Vec::<String>::new();
+                                                for (numbers, _) in self.edges.iter() {
+                                                    if !instance.neighbor.contains(numbers) && *numbers != instance.id && self.nodes.get(numbers).unwrap().node_type == NodeType::Client {
+                                                        options.push(numbers.to_string());
+                                                    }
+                                                }
+
+                                                // If something selected
+                                                for option in options {
+                                                    // If something selected
+                                                    if ui.selectable_label(
+                                                        false,
+                                                        &option,
+                                                    ).clicked() {
+                                                        // Get selected option
+                                                        _value = Some(option.to_string());
+                                                        instance.remove_sender = false;
+
+                                                        // Parse and handle
+                                                        match _value.unwrap().parse::<u8>() {
+                                                            Ok(digit) => {
+                                                                info!("[ {} ] Passing to handler GUICommands::AddSender({}, {})", "GUI".green(), instance.id, digit);
+                                                                instance.command = Some(GUICommands::AddSender(instance.id, digit))
+                                                            },
+                                                            Err(e) => {
+                                                                error!(
+                                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::AddSender: {}",
+                                                                    "GUI".red(),
+                                                                    e
+                                                                );
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            });
                                     }
                                 }
 

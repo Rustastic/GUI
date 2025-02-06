@@ -180,7 +180,9 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
         let new_client = NodeGUI::new_client(client.clone(), *x, *y);
 
         if !sim_ctrl.edges.contains_key(&new_client.id) {
-            sim_ctrl.edges.insert(new_client.id, (Vec::new(), Color32::GRAY));
+            sim_ctrl
+                .edges
+                .insert(new_client.id, (Vec::new(), Color32::GRAY));
         }
 
         sim_ctrl.nodes.insert(new_client.id, new_client);
@@ -234,7 +236,7 @@ pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &No
         if sim_ctrl.nodes.get(node_id).unwrap().neighbor.len() == 1 {
             sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
             error!(
-            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
                 "GUI".red(),
                 "Each client must be connected to at most two drones"
             );
@@ -244,7 +246,7 @@ pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &No
         if sim_ctrl.nodes.get(&to_remove).unwrap().neighbor.len() == 1 {
             sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
             error!(
-            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
                 "GUI".red(),
                 "Each client must be connected to at most two drones"
             );
@@ -301,7 +303,7 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
     {
         sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
         error!(
-        "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
             "GUI".red(),
             "Two clients can be connected between eachother"
         );
@@ -310,7 +312,7 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
         if sim_ctrl.nodes.get(node_id).unwrap().neighbor.len() == 2 {
             sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
             error!(
-            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
                 "GUI".red(),
                 "Each client must be connected to at most two drones"
             );
@@ -320,7 +322,7 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
         if sim_ctrl.nodes.get(&to_add).unwrap().neighbor.len() == 2 {
             sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
             error!(
-            "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
                 "GUI".red(),
                 "Each client must be connected to at most two drones"
             );
