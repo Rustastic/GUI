@@ -27,5 +27,5 @@ pub enum GUICommands {
 
     SendMessageTo(NodeId, NodeId, String),
     RegisterTo(NodeId, NodeId),
-    LogOut(NodeId),
+    LogOut(NodeId, NodeId),
 }

@@ -58,6 +58,7 @@ pub struct NodeGUI {
     send_message: bool,
     send_message_value: Option<String>,
     register_to: bool,
+    register_value: Option<NodeId>,
     logout: bool,
 }
 
@@ -84,6 +85,7 @@ impl NodeGUI {
             send_message: false,
             send_message_value: None,
             register_to: false,
+            register_value: None,
             logout: false,
         }
     }
@@ -110,6 +112,7 @@ impl NodeGUI {
             send_message: false,
             send_message_value: None,
             register_to: false,
+            register_value: None,
             logout: false,
         }
     }
@@ -324,6 +327,13 @@ impl eframe::App for SimCtrlGUI {
                     painter.circle_filled(screen_pos, radius, pos.color);
                 }
 
+                let mut client_list = Vec::<NodeId>::new();
+                for (id, instance) in self.nodes.iter() {
+                    if instance.node_type == NodeType::Client {
+                        client_list.push(*id);
+                    }
+                }
+
                 // Displaying a pop-up with drone's information
                 for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
@@ -381,7 +391,9 @@ impl eframe::App for SimCtrlGUI {
                                                 instance.send_message = false;
                                             }
                                             if ui.button("LogOut").clicked() {
-                                                instance.command = Some(GUICommands::LogOut(instance.id));
+                                                if let Some(server) = instance.register_value {
+                                                    instance.command = Some(GUICommands::LogOut(instance.id, server));
+                                                }
                                             }
                                         }
                                     });
@@ -517,14 +529,13 @@ impl eframe::App for SimCtrlGUI {
 
                                     if instance.send_message {
                                         let mut _value: Option<String> = None;
-                                        ui.horizontal(|ui| {
-                                            ui.label("Neighbors: ");
-
+                                        egui::ComboBox::from_label("Select Sender to add: ")
+                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .show_ui(ui, |ui| {
+                                            // Get options
                                             let mut options = Vec::<String>::new();
-                                            for (numbers, _) in self.edges.iter() {
-                                                if !instance.neighbor.contains(numbers) && *numbers != instance.id && self.nodes.get(numbers).unwrap().node_type == NodeType::Client {
-                                                    options.push(numbers.to_string());
-                                                }
+                                            for numbers in client_list.iter() {
+                                                options.push(numbers.to_string());
                                             }
 
                                             // If something selected
@@ -549,8 +560,8 @@ impl eframe::App for SimCtrlGUI {
 
                                                             // Button to print the collected information
                                                             if ui.button("Send").clicked() {
-                                                                info!("[ {} ] Passing to handler GUICommands::SendMessage({}, {}, {})", "GUI".green(), instance.id, digit, instance.send_message_value.unwrap());
-                                                                instance.command = Some(GUICommands::SendMessageTo(instance.id, digit, instance.send_message_value.unwrap()))
+                                                                info!("[ {} ] Passing to handler GUICommands::SendMessage({}, {}, {})", "GUI".green(), instance.id, digit, instance.send_message_value.clone().unwrap());
+                                                                instance.command = Some(GUICommands::SendMessageTo(instance.id, digit, instance.send_message_value.clone().unwrap()))
                                                             }
                                                         },
                                                         Err(e) => {
@@ -573,10 +584,8 @@ impl eframe::App for SimCtrlGUI {
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
-                                                for (numbers, _) in self.edges.iter() {
-                                                    if !instance.neighbor.contains(numbers) && *numbers != instance.id && self.nodes.get(numbers).unwrap().node_type == NodeType::Client {
-                                                        options.push(numbers.to_string());
-                                                    }
+                                                for numbers in client_list.iter() {
+                                                    options.push(numbers.to_string());
                                                 }
 
                                                 // If something selected
