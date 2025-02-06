@@ -528,53 +528,51 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.send_message {
-                                        let mut _value: Option<String> = None;
-                                        egui::ComboBox::from_label("Select Sender to add: ")
-                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                        let mut selected_value: Option<String> = None; // Store the selected sender
+
+                                        egui::ComboBox::from_label("Select Sender to add:")
+                                            .selected_text(selected_value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
-                                            // Get options
-                                            let mut options = Vec::<String>::new();
-                                            for numbers in client_list.iter() {
-                                                options.push(numbers.to_string());
-                                            }
-
-                                            // If something selected
-                                            for option in options {
-                                                // If something selected
-                                                if ui.selectable_label(
-                                                    false,
-                                                    &option,
-                                                ).clicked() {
-                                                    // Get selected option
-                                                    _value = Some(option.to_string());
-                                                    instance.remove_sender = false;
-
-                                                    // Parse and handle
-                                                    match _value.unwrap().parse::<u8>() {
-                                                        Ok(digit) => {
-
-                                                            let mut extra_info = instance.send_message_value.clone().unwrap_or_default();
-                                                            if ui.text_edit_singleline(&mut extra_info).changed() {
-                                                                instance.send_message_value = Some(extra_info.clone());
-                                                            }
-
-                                                            // Button to print the collected information
-                                                            if ui.button("Send").clicked() {
-                                                                info!("[ {} ] Passing to handler GUICommands::SendMessage({}, {}, {})", "GUI".green(), instance.id, digit, instance.send_message_value.clone().unwrap());
-                                                                instance.command = Some(GUICommands::SendMessageTo(instance.id, digit, instance.send_message_value.clone().unwrap()))
-                                                            }
-                                                        },
-                                                        Err(e) => {
-                                                            error!(
-                                                                "[ {} ] Unable to parse neighbor NodeId in GUICommand::AddSender: {}",
-                                                                "GUI".red(),
-                                                                e
-                                                            );
-                                                        }
+                                                for number in client_list.iter() {
+                                                    let option = number.to_string();
+                                                    if ui.selectable_label(selected_value.as_deref() == Some(&option), &option).clicked() {
+                                                        selected_value = Some(option);
                                                     }
                                                 }
+                                            });
+
+                                        // Ensure an option is selected before showing the text field and button
+                                        if let Some(value) = selected_value.clone() {
+                                            if let Ok(digit) = value.parse::<u8>() {
+                                                let mut extra_info = instance.send_message_value.clone().unwrap_or_default();
+                                                if ui.text_edit_singleline(&mut extra_info).changed() {
+                                                    instance.send_message_value = Some(extra_info.clone());
+                                                }
+
+                                                // Button to print and send command
+                                                if ui.button("Send").clicked() {
+                                                    info!(
+                                                        "[ {} ] Passing to handler GUICommands::SendMessageTo({}, {}, {})",
+                                                        "GUI".green(),
+                                                        instance.id,
+                                                        digit,
+                                                        instance.send_message_value.clone().unwrap()
+                                                    );
+
+                                                    instance.command = Some(GUICommands::SendMessageTo(
+                                                        instance.id,
+                                                        digit,
+                                                        instance.send_message_value.clone().unwrap(),
+                                                    ));
+                                                }
+                                            } else {
+                                                error!(
+                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::SendMessageTo",
+                                                    "GUI".red()
+                                                );
                                             }
-                                        });
+                                        }
+
                                     }
 
                                     if instance.register_to {
