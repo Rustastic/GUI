@@ -528,51 +528,47 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.send_message {
-                                        let mut selected_value: Option<String> = None; // Store the selected sender
-
-                                        egui::ComboBox::from_label("Select Sender to add:")
-                                            .selected_text(selected_value.clone().unwrap_or("None".to_string()))
-                                            .show_ui(ui, |ui| {
-                                                for number in client_list.iter() {
-                                                    let option = number.to_string();
-                                                    if ui.selectable_label(selected_value.as_deref() == Some(&option), &option).clicked() {
-                                                        selected_value = Some(option);
+                                        let mut value: Option<String> = None;
+                                        ui.vertical(|ui| {
+                                            // Title
+                                            ui.heading("Send a Message");
+                                        
+                                            // Multi-Select Neighbor Dropdown
+                                            ui.label("Select a Neighbor:");
+                                            egui::ComboBox::from_label("Neighbors")
+                                                .selected_text(value.map_or("None".to_string(), |n| n.to_string()))
+                                                .show_ui(ui, |ui| {
+                                                    for &neighbor in self.nodes.keys() {
+                                                        let label = format!("{}", neighbor);
+                                                        if ui.selectable_label(Some(neighbor) == value, label).clicked() {
+                                                            value = Some(neighbor);
+                                                        }
                                                     }
+                                                });
+                                        
+                                            // Message Input
+                                            ui.horizontal(|ui| {
+                                                ui.label("Enter Message:");
+                                                let text_message = self.message_text.clone().unwrap_or_default();
+                                                let mut buffer_message = text_message.clone(); // Buffer for mutation
+                                        
+                                                let text_edit = ui.text_edit_singleline(&mut buffer_message);
+                                                if text_edit.changed() {
+                                                    self.message_text = Some(buffer_message);
                                                 }
                                             });
-
-                                        // Ensure an option is selected before showing the text field and button
-                                        if let Some(value) = selected_value.clone() {
-                                            if let Ok(digit) = value.parse::<u8>() {
-                                                let mut extra_info = instance.send_message_value.clone().unwrap_or_default();
-                                                if ui.text_edit_singleline(&mut extra_info).changed() {
-                                                    instance.send_message_value = Some(extra_info.clone());
+                                        
+                                            // "Send" Button
+                                            if ui.button("Send").clicked() {
+                                                if let (Some(neighbor), Some(message)) = (value, self.message_text.clone()) {
+                                                    info!("[ {} ] Sending message to {}: {}", "GUI".green(), neighbor, message);
+                                                    self.command = Some(GUICommands::SendMessageTo(self.id, neighbor, message));
+                                                } else {
+                                                    error!("[ {} ] Missing neighbor or message", "GUI".red());
                                                 }
-
-                                                // Button to print and send command
-                                                if ui.button("Send").clicked() {
-                                                    info!(
-                                                        "[ {} ] Passing to handler GUICommands::SendMessageTo({}, {}, {})",
-                                                        "GUI".green(),
-                                                        instance.id,
-                                                        digit,
-                                                        instance.send_message_value.clone().unwrap()
-                                                    );
-
-                                                    instance.command = Some(GUICommands::SendMessageTo(
-                                                        instance.id,
-                                                        digit,
-                                                        instance.send_message_value.clone().unwrap(),
-                                                    ));
-                                                }
-                                            } else {
-                                                error!(
-                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::SendMessageTo",
-                                                    "GUI".red()
-                                                );
                                             }
+                                        });
                                         }
-
                                     }
 
                                     if instance.register_to {
