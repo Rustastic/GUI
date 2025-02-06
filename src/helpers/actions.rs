@@ -182,11 +182,7 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
         for client in new_client.neighbor.clone() {
             if !sim_ctrl.edges.contains_key(&client) {
                 println!("adding edge client");
-                let (vec, _) = sim_ctrl
-                    .edges
-                    .entry(new_client.id)
-                    .or_insert_with(|| (Vec::new(), Color32::GRAY));
-                vec.push(client);
+                sim_ctrl.edges.insert(client.id, (Vec::new(), Color32::GRAY));
             }
         }
 

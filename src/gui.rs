@@ -410,9 +410,7 @@ impl eframe::App for SimCtrlGUI {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
                                                 for (numbers, _) in self.edges.iter() {
-                                                    println!("{}", numbers);
                                                     if !instance.neighbor.contains(numbers) && *numbers != instance.id {
-                                                        println!("{}", numbers);
                                                         options.push(numbers.to_string());
                                                     }
                                                 }
