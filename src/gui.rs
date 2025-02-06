@@ -568,7 +568,6 @@ impl eframe::App for SimCtrlGUI {
                                                 }
                                             }
                                         });
-                                        }
                                     }
 
                                     if instance.register_to {
