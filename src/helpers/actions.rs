@@ -190,6 +190,8 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
         sim_ctrl.nodes.insert(new_client.id, new_client);
     }
 
+    println!("{:?}", sim_ctrl.edges);
+
     info!("[ {} ] Successfully composed the topology", "GUI".green());
     sim_ctrl.initialized = true;
 }
