@@ -579,7 +579,7 @@ impl eframe::App for SimCtrlGUI {
 
                                     if instance.register_to {
                                         let mut _value: Option<String> = None;
-                                        egui::ComboBox::from_label("Select Sender to add: ")
+                                        egui::ComboBox::from_label("Select Server to register to: ")
                                             .selected_text(_value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
@@ -602,12 +602,12 @@ impl eframe::App for SimCtrlGUI {
                                                         // Parse and handle
                                                         match _value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
-                                                                info!("[ {} ] Passing to handler GUICommands::AddSender({}, {})", "GUI".green(), instance.id, digit);
-                                                                instance.command = Some(GUICommands::AddSender(instance.id, digit))
+                                                                info!("[ {} ] Passing to handler GUICommands::RegisterTo({}, {})", "GUI".green(), instance.id, digit);
+                                                                instance.command = Some(GUICommands::RegisterTo(instance.id, digit))
                                                             },
                                                             Err(e) => {
                                                                 error!(
-                                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::AddSender: {}",
+                                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::RegisterTo: {}",
                                                                     "GUI".red(),
                                                                     e
                                                                 );
