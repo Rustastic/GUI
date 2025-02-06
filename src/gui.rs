@@ -578,43 +578,65 @@ impl eframe::App for SimCtrlGUI {
 
                                     if instance.register_to {
                                         let mut _value: Option<String> = None;
-                                        egui::ComboBox::from_label("Select Server to register to: ")
-                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
-                                            .show_ui(ui, |ui| {
-                                                // Get options
-                                                let mut options = Vec::<String>::new();
-                                                for numbers in client_list.iter() {
-                                                    options.push(numbers.to_string());
-                                                }
 
-                                                // If something selected
-                                                for option in options {
-                                                    // If something selected
-                                                    if ui.selectable_label(
-                                                        false,
-                                                        &option,
-                                                    ).clicked() {
-                                                        // Get selected option
-                                                        _value = Some(option.to_string());
-                                                        instance.remove_sender = false;
+                                        ui.vertical(|ui| {
+                                            // Title
+                                            ui.heading("Send a Message");
 
-                                                        // Parse and handle
-                                                        match _value.unwrap().parse::<u8>() {
-                                                            Ok(digit) => {
-                                                                info!("[ {} ] Passing to handler GUICommands::RegisterTo({}, {})", "GUI".green(), instance.id, digit);
-                                                                instance.command = Some(GUICommands::RegisterTo(instance.id, digit))
-                                                            },
-                                                            Err(e) => {
-                                                                error!(
-                                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::RegisterTo: {}",
-                                                                    "GUI".red(),
-                                                                    e
-                                                                );
+                                            // Multi-Select Neighbor Dropdown
+                                            ui.label("Select a Client:");
+                                            egui::ComboBox::from_label("Clients:")
+                                                .selected_text(value.clone().unwrap_or("None".to_string()))
+                                                .show_ui(ui, |ui| {
+                                                    let mut options = Vec::<String>::new();
+                                                    for client in client_list.iter() {
+                                                        options.push(client.to_string());
+                                                    }
+
+                                                    for option in options {
+                                                        if ui.selectable_label(false, &option).clicked() {
+                                                            value = Some(option.to_string());
+                                                            instance.remove_sender = false;
+
+                                                            // Parse and handle selection
+                                                            match value.clone().unwrap().parse::<u8>() {
+                                                                Ok(digit) => {
+                                                                    info!("[ {} ] Selected Client: {}", "GUI".green(), digit);
+                                                                }
+                                                                Err(e) => {
+                                                                    error!("[ {} ] Unable to parse client ID: {}", "GUI".red(), e);
+                                                                }
                                                             }
                                                         }
                                                     }
+                                                });
+
+                                            // Message Input
+                                            ui.horizontal(|ui| {
+                                                ui.label("Enter Message:");
+                                                let text_message = instance.send_message_value.clone().unwrap_or_default();
+                                                let mut buffer_message = text_message.clone();
+
+                                                let text_edit = ui.text_edit_singleline(&mut buffer_message);
+                                                if text_edit.changed() {
+                                                    instance.send_message_value = Some(buffer_message);
                                                 }
                                             });
+
+                                            // "Send" Button
+                                            if ui.button("Send").clicked() {
+                                                if let (Some(client), Some(message)) = (value.clone(), instance.send_message_value.clone()) {
+                                                    if let Ok(client_id) = client.parse::<u8>() {
+                                                        info!("[ {} ] Sending message to {}: {}", "GUI".green(), client_id, message);
+                                                        instance.command = Some(GUICommands::SendMessageTo(instance.id, client_id, message));
+                                                    } else {
+                                                        error!("[ {} ] Invalid client ID format", "GUI".red());
+                                                    }
+                                                } else {
+                                                    error!("[ {} ] Missing client or message", "GUI".red());
+                                                }
+                                            }
+                                        });
                                     }
                                 }
 
