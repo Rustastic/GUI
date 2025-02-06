@@ -12,5 +12,5 @@ log = "0.4.25"
 
 petgraph = "0.7.1"
 
-eframe = { version = "0.30.0", features = ["default", "__screenshot"] }
-egui_extras = { version = "0.30.0", features = ["default", "image"] }
+eframe = { version = "0.31.0", features = ["default", "__screenshot"] }
+egui_extras = { version = "0.31.0", features = ["default", "image"] }
