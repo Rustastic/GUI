@@ -118,6 +118,7 @@ fn fruchterman_reingold(
 }
 
 pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Vec<ConfigClient>) {
+    println!("{:?}", clients);
     let mut graph = Graph::<(), (), Undirected>::new_undirected();
     let mut vertexes = HashMap::<NodeId, NodeIndex>::new();
 
