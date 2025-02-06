@@ -279,6 +279,12 @@ pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
     if sim_ctrl.nodes.get(node_id).unwrap().node_type == NodeType::Client
         && sim_ctrl.nodes.get(&to_add).unwrap().node_type == NodeType::Client
     {
+        sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
+        error!(
+        "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+            "GUI Controller".red(),
+            "Each client must be connected to at most two drones"
+        );
         return;
     }
 
