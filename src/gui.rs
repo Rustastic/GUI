@@ -312,7 +312,7 @@ impl eframe::App for SimCtrlGUI {
                 // Displaying a pop-up with drone's information
                 for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
-                        egui::Window::new(format!("Node {}", instance.id))
+                        egui::Window::new(format!("{:?} {}",instance.node_type, instance.id))
                             .fixed_size([100.0, 100.0]) // Window size
                             .resizable(false) // disable resizable
                             .collapsible(true) // activate collapsable
