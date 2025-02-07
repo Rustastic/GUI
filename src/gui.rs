@@ -546,7 +546,7 @@ impl eframe::App for SimCtrlGUI {
                                                     for option in options {
                                                         if ui.selectable_label(false, &option).clicked() {
                                                             value = Some(option.to_string());
-                                                            println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
+                                                            println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
                                                         }
                                                     }
                                                 });
@@ -554,12 +554,13 @@ impl eframe::App for SimCtrlGUI {
                                             // Message Input
                                             ui.horizontal(|ui| {
                                                 ui.label("Enter Message:");
-                                                let text_message = instance.send_message_value.clone().unwrap_or_default();
-                                                let mut buffer_message = text_message.clone();
+                                                let text_input = instance.send_message_value.clone().unwrap_or_default();
+                                                let mut buffer = text_input.clone();
 
-                                                let text_edit = ui.text_edit_singleline(&mut buffer_message);
+                                                let text_edit = ui.text_edit_singleline(&mut buffer);
                                                 if text_edit.changed() {
-                                                    instance.send_message_value = Some(buffer_message);
+                                                    instance.send_message_value = Some(buffer);
+                                                    println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
                                                 }
                                             });
 
