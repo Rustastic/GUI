@@ -56,7 +56,8 @@ pub struct NodeGUI {
     pdr_value: Option<String>,
 
     send_message: bool,
-    send_message_value: Option<String>,
+    send_message_msg_value: Option<String>,
+    send_message_client_value: Option<String>,
     register_to: bool,
     register_value: Option<NodeId>,
     logout: bool,
@@ -83,7 +84,8 @@ impl NodeGUI {
             pdr_value: None,
 
             send_message: false,
-            send_message_value: None,
+            send_message_msg_value: None,
+            send_message_client_value: None,
             register_to: false,
             register_value: None,
             logout: false,
@@ -110,7 +112,8 @@ impl NodeGUI {
             pdr_value: None,
 
             send_message: false,
-            send_message_value: None,
+            send_message_msg_value: None,
+            send_message_client_value: None,
             register_to: false,
             register_value: None,
             logout: false,
@@ -528,7 +531,6 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.send_message {
-                                        let mut value: Option<String> = None;
                                         ui.vertical(|ui| {
                                             // Title
                                             ui.heading("Send a Message");
@@ -536,7 +538,7 @@ impl eframe::App for SimCtrlGUI {
                                             // Multi-Select Neighbor Dropdown
                                             ui.label("Select a Client:");
                                             egui::ComboBox::from_label("Select Client: ")
-                                                .selected_text(value.clone().unwrap_or("None".to_string()))
+                                                .selected_text(instance.send_message_client_value.clone().unwrap_or("None".to_string()))
                                                 .show_ui(ui, |ui| {
                                                     let mut options = Vec::<String>::new();
                                                     for numbers in client_list.iter() {
@@ -545,8 +547,7 @@ impl eframe::App for SimCtrlGUI {
 
                                                     for option in options {
                                                         if ui.selectable_label(false, &option).clicked() {
-                                                            value = Some(option.to_string());
-                                                            println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA");
+                                                            instance.send_message_client_value = Some(option.to_string());
                                                         }
                                                     }
                                                 });
@@ -554,19 +555,18 @@ impl eframe::App for SimCtrlGUI {
                                             // Message Input
                                             ui.horizontal(|ui| {
                                                 ui.label("Enter Message:");
-                                                let text_input = instance.send_message_value.clone().unwrap_or_default();
+                                                let text_input = instance.send_message_msg_value.clone().unwrap_or_default();
                                                 let mut buffer = text_input.clone();
 
                                                 let text_edit = ui.text_edit_singleline(&mut buffer);
                                                 if text_edit.changed() {
-                                                    instance.send_message_value = Some(buffer);
-                                                    println!("BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB");
+                                                    instance.send_message_msg_value = Some(buffer);
                                                 }
                                             });
 
                                             // "Send" Button
                                             if ui.button("Send").clicked() {
-                                                if let (Some(client), Some(message)) = (value.clone(), instance.send_message_value.clone()) {
+                                                if let (Some(client), Some(message)) = (instance.send_message_client_value.clone(), instance.send_message_msg_value.clone()) {
                                                     if let Ok(client_id) = client.parse::<u8>() {
                                                         info!("[ {} ] Sending message to {}: {}", "GUI".green(), client_id, message);
                                                         instance.command = Some(GUICommands::SendMessageTo(instance.id, client_id, message));
@@ -609,18 +609,18 @@ impl eframe::App for SimCtrlGUI {
                                             // Message Input
                                             ui.horizontal(|ui| {
                                                 ui.label("Enter Message:");
-                                                let text_message = instance.send_message_value.clone().unwrap_or_default();
+                                                let text_message = instance.send_message_msg_value.clone().unwrap_or_default();
                                                 let mut buffer_message = text_message.clone();
 
                                                 let text_edit = ui.text_edit_singleline(&mut buffer_message);
                                                 if text_edit.changed() {
-                                                    instance.send_message_value = Some(buffer_message);
+                                                    instance.send_message_msg_value = Some(buffer_message);
                                                 }
                                             });
 
                                             // "Send" Button
                                             if ui.button("Send").clicked() {
-                                                if let (Some(client), Some(message)) = (selected_client.clone(), instance.send_message_value.clone()) {
+                                                if let (Some(client), Some(message)) = (selected_client.clone(), instance.send_message_msg_value.clone()) {
                                                     if let Ok(client_id) = client.parse::<u8>() {
                                                         info!("[ {} ] Sending message to {}: {}", "GUI".green(), client_id, message);
                                                         instance.command = Some(GUICommands::SendMessageTo(instance.id, client_id, message));
