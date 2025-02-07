@@ -546,6 +546,7 @@ impl eframe::App for SimCtrlGUI {
                                                     for option in options {
                                                         if ui.selectable_label(false, &option).clicked() {
                                                             value = Some(option.to_string());
+                                                            println!("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
                                                         }
                                                     }
                                                 });
