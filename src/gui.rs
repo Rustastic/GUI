@@ -538,21 +538,14 @@ impl eframe::App for SimCtrlGUI {
                                             egui::ComboBox::from_label("Select Client: ")
                                                 .selected_text(value.clone().unwrap_or("None".to_string()))
                                                 .show_ui(ui, |ui| {
-
                                                     let mut options = Vec::<String>::new();
                                                     for numbers in client_list.iter() {
                                                         options.push(numbers.to_string());
                                                     }
 
                                                     for option in options {
-                                                        // If something selected
-                                                        if ui.selectable_label(
-                                                            false,
-                                                            &option,
-                                                        ).clicked() {
-                                                            // Get selected option
+                                                        if ui.selectable_label(false, &option).clicked() {
                                                             value = Some(option.to_string());
-                                                            instance.remove_sender = false;
                                                         }
                                                     }
                                                 });
@@ -575,6 +568,7 @@ impl eframe::App for SimCtrlGUI {
                                                     if let Ok(client_id) = client.parse::<u8>() {
                                                         info!("[ {} ] Sending message to {}: {}", "GUI".green(), client_id, message);
                                                         instance.command = Some(GUICommands::SendMessageTo(instance.id, client_id, message));
+                                                        instance.send_message = false;
                                                     } else {
                                                         error!("[ {} ] Invalid client ID format", "GUI".red());
                                                     }
