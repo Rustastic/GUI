@@ -535,15 +535,24 @@ impl eframe::App for SimCtrlGUI {
 
                                             // Multi-Select Neighbor Dropdown
                                             ui.label("Select a Client:");
-                                            egui::ComboBox::from_label("Clients:")
+                                            egui::ComboBox::from_label("Select Client: ")
                                                 .selected_text(value.clone().unwrap_or("None".to_string()))
                                                 .show_ui(ui, |ui| {
-                                                    for client in client_list.iter() {
-                                                        let label = client.to_string();
-                                                        let is_selected = value.as_ref().map_or(false, |v| v == &label);
 
-                                                        if ui.selectable_label(is_selected, label.clone()).clicked() {
-                                                            value = Some(label); // Update selection properly
+                                                    let mut options = Vec::<String>::new();
+                                                    for numbers in client_list.iter() {
+                                                        options.push(numbers.to_string());
+                                                    }
+
+                                                    for option in options {
+                                                        // If something selected
+                                                        if ui.selectable_label(
+                                                            false,
+                                                            &option,
+                                                        ).clicked() {
+                                                            // Get selected option
+                                                            value = Some(option.to_string());
+                                                            instance.remove_sender = false;
                                                         }
                                                     }
                                                 });
@@ -588,15 +597,15 @@ impl eframe::App for SimCtrlGUI {
                                             egui::ComboBox::from_label("Clients:")
                                                 .selected_text(selected_client.clone().map(|id| id.to_string()).unwrap_or("None".to_string())) // Display as string
                                                 .show_ui(ui, |ui| {
-                                                    let options = client_list.iter().copied().collect::<Vec<u8>>(); // Collect u8s
+                                                    let options = client_list.iter().copied().collect::<Vec<u8>>();
 
                                                     for option in &options {
-                                                        let display_text = option.to_string(); // Convert u8 to String for display
+                                                        let display_text = option.to_string();
                                                         if ui.selectable_label(selected_client.as_ref() == Some(&option.to_string()), &display_text).clicked() {
-                                                            selected_client = Some(option.to_string()); // Dereference to store the u8
+                                                            selected_client = Some(option.to_string());
                                                             instance.remove_sender = false;
 
-                                                            info!("[ {} ] Selected Client: {}", "GUI".green(), option); // Option is already a u8
+                                                            info!("[ {} ] Selected Client: {}", "GUI".green(), option);
                                                         }
                                                     }
                                                 });
