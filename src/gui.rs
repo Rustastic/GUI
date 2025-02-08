@@ -191,10 +191,6 @@ impl SimCtrlGUI {
 
             // show message
             GUIEvents::MessageReceived(src, msg) => (),
-            // support for pop-up
-            GUIEvents::CommunicationServerList(items) => (),
-            // support for pop-up
-            GUIEvents::ClientList(items) => (),
         }
     }
 }
