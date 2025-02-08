@@ -261,10 +261,11 @@ pub fn crash(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId) {
         }
         Err(e) => {
             error!(
-            "[ {} ] Unable to send GUICommand::Crash from GUI to Simulation Controller: {}",
-            "GUI".red(),
-            e
-        ),
+                "[ {} ] Unable to send GUICommand::Crash from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                e
+            );
+        }
     }
 }
 
