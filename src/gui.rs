@@ -374,19 +374,20 @@ impl eframe::App for SimCtrlGUI {
                             .collapsible(true) // activate collapsable
                             .show(ctx, |ui| {
 
-                                // Display information
-                                ui.label(format!("Id: {}", instance.id));
                                 if !instance.crashed {
+
+                                    // Display information
+                                    ui.label(format!("Id: {}", instance.id));
                                     ui.label(format!(
                                         "Neighbors: {:?}",
                                         instance.neighbor
                                     ));
-                                    ui.label(format!("PDR: {}", instance.pdr));
-                                }
-                                ui.add_space(10.0);
+                                    if instance.node_type == NodeType::Drone {
+                                        ui.label(format!("PDR: {}", instance.pdr));
+                                    }
+                                    ui.add_space(10.0);
 
-                                // Action buttons
-                                if !instance.crashed {
+                                    // Action buttons
                                     ui.horizontal_centered(|ui| {
                                         if ui.button("RemoveSender").clicked() {
                                             instance.remove_sender = !instance.remove_sender;
