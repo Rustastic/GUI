@@ -1,5 +1,5 @@
 use wg_2024::{
-    config::{Server as ConfigServer, Client as ConfigClient, Drone as ConfigDrone},
+    config::{Client as ConfigClient, Drone as ConfigDrone, Server as ConfigServer},
     network::NodeId,
     packet::Packet,
 };

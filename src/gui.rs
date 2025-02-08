@@ -187,7 +187,9 @@ impl SimCtrlGUI {
                 thread::sleep(std::time::Duration::from_secs_f32(0.5));
                 self.nodes.get_mut(&src).unwrap().color = Color32::BLUE;
             }
-            GUIEvents::Topology(drones, clients, servers) => actions::topology(self, drones, clients, servers),
+            GUIEvents::Topology(drones, clients, servers) => {
+                actions::topology(self, drones, clients, servers)
+            }
 
             // show message
             GUIEvents::MessageReceived(src, msg) => (),
@@ -662,7 +664,6 @@ impl eframe::App for SimCtrlGUI {
                                     instance.selected = false;
                                 }
                             });
-                        
                     }
                 }
             });

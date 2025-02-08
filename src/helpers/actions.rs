@@ -125,7 +125,12 @@ fn fruchterman_reingold(
     positions
 }
 
-pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Vec<ConfigClient>, servers: Vec<ConfigServer>) {
+pub fn topology(
+    sim_ctrl: &mut SimCtrlGUI,
+    drones: Vec<ConfigDrone>,
+    clients: Vec<ConfigClient>,
+    servers: Vec<ConfigServer>,
+) {
     let mut graph = Graph::<(), (), Undirected>::new_undirected();
     let mut vertexes = HashMap::<NodeId, NodeIndex>::new();
 
