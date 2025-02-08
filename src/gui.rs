@@ -440,7 +440,7 @@ impl eframe::App for SimCtrlGUI {
                                                                     instance.id,
                                                                     digit
                                                                 );
-                                                                instance.command = Some(GUICommands::RemoveSender(instance.id, digit))
+                                                                instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
                                                                 instance.remove_sender = false;
                                                             },
                                                             Err(e) => error!(
