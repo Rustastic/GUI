@@ -128,7 +128,7 @@ impl NodeGUI {
             x,
             y,
             node_type: NodeType::Server,
-            color: Color32::YELLOW,
+            color: Color32::GREEN,
 
             command: None,
 
