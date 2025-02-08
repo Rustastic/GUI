@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+
 use eframe::egui::Color32;
 use petgraph::{graph::NodeIndex, Graph, Undirected};
 use rand::Rng;
@@ -24,7 +26,7 @@ fn fruchterman_reingold(
     let mut positions: HashMap<NodeIndex, (f32, f32)> = HashMap::with_capacity(node_count);
 
     // 1. Initialize node positions (randomly, within bounds)
-    let mut rng = rand::rng(); // Use thread_rng for better randomness
+    let mut rng = rand::rng();
     for node_index in graph.node_indices() {
         positions.insert(
             node_index,
@@ -35,8 +37,8 @@ fn fruchterman_reingold(
         );
     }
 
-    let k = 100.0; // Repulsion strength (adjust as needed)
-    let attraction_multiplier = 0.05; // Attraction strength (adjust as needed)
+    let k = 100.0; // Repulsion strength
+    let attraction_multiplier = 0.05; // Attraction strength
     let mut temperature = 4.0; // Start with a high temperature
 
     for _ in 0..iterations {
@@ -57,7 +59,7 @@ fn fruchterman_reingold(
             }
         }
 
-        // 2. Calculate repulsive forces (optimized)
+        // 2. Calculate repulsive forces
         for i in graph.node_indices() {
             for j in graph.node_indices() {
                 if i != j {
@@ -80,12 +82,12 @@ fn fruchterman_reingold(
             }
         }
 
-        // 3. Calculate attractive forces (optimized)
+        // 3. Calculate attractive forces
         for edge in graph.edge_indices() {
             let (u, v) = graph.edge_endpoints(edge).unwrap();
             let dx = positions[&v].0 - positions[&u].0;
             let dy = positions[&v].1 - positions[&u].1;
-            let attraction_force = attraction_multiplier; // No need for sqrt or normalization
+            let attraction_force = attraction_multiplier;
 
             *displacements.get_mut(&u).unwrap() = (
                 displacements[&u].0 + attraction_force * dx,
@@ -97,7 +99,7 @@ fn fruchterman_reingold(
             );
         }
 
-        // 4. Update positions (with temperature-controlled limit)
+        // 4. Update positions with temperature
         let max_displacement = temperature * f32::min(max_width, max_height);
         for node_index in graph.node_indices() {
             let displacement = displacements.get(&node_index).unwrap();
@@ -116,6 +118,7 @@ fn fruchterman_reingold(
             }
         }
 
+        // decrease temperature to make future changes less important
         temperature *= 0.99;
     }
 

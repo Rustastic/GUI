@@ -6,7 +6,7 @@ use eframe::egui::{self, Color32};
 
 use log::{error, info, warn};
 use wg_2024::{
-    config::{Client as ConfigClient, Drone as ConfigDrone},
+    config::{Client as ConfigClient, Drone as ConfigDrone, Server as ConfigServer},
     network::NodeId,
     packet::NodeType,
 };
@@ -100,6 +100,34 @@ impl NodeGUI {
             x,
             y,
             node_type: NodeType::Client,
+            color: Color32::YELLOW,
+
+            command: None,
+
+            selected: false,
+            crashed: false,
+            remove_sender: false,
+            add_sender: false,
+            set_pdr: false,
+            pdr_value: None,
+
+            send_message: false,
+            send_message_msg_value: None,
+            send_message_client_value: None,
+            register_to: false,
+            register_value: None,
+            logout: false,
+        }
+    }
+
+    pub fn new_server(server: ConfigServer, x: f32, y: f32) -> Self {
+        Self {
+            id: server.id,
+            neighbor: server.connected_drone_ids.clone(),
+            pdr: 0.0,
+            x,
+            y,
+            node_type: NodeType::Server,
             color: Color32::YELLOW,
 
             command: None,
