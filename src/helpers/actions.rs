@@ -259,12 +259,15 @@ pub fn crash(sim_ctrl: &mut SimCtrlGUI, drone: &NodeId) {
             let id = sim_ctrl.nodes.get(drone).unwrap().id;
             sim_ctrl.nodes.remove(&id);
         }
-        Err(e) => error!(
-            "[ {} ] Unable to send GUICommand::Crash from GUI to Simulation Controller: {}",
-            "GUI".red(),
-            e
-        ),
+        Err(e) => {
+            error!(
+                "[ {} ] Unable to send GUICommand::Crash from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                e
+            );
+        }
     }
+    sim_ctrl.nodes.get_mut(drone).unwrap().command = None;
 }
 
 pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &NodeId) {
@@ -316,7 +319,6 @@ pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &No
 
             // Remove neighbor from the current instance.
             instance.neighbor.retain(|&x| x != *to_remove);
-            instance.command = None;
 
             // Remove neighbor from to_remove
             let id = sim_ctrl.nodes.get(node_id).unwrap().id.clone();
@@ -331,6 +333,7 @@ pub fn remove_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_remove: &No
             )
         }
     }
+    sim_ctrl.nodes.get_mut(node_id).unwrap().command = None;
 }
 
 pub fn add_sender(sim_ctrl: &mut SimCtrlGUI, node_id: &NodeId, to_add: NodeId) {
