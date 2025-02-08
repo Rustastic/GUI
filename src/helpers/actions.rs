@@ -6,7 +6,7 @@ use rand::Rng;
 use std::collections::HashMap;
 
 use wg_2024::{
-    config::{Client as ConfigClient, Drone as ConfigDrone},
+    config::{Client as ConfigClient, Drone as ConfigDrone, Server as ConfigServer},
     network::NodeId,
     packet::NodeType,
 };
@@ -125,7 +125,7 @@ fn fruchterman_reingold(
     positions
 }
 
-pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Vec<ConfigClient>) {
+pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Vec<ConfigClient>, servers: Vec<ConfigServer>) {
     let mut graph = Graph::<(), (), Undirected>::new_undirected();
     let mut vertexes = HashMap::<NodeId, NodeIndex>::new();
 
@@ -137,6 +137,11 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
     for client in clients.iter() {
         let vertex_id = graph.add_node(());
         vertexes.insert(client.id, vertex_id);
+    }
+
+    for server in servers.iter() {
+        let vertex_id = graph.add_node(());
+        vertexes.insert(server.id, vertex_id);
     }
 
     for drone in drones.iter() {
@@ -153,6 +158,16 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
         for neighbor in client.connected_drone_ids.iter() {
             graph.add_edge(
                 *vertexes.get(&client.id).unwrap(),
+                *vertexes.get(neighbor).unwrap(),
+                (),
+            );
+        }
+    }
+
+    for server in servers.iter() {
+        for neighbor in server.connected_drone_ids.iter() {
+            graph.add_edge(
+                *vertexes.get(&server.id).unwrap(),
                 *vertexes.get(neighbor).unwrap(),
                 (),
             );
@@ -189,6 +204,17 @@ pub fn topology(sim_ctrl: &mut SimCtrlGUI, drones: Vec<ConfigDrone>, clients: Ve
         }
 
         sim_ctrl.nodes.insert(new_client.id, new_client);
+    }
+
+    for server in servers.iter() {
+        let (x, y) = coordinates.get(vertexes.get(&server.id).unwrap()).unwrap();
+        let new_server = NodeGUI::new_server(server.clone(), *x, *y);
+
+        if !sim_ctrl.edges.contains_key(&new_server.id) {
+            sim_ctrl
+                .edges
+                .insert(new_server.id, (Vec::new(), Color32::GRAY));
+        }
     }
 
     info!("[ {} ] Successfully composed the topology", "GUI".green());

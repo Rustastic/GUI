@@ -1,5 +1,5 @@
 use wg_2024::{
-    config::{Client as ConfigClient, Drone as ConfigDrone},
+    config::{Server as ConfigServer, Client as ConfigClient, Drone as ConfigDrone},
     network::NodeId,
     packet::Packet,
 };
@@ -9,7 +9,7 @@ use wg_2024::{
 pub enum GUIEvents {
     PacketSent(NodeId, NodeId, Packet),
     PacketDropped(NodeId, Packet),
-    Topology(Vec<ConfigDrone>, Vec<ConfigClient>),
+    Topology(Vec<ConfigDrone>, Vec<ConfigClient>, Vec<ConfigServer>),
     MessageReceived(NodeId, String),
 }
 

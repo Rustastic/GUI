@@ -187,7 +187,7 @@ impl SimCtrlGUI {
                 thread::sleep(std::time::Duration::from_secs_f32(0.5));
                 self.nodes.get_mut(&src).unwrap().color = Color32::BLUE;
             }
-            GUIEvents::Topology(drones, clients) => actions::topology(self, drones, clients),
+            GUIEvents::Topology(drones, clients, servers) => actions::topology(self, drones, clients, servers),
 
             // show message
             GUIEvents::MessageReceived(src, msg) => (),
@@ -203,7 +203,7 @@ impl eframe::App for SimCtrlGUI {
             // Wait for Topology message
             match self.receiver.try_recv() {
                 Ok(event) => match event.clone() {
-                    GUIEvents::Topology(_, _) => self.handle_events(event),
+                    GUIEvents::Topology(_, _, _) => self.handle_events(event),
                     _ => error!(
                         "[ {} ] Received NON-Topology GUIEvent before Initialization",
                         "GUI".red()
