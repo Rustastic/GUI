@@ -220,6 +220,8 @@ pub fn topology(
                 .edges
                 .insert(new_server.id, (Vec::new(), Color32::GRAY));
         }
+
+        sim_ctrl.nodes.insert(new_server.id, new_server);
     }
 
     info!("[ {} ] Successfully composed the topology", "GUI".green());
