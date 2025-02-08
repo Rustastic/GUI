@@ -364,11 +364,15 @@ impl eframe::App for SimCtrlGUI {
                                             instance.remove_sender = !instance.remove_sender;
                                             instance.add_sender = false;
                                             instance.set_pdr = false;
+                                            instance.send_message = false;
+                                            instance.register_to = false;
                                         }
                                         if ui.button("AddSender").clicked() {
                                             instance.add_sender = !instance.add_sender;
                                             instance.remove_sender = false;
                                             instance.set_pdr = false;
+                                            instance.send_message = false;
+                                            instance.register_to = false;
                                         }
                                         if instance.node_type == NodeType::Drone {
                                             if ui.button("Crash").clicked() {
@@ -437,6 +441,7 @@ impl eframe::App for SimCtrlGUI {
                                                                     digit
                                                                 );
                                                                 instance.command = Some(GUICommands::RemoveSender(instance.id, digit))
+                                                                instance.remove_sender = false;
                                                             },
                                                             Err(e) => error!(
                                                                 "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
@@ -478,7 +483,8 @@ impl eframe::App for SimCtrlGUI {
                                                         match _value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
                                                                 info!("[ {} ] Passing to handler GUICommands::AddSender({}, {})", "GUI".green(), instance.id, digit);
-                                                                instance.command = Some(GUICommands::AddSender(instance.id, digit))
+                                                                instance.command = Some(GUICommands::AddSender(instance.id, digit));
+                                                                instance.add_sender = false;
                                                             },
                                                             Err(e) => {
                                                                 error!(
@@ -581,44 +587,47 @@ impl eframe::App for SimCtrlGUI {
                                         });
                                     }
 
-                                    let mut _value: Option<String> = None;
-                                    egui::ComboBox::from_label("Select Server to register to: ")
-                                        .selected_text(_value.clone().unwrap_or("None".to_string()))
-                                        .show_ui(ui, |ui| {
-                                            // Get options
-                                            let mut options = Vec::<String>::new();
-                                            for numbers in client_list.iter() {
-                                                options.push(numbers.to_string());
-                                            }
+                                    if instance.register_to {
+                                        let mut _value: Option<String> = None;
+                                        egui::ComboBox::from_label("Select Server to register to: ")
+                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .show_ui(ui, |ui| {
+                                                // Get options
+                                                let mut options = Vec::<String>::new();
+                                                for numbers in client_list.iter() {
+                                                    options.push(numbers.to_string());
+                                                }
 
-                                            // If something selected
-                                            for option in options {
                                                 // If something selected
-                                                if ui.selectable_label(
-                                                    false,
-                                                    &option,
-                                                ).clicked() {
-                                                    // Get selected option
-                                                    _value = Some(option.to_string());
-                                                    instance.remove_sender = false;
+                                                for option in options {
+                                                    // If something selected
+                                                    if ui.selectable_label(
+                                                        false,
+                                                        &option,
+                                                    ).clicked() {
+                                                        // Get selected option
+                                                        _value = Some(option.to_string());
+                                                        instance.register_to = false;
 
-                                                    // Parse and handle
-                                                    match _value.unwrap().parse::<u8>() {
-                                                        Ok(digit) => {
-                                                            info!("[ {} ] Passing to handler GUICommands::RegisterTo({}, {})", "GUI".green(), instance.id, digit);
-                                                            instance.command = Some(GUICommands::RegisterTo(instance.id, digit))
-                                                        },
-                                                        Err(e) => {
-                                                            error!(
-                                                                "[ {} ] Unable to parse neighbor NodeId in GUICommand::RegisterTo: {}",
-                                                                "GUI".red(),
-                                                                e
-                                                            );
+                                                        // Parse and handle
+                                                        match _value.unwrap().parse::<u8>() {
+                                                            Ok(digit) => {
+                                                                instance.register_value = Some(digit);
+                                                                info!("[ {} ] Passing to handler GUICommands::RegisterTo({}, {})", "GUI".green(), instance.id, digit);
+                                                                instance.command = Some(GUICommands::RegisterTo(instance.id, digit))
+                                                            },
+                                                            Err(e) => {
+                                                                error!(
+                                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::RegisterTo: {}",
+                                                                    "GUI".red(),
+                                                                    e
+                                                                );
+                                                            }
                                                         }
                                                     }
                                                 }
-                                            }
-                                        });
+                                            });
+                                    }
                                 }
 
                                 ui.add_space(10.0);
