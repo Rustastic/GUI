@@ -415,7 +415,6 @@ impl eframe::App for SimCtrlGUI {
                         }
                     }
                 }
-                println!("\ncserver_list: {:?}\n", cserver_list);
 
                 let mut tserver_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
@@ -425,7 +424,6 @@ impl eframe::App for SimCtrlGUI {
                         }
                     }
                 }
-                println!("\ntserver_list: {:?}\n", tserver_list);
 
                 let mut iserver_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
@@ -435,7 +433,6 @@ impl eframe::App for SimCtrlGUI {
                         }
                     }
                 }
-                println!("\niserver_list: {:?}\n", iserver_list);
 
                 // Displaying a pop-up with drone's information
                 for (_, instance) in self.nodes.iter_mut() {

@@ -219,9 +219,7 @@ pub fn topology(
     }
 
     let third = servers.len() / 3;
-    println!("\nthird: {}\n", third);
     let mut count = servers.len();
-    println!("\ncount: {}\n", count);
     for server in servers.iter() {
         let (x, y) = coordinates.get(vertexes.get(&server.id).unwrap()).unwrap();
 
