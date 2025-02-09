@@ -417,7 +417,7 @@ impl eframe::App for SimCtrlGUI {
                         }
                     }
                 }
-                println!("\ncserver_list: {:?}"\n, cserver_list);
+                println!("\ncserver_list: {:?}\n", cserver_list);
 
                 let mut tserver_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
