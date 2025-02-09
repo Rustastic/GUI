@@ -7,9 +7,11 @@ use wg_2024::{
 // From SimCtrl to GUI
 #[derive(Debug, Clone)]
 pub enum GUIEvents {
+    Topology(Vec<ConfigDrone>, Vec<ConfigClient>, Vec<ConfigServer>),
+    ServerList(NodeId, Vec<String>),
+
     PacketSent(NodeId, NodeId, Packet),
     PacketDropped(NodeId, Packet),
-    Topology(Vec<ConfigDrone>, Vec<ConfigClient>, Vec<ConfigServer>),
     MessageReceived(NodeId, String),
 }
 
@@ -25,4 +27,20 @@ pub enum GUICommands {
     SendMessageTo(NodeId, NodeId, String),
     RegisterTo(NodeId, NodeId),
     LogOut(NodeId, NodeId),
+
+    AskForFileList(NodeId, NodeId),
+    GetFile(NodeId, NodeId, String)
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ClientType {
+    Chat,
+    Media,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ServerType {
+    Communication,
+    Text,
+    Image,
 }

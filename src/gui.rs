@@ -13,7 +13,7 @@ use wg_2024::{
 
 use crate::{
     actions,
-    commands::{GUICommands, GUIEvents},
+    commands::{ClientType, ServerType, GUICommands, GUIEvents},
 };
 
 pub const HEIGHT: f32 = 900.0;
@@ -34,6 +34,8 @@ pub struct SimCtrlGUI {
     pub spawn_neighbors: Vec<NodeId>,
     pub spawn_pdr: Option<String>,
     pub spawn_command: Option<GUICommands>,
+
+    file_list: HashMap<NodeId, Vec<String>>,
 }
 
 #[derive(Clone, Debug)]
@@ -44,6 +46,8 @@ pub struct NodeGUI {
     x: f32,
     y: f32,
     pub node_type: NodeType,
+    client_type: Option<ClientType>,
+    server_type: Option<ServerType>,
     color: egui::Color32,
 
     pub command: Option<GUICommands>,
@@ -61,6 +65,10 @@ pub struct NodeGUI {
     register_to: bool,
     register_value: Option<NodeId>,
     logout: bool,
+
+    ask_for_file_list: bool,
+    server_value: Option<NodeId>,
+    get_file: bool,
 }
 
 impl NodeGUI {
@@ -72,6 +80,8 @@ impl NodeGUI {
             x,
             y,
             node_type: NodeType::Drone,
+            client_type: None,
+            server_type: None,
             color: Color32::BLUE,
 
             command: None,
@@ -89,10 +99,15 @@ impl NodeGUI {
             register_to: false,
             register_value: None,
             logout: false,
+
+            ask_for_file_list: false,
+            server_value: None,
+            get_file: false,
+            
         }
     }
 
-    pub fn new_client(client: ConfigClient, x: f32, y: f32) -> Self {
+    pub fn new_client(client: ConfigClient, x: f32, y: f32, client_type: Option<ClientType>) -> Self {
         Self {
             id: client.id,
             neighbor: client.connected_drone_ids.clone(),
@@ -100,6 +115,8 @@ impl NodeGUI {
             x,
             y,
             node_type: NodeType::Client,
+            client_type,
+            server_type: None,
             color: Color32::YELLOW,
 
             command: None,
@@ -117,10 +134,14 @@ impl NodeGUI {
             register_to: false,
             register_value: None,
             logout: false,
+
+            ask_for_file_list: false,
+            server_value: None,
+            get_file: false,
         }
     }
 
-    pub fn new_server(server: ConfigServer, x: f32, y: f32) -> Self {
+    pub fn new_server(server: ConfigServer, x: f32, y: f32, server_type: Option<ServerType>) -> Self {
         Self {
             id: server.id,
             neighbor: server.connected_drone_ids.clone(),
@@ -128,6 +149,8 @@ impl NodeGUI {
             x,
             y,
             node_type: NodeType::Server,
+            client_type: None,
+            server_type,
             color: Color32::GREEN,
 
             command: None,
@@ -145,6 +168,10 @@ impl NodeGUI {
             register_to: false,
             register_value: None,
             logout: false,
+
+            ask_for_file_list: false,
+            server_value: None,
+            get_file: false,
         }
     }
 }
@@ -164,6 +191,7 @@ impl SimCtrlGUI {
             spawn_neighbors: Vec::new(),
             spawn_pdr: None,
             spawn_command: None,
+            file_list: HashMap::new(),
         }
     }
 
@@ -193,6 +221,11 @@ impl SimCtrlGUI {
 
             // show message
             GUIEvents::MessageReceived(src, msg) => (),
+            GUIEvents::ServerList(server, items) => {
+                if !self.file_list.contains_key(&server) {
+                    self.file_list.insert(server, items);
+                }
+            },
         }
     }
 }
@@ -356,17 +389,48 @@ impl eframe::App for SimCtrlGUI {
                     painter.circle_filled(screen_pos, radius, pos.color);
                 }
 
-                let mut client_list = Vec::<NodeId>::new();
+                let mut cclient_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
                     if instance.node_type == NodeType::Client {
-                        client_list.push(*id);
+                        if instance.client_type.unwrap() == ClientType::Chat {
+                           cclient_list.push(*id);
+                        }
                     }
                 }
 
-                let mut server_list = Vec::<NodeId>::new();
+                let mut mclient_list = Vec::<NodeId>::new();
+                for (id, instance) in self.nodes.iter() {
+                    if instance.node_type == NodeType::Client {
+                        if instance.client_type.unwrap() == ClientType::Media {
+                           mclient_list.push(*id);
+                        }
+                    }
+                }
+
+                let mut cserver_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
                     if instance.node_type == NodeType::Server {
-                        server_list.push(*id);
+                        if instance.server_type.unwrap() == ServerType::Communication {
+                            cserver_list.push(*id);
+                        }
+                    }
+                }
+
+                let mut tserver_list = Vec::<NodeId>::new();
+                for (id, instance) in self.nodes.iter() {
+                    if instance.node_type == NodeType::Server {
+                        if instance.server_type.unwrap() == ServerType::Text {
+                            tserver_list.push(*id);
+                        }
+                    }
+                }
+
+                let mut iserver_list = Vec::<NodeId>::new();
+                for (id, instance) in self.nodes.iter() {
+                    if instance.node_type == NodeType::Server {
+                        if instance.server_type.unwrap() == ServerType::Image {
+                            iserver_list.push(*id);
+                        }
                     }
                 }
 
@@ -419,21 +483,29 @@ impl eframe::App for SimCtrlGUI {
                                             }
                                         }
                                         if instance.node_type == NodeType::Client {
-                                            if ui.button("SendMessage").clicked() {
-                                                instance.send_message = !instance.send_message;
-                                                instance.add_sender = false;
-                                                instance.remove_sender = false;
-                                                instance.register_to = false;
-                                            }
-                                            if ui.button("RegisterTo").clicked() {
-                                                instance.register_to = !instance.register_to;
-                                                instance.add_sender = false;
-                                                instance.remove_sender = false;
-                                                instance.send_message = false;
-                                            }
-                                            if ui.button("LogOut").clicked() {
-                                                if let Some(server) = instance.register_value {
-                                                    instance.command = Some(GUICommands::LogOut(instance.id, server));
+                                            if instance.client_type.unwrap() == ClientType::Chat {
+                                                if ui.button("SendMessage").clicked() {
+                                                    instance.send_message = !instance.send_message;
+                                                    instance.add_sender = false;
+                                                    instance.remove_sender = false;
+                                                    instance.register_to = false;
+                                                }
+                                                if ui.button("RegisterTo").clicked() {
+                                                    instance.register_to = !instance.register_to;
+                                                    instance.add_sender = false;
+                                                    instance.remove_sender = false;
+                                                    instance.send_message = false;
+                                                }
+                                                if ui.button("LogOut").clicked() {
+                                                    if let Some(server) = instance.register_value {
+                                                        instance.command = Some(GUICommands::LogOut(instance.id, server));
+                                                    }
+                                                }
+                                            } else {
+                                                if ui.button("AskForFile").clicked() {
+                                                    instance.ask_for_file_list = !instance.ask_for_file_list;
+                                                    instance.add_sender = false;
+                                                    instance.remove_sender = false;
                                                 }
                                             }
                                         }
@@ -441,7 +513,7 @@ impl eframe::App for SimCtrlGUI {
                                 }
 
                                 // if not crashed
-                                if !instance.crashed && !instance.logout{
+                                if !instance.crashed && !instance.logout {
                                     // if pressed RemoveSender button
                                     if instance.remove_sender {
                                         let mut _value: Option<String> = None;
@@ -581,7 +653,7 @@ impl eframe::App for SimCtrlGUI {
                                                 .selected_text(instance.send_message_client_value.clone().unwrap_or("None".to_string()))
                                                 .show_ui(ui, |ui| {
                                                     let mut options = Vec::<String>::new();
-                                                    for numbers in client_list.iter() {
+                                                    for numbers in cclient_list.iter() {
                                                         options.push(numbers.to_string());
                                                     }
 
@@ -628,7 +700,7 @@ impl eframe::App for SimCtrlGUI {
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
-                                                for numbers in server_list.iter() {
+                                                for numbers in cserver_list.iter() {
                                                     options.push(numbers.to_string());
                                                 }
 
@@ -660,6 +732,86 @@ impl eframe::App for SimCtrlGUI {
                                                         }
                                                     }
                                                 }
+                                            });
+                                    }
+
+                                    if instance.ask_for_file_list {
+                                        let mut _value: Option<String> = None;
+                                        egui::ComboBox::from_label("Select Server to get List: ")
+                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .show_ui(ui, |ui| {
+                                                // Get options
+                                                let mut options = Vec::<String>::new();
+                                                for numbers in tserver_list.clone() {
+                                                    options.push(numbers.to_string());
+                                                }
+
+                                                // Check if option is selected
+                                                for option in options {
+                                                    // If something selected
+                                                    if ui.selectable_label(
+                                                        false,
+                                                        &option,
+                                                    ).clicked() {
+                                                        // Get selected option
+                                                        _value = Some(option.to_string());
+                                                        instance.ask_for_file_list = false;
+
+                                                        // Parse and handle
+                                                        match _value.unwrap().parse::<u8>() {
+                                                            Ok(digit) => {
+                                                                if !self.file_list.contains_key(&digit) {
+                                                                    info!(
+                                                                        "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
+                                                                        "GUI".green(),
+                                                                        instance.id,
+                                                                        digit
+                                                                    );
+                                                                    instance.server_value = Some(digit);
+                                                                    instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
+                                                                }
+                                                                instance.ask_for_file_list = false;
+                                                                instance.get_file = true;
+                                                            },
+                                                            Err(e) => error!(
+                                                                "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
+                                                                "GUI".red(),
+                                                                e
+                                                            ),
+                                                        }
+                                                    }
+                                                }
+                                            });
+                                    }
+
+                                    if instance.server_value.is_some() && self.file_list.contains_key(&instance.server_value.unwrap()) && instance.get_file {
+                                        let mut _value: Option<String> = None;
+                                        egui::ComboBox::from_label("Select file: ")
+                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .show_ui(ui, |ui| {
+                                                // Get options
+                                                let mut options = Vec::<String>::new();
+                                                let vec = self.file_list.get(&instance.server_value.unwrap()).unwrap();
+                                                for numbers in vec.iter() {
+                                                    options.push(numbers.clone());
+                                                }
+
+                                                // If something selected
+                                                for option in options {
+                                                    // If something selected
+                                                    if ui.selectable_label(
+                                                        false,
+                                                        &option,
+                                                    ).clicked() {
+                                                        // Get selected option
+                                                        _value = Some(option.to_string());
+                                                        instance.remove_sender = false;
+
+                                                        info!("[ {} ] Passing to handler GUICommands::Get({}, {}, {:?})", "GUI".green(), instance.id, instance.server_value.unwrap(), _value.clone().unwrap());
+                                                        instance.command = Some(GUICommands::GetFile(instance.id, instance.server_value.unwrap(), _value.unwrap()));
+                                                        instance.add_sender = false;
+                                                    }
+                                                }                   
                                             });
                                     }
                                 }
@@ -699,6 +851,12 @@ impl eframe::App for SimCtrlGUI {
                     GUICommands::LogOut(client, server) => {
                         actions::logout(self, client, server);
                     }
+                    GUICommands::AskForFileList(client, server) => {
+                        actions::ask_for_file_list(self, client, server);
+                    },
+                    GUICommands::GetFile(client, server, title) => {
+                        actions::get_file(self, client, server, title.clone());
+                    },
                     _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
                 }
             }

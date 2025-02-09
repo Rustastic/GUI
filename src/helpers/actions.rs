@@ -14,7 +14,7 @@ use wg_2024::{
 use colored::Colorize;
 use log::{error, info};
 
-use crate::{commands::GUICommands, NodeGUI, SimCtrlGUI, HEIGHT, WIDTH};
+use crate::{commands::{ClientType, GUICommands, ServerType}, NodeGUI, SimCtrlGUI, HEIGHT, WIDTH};
 
 fn fruchterman_reingold(
     graph: &Graph<(), (), Undirected>,
@@ -198,9 +198,16 @@ pub fn topology(
         sim_ctrl.nodes.insert(new_drone.id, new_drone);
     }
 
-    for client in clients.iter() {
+    let half = clients.len() / 2;
+    for (count, client) in clients.iter().enumerate() {
         let (x, y) = coordinates.get(vertexes.get(&client.id).unwrap()).unwrap();
-        let new_client = NodeGUI::new_client(client.clone(), *x, *y);
+        let new_client;
+        if count < half {
+            new_client = NodeGUI::new_client(client.clone(), *x, *y, Some(ClientType::Chat));
+        } else {
+            new_client = NodeGUI::new_client(client.clone(), *x, *y, Some(ClientType::Media));
+        }
+
 
         if !sim_ctrl.edges.contains_key(&new_client.id) {
             sim_ctrl
@@ -211,9 +218,19 @@ pub fn topology(
         sim_ctrl.nodes.insert(new_client.id, new_client);
     }
 
+    let third = clients.len() / 3;
+    let mut count = clients.len();
     for server in servers.iter() {
         let (x, y) = coordinates.get(vertexes.get(&server.id).unwrap()).unwrap();
-        let new_server = NodeGUI::new_server(server.clone(), *x, *y);
+
+        let new_server;
+        if count > (third * 2) {
+            new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Text));
+        } else if count > third {
+            new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Image));
+        } else {
+            new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Communication));
+        }
 
         if !sim_ctrl.edges.contains_key(&new_server.id) {
             sim_ctrl
@@ -222,6 +239,8 @@ pub fn topology(
         }
 
         sim_ctrl.nodes.insert(new_server.id, new_server);
+
+        count -= 1;
     }
 
     info!("[ {} ] Successfully composed the topology", "GUI".green());
@@ -540,6 +559,44 @@ pub fn logout(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId) {
             "GUI".red(),
             client,
             server,
+            e
+        ),
+    }
+    sim_ctrl.nodes.get_mut(client).unwrap().command = None;
+}
+
+pub fn ask_for_file_list(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId) {
+    match sim_ctrl.sender.send(GUICommands::AskForFileList(*client, *server)) {
+        Ok(()) => info!(
+            "[ {} ] Successfully sent GUICommand::AskForFileList({}, {}) from GUI to Simulation Controller",
+            "GUI".green(),
+            client,
+            server
+        ),
+        Err(e) => error!("[ {} ] Unable to send GUICommand::AskForFileList({}, {}) from GUI to Simulation Controller: {}",
+            "GUI".red(),
+            client,
+            server,
+            e
+        ),
+    }
+    sim_ctrl.nodes.get_mut(client).unwrap().command = None;
+}
+
+pub fn get_file(sim_ctrl: &mut SimCtrlGUI, client: &NodeId, server: &NodeId, title: String) {
+    match sim_ctrl.sender.send(GUICommands::GetFile(*client, *server, title.clone())) {
+        Ok(()) => info!(
+            "[ {} ] Successfully sent GUICommand::GetFile({}, {}, {:?}) from GUI to Simulation Controller",
+            "GUI".green(),
+            client,
+            server,
+            title
+        ),
+        Err(e) => error!("[ {} ] Unable to send GUICommand::GetFile({}, {}, {:?}) from GUI to Simulation Controller: {}",
+            "GUI".red(),
+            client,
+            server,
+            title,
             e
         ),
     }
