@@ -8,7 +8,7 @@ use wg_2024::{
 #[derive(Debug, Clone)]
 pub enum GUIEvents {
     Topology(Vec<ConfigDrone>, Vec<ConfigClient>, Vec<ConfigServer>),
-    ServerList(NodeId, Vec<String>),
+    FileList(NodeId, Vec<String>),
 
     PacketSent(NodeId, NodeId, Packet),
     PacketDropped(NodeId, Packet),

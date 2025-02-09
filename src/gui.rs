@@ -221,7 +221,7 @@ impl SimCtrlGUI {
 
             // show message
             GUIEvents::MessageReceived(src, msg) => (),
-            GUIEvents::ServerList(server, items) => {
+            GUIEvents::FileList(server, items) => {
                 if !self.file_list.contains_key(&server) {
                     self.file_list.insert(server, items);
                 }
