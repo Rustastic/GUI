@@ -365,7 +365,7 @@ impl eframe::App for SimCtrlGUI {
 
                 let mut server_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
-                    if instance.node_type == NodeType::Client {
+                    if instance.node_type == NodeType::Server {
                         server_list.push(*id);
                     }
                 }
