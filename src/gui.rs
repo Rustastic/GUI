@@ -441,7 +441,7 @@ impl eframe::App for SimCtrlGUI {
                         if instance.node_type == NodeType::Server {
                             title = format!("{:?}{:?} {}", instance.server_type.unwrap(),instance.node_type,  instance.id);
                         } else if instance.node_type == NodeType::Client {
-                            title = format!("{:?}::{:?} {}", instance.server_type.unwrap(), instance.node_type, instance.id);
+                            title = format!("{:?}::{:?} {}", instance.client_type.unwrap(), instance.node_type, instance.id);
                         } else {
                             title = format!("{:?} {}",instance.node_type, instance.id);
                         }
