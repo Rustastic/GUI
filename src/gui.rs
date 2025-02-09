@@ -777,7 +777,7 @@ impl eframe::App for SimCtrlGUI {
                                                                         digit
                                                                     );
                                                                     instance.server_value = Some(digit);
-                                                                    instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
+                                                                    instance.command = Some(GUICommands::AskForFileList(instance.id, digit));
                                                                 }
                                                                 instance.ask_for_file_list = false;
                                                                 instance.get_file = true;
