@@ -363,6 +363,13 @@ impl eframe::App for SimCtrlGUI {
                     }
                 }
 
+                let mut server_list = Vec::<NodeId>::new();
+                for (id, instance) in self.nodes.iter() {
+                    if instance.node_type == NodeType::Client {
+                        server_list.push(*id);
+                    }
+                }
+
                 // Displaying a pop-up with drone's information
                 for (_, instance) in self.nodes.iter_mut() {
                     if instance.selected {
@@ -621,7 +628,7 @@ impl eframe::App for SimCtrlGUI {
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
-                                                for numbers in client_list.iter() {
+                                                for numbers in server_list.iter() {
                                                     options.push(numbers.to_string());
                                                 }
 
