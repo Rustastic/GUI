@@ -1,5 +1,5 @@
 use crossbeam_channel::{Receiver, Sender};
-use std::{collections::HashMap, num, thread};
+use std::{collections::HashMap, thread};
 
 use colored::Colorize;
 use eframe::egui::{self, Color32};
