@@ -225,11 +225,11 @@ pub fn topology(
 
         let new_server;
         if count > (third * 2) {
-            new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Text));
+            new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Communication));
         } else if count > third {
             new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Image));
         } else {
-            new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Communication));
+            new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Text));
         }
 
         if !sim_ctrl.edges.contains_key(&new_server.id) {
