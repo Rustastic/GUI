@@ -397,7 +397,6 @@ impl eframe::App for SimCtrlGUI {
                         }
                     }
                 }
-                println!("\ncclient_list: {:?}\n", cclient_list);
 
                 let mut mclient_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
@@ -407,7 +406,6 @@ impl eframe::App for SimCtrlGUI {
                         }
                     }
                 }
-                println!("\nmclient_list: {:?}\n", mclient_list);
 
                 let mut cserver_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
