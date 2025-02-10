@@ -65,6 +65,7 @@ pub struct NodeGUI {
     send_message: bool,
     send_message_msg_value: Option<String>,
     send_message_client_value: Option<String>,
+    recv_message_client_value: Option<String>,
     register_to: bool,
     register_value: Option<NodeId>,
     get_client_list: bool,
@@ -101,6 +102,7 @@ impl NodeGUI {
             send_message: false,
             send_message_msg_value: None,
             send_message_client_value: None,
+            recv_message_client_value: None,
             register_to: false,
             register_value: None,
             get_client_list: false,
@@ -148,6 +150,7 @@ impl NodeGUI {
             send_message: false,
             send_message_msg_value: None,
             send_message_client_value: None,
+            recv_message_client_value: None,
             register_to: false,
             register_value: None,
             get_client_list: false,
@@ -196,6 +199,7 @@ impl NodeGUI {
             send_message: false,
             send_message_msg_value: None,
             send_message_client_value: None,
+            recv_message_client_value: None,
             register_to: false,
             register_value: None,
             get_client_list: false,
@@ -259,8 +263,9 @@ impl SimCtrlGUI {
             }
 
             // show message
-            GUIEvents::MessageReceived(src, msg) => {
-                info!("[ {} ]: Received the message {:?} from [ Client {} ]", "GUI".green(), msg, src);
+            GUIEvents::MessageReceived(src, dest, msg) => {
+                info!("[ {} ]: [ Client {} ] received the message {:?} from [ Client {} ]", "GUI".green(), dest, msg, src);
+                self.nodes.get_mut(&client).unwrap().client_list_value = Some(client_list);
             }
             GUIEvents::FileList(server, items) => {
                 info!("[ {} ]: Received FileList from [ Client {} ]", "GUI".green(), server);
@@ -769,6 +774,8 @@ impl eframe::App for SimCtrlGUI {
                                                         instance.command = Some(GUICommands::SendMessageTo(instance.id, client_id, message));
                                                         instance.send_message = false;
                                                         instance.client_list_value = None;
+                                                        instance.send_message_client_value = None;
+                                                        instance.send_message_msg_value = None;
                                                     } else {
                                                         error!("[ {} ] Invalid client ID format", "GUI".red());
                                                     }
@@ -902,7 +909,11 @@ impl eframe::App for SimCtrlGUI {
                                     }
                                 }
 
-                                ui.add_space(10.0);
+                                ui.add_space(20.0);
+
+                                ui.label(format!("MessageReceived: {:?}", instance.recv_message_client_value));
+
+                                ui.add_space(20.0);
 
                                 // Button to close the window
                                 if ui.button("Close").clicked() {
@@ -911,6 +922,7 @@ impl eframe::App for SimCtrlGUI {
                             });
                     }
                 }
+
             });
         }
 
