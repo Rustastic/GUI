@@ -132,30 +132,30 @@ impl SimCtrlGUI {
 
     pub(super) fn topology(
         &mut self,
-        drones: Vec<ConfigDrone>,
-        clients: Vec<ConfigClient>,
-        servers: Vec<ConfigServer>,
+        drones: &[ConfigDrone],
+        clients: &[ConfigClient],
+        servers: &[ConfigServer],
     ) {
         let mut graph = Graph::<(), (), Undirected>::new_undirected();
         let mut vertexes = HashMap::<NodeId, NodeIndex>::new();
 
-        for drone in drones.iter() {
+        for drone in drones {
             let vertex_id = graph.add_node(());
             vertexes.insert(drone.id, vertex_id);
         }
 
-        for client in clients.iter() {
+        for client in clients {
             let vertex_id = graph.add_node(());
             vertexes.insert(client.id, vertex_id);
         }
 
-        for server in servers.iter() {
+        for server in servers {
             let vertex_id = graph.add_node(());
             vertexes.insert(server.id, vertex_id);
         }
 
-        for drone in drones.iter() {
-            for neighbor in drone.connected_node_ids.iter() {
+        for drone in drones {
+            for neighbor in &drone.connected_node_ids {
                 graph.add_edge(
                     *vertexes.get(&drone.id).unwrap(),
                     *vertexes.get(neighbor).unwrap(),
@@ -164,8 +164,8 @@ impl SimCtrlGUI {
             }
         }
 
-        for client in clients.iter() {
-            for neighbor in client.connected_drone_ids.iter() {
+        for client in clients {
+            for neighbor in &client.connected_drone_ids {
                 graph.add_edge(
                     *vertexes.get(&client.id).unwrap(),
                     *vertexes.get(neighbor).unwrap(),
@@ -174,8 +174,8 @@ impl SimCtrlGUI {
             }
         }
 
-        for server in servers.iter() {
-            for neighbor in server.connected_drone_ids.iter() {
+        for server in servers {
+            for neighbor in &server.connected_drone_ids {
                 graph.add_edge(
                     *vertexes.get(&server.id).unwrap(),
                     *vertexes.get(neighbor).unwrap(),
@@ -186,9 +186,9 @@ impl SimCtrlGUI {
 
         let coordinates = Self::fruchterman_reingold(&graph, 300, WIDTH, HEIGHT);
 
-        for drone in drones.iter() {
+        for drone in drones {
             let (x, y) = coordinates.get(vertexes.get(&drone.id).unwrap()).unwrap();
-            let new_drone = NodeGUI::new_drone(drone.clone(), *x, *y);
+            let new_drone = NodeGUI::new_drone(drone, *x, *y);
 
             for drone in new_drone.neighbor.clone() {
                 if !self.edges.contains_key(&drone) {
@@ -206,40 +206,33 @@ impl SimCtrlGUI {
         let half = clients.len() / 2;
         for (count, client) in clients.iter().enumerate() {
             let (x, y) = coordinates.get(vertexes.get(&client.id).unwrap()).unwrap();
-            let new_client;
-            if count < half {
-                new_client = NodeGUI::new_client(client.clone(), *x, *y, Some(ClientType::Chat));
+            let new_client= if count < half {
+                NodeGUI::new_client(client, *x, *y, Some(ClientType::Chat))
             } else {
-                new_client = NodeGUI::new_client(client.clone(), *x, *y, Some(ClientType::Media));
-            }
+                NodeGUI::new_client(client, *x, *y, Some(ClientType::Media))
+            };
 
-            if !self.edges.contains_key(&new_client.id) {
-                self.edges
-                    .insert(new_client.id, (Vec::new(), Color32::GRAY));
-            }
+            self.edges.entry(new_client.id).or_insert_with(|| (Vec::new(), Color32::GRAY));
 
             self.nodes.insert(new_client.id, new_client);
         }
 
         let third = servers.len() / 3;
         let mut count = servers.len();
-        for server in servers.iter() {
+        for server in servers {
             let (x, y) = coordinates.get(vertexes.get(&server.id).unwrap()).unwrap();
 
             let new_server;
             if count > (third * 2) {
-                new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Text));
+                new_server = NodeGUI::new_server(server, *x, *y, Some(ServerType::Text));
             } else if count > third {
-                new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Media));
+                new_server = NodeGUI::new_server(server, *x, *y, Some(ServerType::Media));
             } else {
                 new_server =
-                    NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Chat));
+                    NodeGUI::new_server(server, *x, *y, Some(ServerType::Chat));
             }
 
-            if !self.edges.contains_key(&new_server.id) {
-                self.edges
-                    .insert(new_server.id, (Vec::new(), Color32::GRAY));
-            }
+            self.edges.entry(new_server.id).or_insert_with(|| (Vec::new(), Color32::GRAY));
 
             self.nodes.insert(new_server.id, new_server);
 
@@ -250,8 +243,8 @@ impl SimCtrlGUI {
         self.initialized = true;
     }
 
-    pub(super) fn crash(&mut self, drone: &NodeId) {
-        let instance = self.nodes.get_mut(drone).unwrap();
+    pub(super) fn crash(&mut self, drone: NodeId) {
+        let instance = self.nodes.get_mut(&drone).unwrap();
         match self.sender.send(GUICommands::Crash(instance.id)) {
             Ok(()) => {
                 info!(
@@ -262,7 +255,7 @@ impl SimCtrlGUI {
                 self.edges.remove(&instance.id);
 
                 // remove edges starting from neighbor
-                for neighbor_id in instance.neighbor.iter() {
+                for neighbor_id in &instance.neighbor {
                     // get edges starting from neighbor
                     if let Some(neighbor_drone) = self.edges.get_mut(neighbor_id) {
                         neighbor_drone.0.retain(|drone| *drone != instance.id);
@@ -271,14 +264,14 @@ impl SimCtrlGUI {
 
                 instance.command = None;
 
-                let neighbors = self.nodes.get(drone).unwrap().neighbor.clone();
-                let id = self.nodes.get(drone).unwrap().id.clone();
+                let neighbors = self.nodes.get(&drone).unwrap().neighbor.clone();
+                let id = self.nodes.get(&drone).unwrap().id;
                 for node in neighbors {
                     let a = self.nodes.get_mut(&node).unwrap();
                     a.neighbor.retain(|&x| x != id);
                 }
 
-                let id = self.nodes.get(drone).unwrap().id;
+                let id = self.nodes.get(&drone).unwrap().id;
                 self.nodes.remove(&id);
             }
             Err(e) => {
@@ -291,57 +284,61 @@ impl SimCtrlGUI {
         }
     }
 
-    pub(super) fn remove_sender(&mut self, node_id: &NodeId, to_remove: &NodeId) {
-        if self.nodes.get(node_id).unwrap().node_type == NodeType::Client
-            && self.nodes.get(node_id).unwrap().neighbor.len() == 1
+    pub(super) fn remove_sender(&mut self, node_id: NodeId, to_remove: NodeId) {
+        if self.nodes.get(&node_id).unwrap().node_type == NodeType::Client
+            && self.nodes.get(&node_id).unwrap().neighbor.len() == 1
         {
-            self.nodes.get_mut(node_id).unwrap().command = None;
+            self.nodes.get_mut(&node_id).unwrap().command = None;
             error!(
-                "[ {} ] Unable to send GUICommand::RemoveSender from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::RemoveSender to [ Client {} ] from GUI to Simulation Controller: {}",
                 "GUI".red(),
+                node_id,
                 "Each client must be connected to at least one and at most two drones"
             );
             return;
         } else if self.nodes.get(&to_remove).unwrap().node_type == NodeType::Client
             && self.nodes.get(&to_remove).unwrap().neighbor.len() == 1
         {
-            self.nodes.get_mut(node_id).unwrap().command = None;
+            self.nodes.get_mut(&node_id).unwrap().command = None;
             error!(
-                "[ {} ] Unable to send GUICommand::RemoveSender from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::RemoveSender to [ Client {} ] from GUI to Simulation Controller: {}",
                 "GUI".red(),
+                to_remove,
                 "Each client must be connected to at least one and at most two drones"
             );
             return;
         }
 
-        if self.nodes.get(node_id).unwrap().node_type == NodeType::Server
-            && self.nodes.get(node_id).unwrap().neighbor.len() == 2
+        if self.nodes.get(&node_id).unwrap().node_type == NodeType::Server
+            && self.nodes.get(&node_id).unwrap().neighbor.len() == 2
         {
-            self.nodes.get_mut(node_id).unwrap().command = None;
+            self.nodes.get_mut(&node_id).unwrap().command = None;
             error!(
-                "[ {} ] Unable to send GUICommand::RemoveSender from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::RemoveSender to [ Server {} ] from GUI to Simulation Controller: {}",
                 "GUI".red(),
+                node_id,
                 "Each server must be connected to least two drones"
             );
             return;
-        } else if self.nodes.get(to_remove).unwrap().node_type == NodeType::Server
-            && self.nodes.get(to_remove).unwrap().neighbor.len() == 2
+        } else if self.nodes.get(&to_remove).unwrap().node_type == NodeType::Server
+            && self.nodes.get(&to_remove).unwrap().neighbor.len() == 2
         {
-            self.nodes.get_mut(node_id).unwrap().command = None;
+            self.nodes.get_mut(&node_id).unwrap().command = None;
             error!(
-                "[ {} ] Unable to send GUICommand::RemoveSender from GUI to Simulation Controller: {}",
+                "[ {} ] Unable to send GUICommand::RemoveSender to [ Server {} ] from GUI to Simulation Controller: {}",
                 "GUI".red(),
+                to_remove,
                 "Each server must be connected to least two drones"
             );
             return;
         }
 
-        let instance = self.nodes.get_mut(node_id).unwrap();
+        let instance = self.nodes.get_mut(&node_id).unwrap();
         match self
             .sender
-            .send(GUICommands::RemoveSender(instance.id, *to_remove))
+            .send(GUICommands::RemoveSender(instance.id, to_remove))
         {
-            Ok(_) => {
+            Ok(()) => {
                 info!(
                     "[ {} ] Successfully sent GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller",
                     "GUI".green(),
@@ -350,23 +347,23 @@ impl SimCtrlGUI {
                 );
 
                 if let Some(edge) = self.edges.get_mut(&instance.id) {
-                    if edge.0.contains(to_remove) {
-                        edge.0.retain(|&node| node != *to_remove);
+                    if edge.0.contains(&to_remove) {
+                        edge.0.retain(|&node| node != to_remove);
                     }
                 }
-                if let Some(edge) = self.edges.get_mut(to_remove) {
+                if let Some(edge) = self.edges.get_mut(&to_remove) {
                     if edge.0.contains(&instance.id) {
                         edge.0.retain(|&node| node != instance.id);
                     }
                 }
 
                 // Remove neighbor from the current instance.
-                instance.neighbor.retain(|&x| x != *to_remove);
+                instance.neighbor.retain(|&x| x != to_remove);
                 instance.command = None;
 
                 // Remove neighbor from to_remove
-                let id = self.nodes.get(node_id).unwrap().id.clone();
-                let neighbor = self.nodes.get_mut(to_remove).unwrap();
+                let id = self.nodes.get(&node_id).unwrap().id;
+                let neighbor = self.nodes.get_mut(&to_remove).unwrap();
                 neighbor.neighbor.retain(|&x| x != id);
             }
             Err(e) => {
@@ -374,25 +371,25 @@ impl SimCtrlGUI {
                     "[ {} ] Unable to send GUICommand::RemoveSender from GUI to Simulation Controller: {}",
                     "GUI".red(),
                     e
-                )
+                );
             }
         }
     }
 
-    pub(super) fn add_sender(&mut self, node_id: &NodeId, to_add: NodeId) {
-        if self.nodes.get(node_id).unwrap().node_type == NodeType::Client
+    pub(super) fn add_sender(&mut self, node_id: NodeId, to_add: NodeId) {
+        if self.nodes.get(&node_id).unwrap().node_type == NodeType::Client
             && self.nodes.get(&to_add).unwrap().node_type == NodeType::Client
         {
-            self.nodes.get_mut(node_id).unwrap().command = None;
+            self.nodes.get_mut(&node_id).unwrap().command = None;
             error!(
                 "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
                 "GUI".red(),
                 "Two clients can be connected between eachother"
             );
             return;
-        } else if self.nodes.get(node_id).unwrap().node_type == NodeType::Client {
-            if self.nodes.get(node_id).unwrap().neighbor.len() == 2 {
-                self.nodes.get_mut(node_id).unwrap().command = None;
+        } else if self.nodes.get(&node_id).unwrap().node_type == NodeType::Client {
+            if self.nodes.get(&node_id).unwrap().neighbor.len() == 2 {
+                self.nodes.get_mut(&node_id).unwrap().command = None;
                 error!(
                     "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
                     "GUI".red(),
@@ -400,24 +397,22 @@ impl SimCtrlGUI {
                 );
                 return;
             }
-        } else if self.nodes.get(&to_add).unwrap().node_type == NodeType::Client {
-            if self.nodes.get(&to_add).unwrap().neighbor.len() == 2 {
-                self.nodes.get_mut(node_id).unwrap().command = None;
-                error!(
-                    "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
-                    "GUI".red(),
-                    "Each client must be connected to at most two drones"
-                );
-                return;
-            }
+        } else if self.nodes.get(&to_add).unwrap().node_type == NodeType::Client && self.nodes.get(&to_add).unwrap().neighbor.len() == 2 {
+            self.nodes.get_mut(&node_id).unwrap().command = None;
+            error!(
+                "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                "Each client must be connected to at most two drones"
+            );
+            return;
         }
 
-        let instance = self.nodes.get_mut(node_id).unwrap();
+        let instance = self.nodes.get_mut(&node_id).unwrap();
         match self
             .sender
             .send(GUICommands::AddSender(instance.id, to_add))
         {
-            Ok(_) => {
+            Ok(()) => {
                 info!(
                     "[ {} ] Successfully sent GUICommand::AddSender({}, {}) from GUI to Simulation Controller",
                     "GUI".green(),
@@ -428,12 +423,12 @@ impl SimCtrlGUI {
                 instance.neighbor.push(to_add);
                 let (vec, _) = self
                     .edges
-                    .entry(*node_id)
+                    .entry(node_id)
                     .or_insert_with(|| (Vec::new(), Color32::GRAY));
                 vec.push(to_add);
 
                 let neighbor = self.nodes.get_mut(&to_add).unwrap();
-                neighbor.neighbor.push(*node_id);
+                neighbor.neighbor.push(node_id);
             }
             Err(e) => error!(
                 "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
@@ -442,15 +437,15 @@ impl SimCtrlGUI {
             ),
         }
 
-        self.nodes.get_mut(node_id).unwrap().command = None;
+        self.nodes.get_mut(&node_id).unwrap().command = None;
     }
 
-    pub(super) fn set_pdr(&mut self, drone: &NodeId, pdr: &f32) {
-        let instance = self.nodes.get_mut(drone).unwrap();
-        match self.sender.send(GUICommands::SetPDR(instance.id, *pdr)) {
-            Ok(_) => {
+    pub(super) fn set_pdr(&mut self, drone: NodeId, pdr: f32) {
+        let instance = self.nodes.get_mut(&drone).unwrap();
+        match self.sender.send(GUICommands::SetPDR(instance.id, pdr)) {
+            Ok(()) => {
                 info!("[ {} ] Successfully sent GUICommand::SetPDR({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, pdr);
-                instance.pdr = *pdr;
+                instance.pdr = pdr;
             }
             Err(e) => error!(
                 "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
@@ -462,10 +457,10 @@ impl SimCtrlGUI {
         instance.command = None;
     }
 
-    pub(super) fn spawn(&mut self, id: &NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
+    pub(super) fn spawn(&mut self, id: NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
         match self
             .sender
-            .send(GUICommands::Spawn(*id, neighbors.clone(), pdr))
+            .send(GUICommands::Spawn(id, neighbors.clone(), pdr))
         {
             Ok(()) => {
                 self.spawn_id = None;
@@ -473,7 +468,7 @@ impl SimCtrlGUI {
                 self.spawn_pdr = None;
 
                 let drone = ConfigDrone {
-                    id: *id,
+                    id,
                     connected_node_ids: neighbors.clone(),
                     pdr,
                 };
@@ -481,7 +476,7 @@ impl SimCtrlGUI {
                 // add to nodes
                 let mut rng = rand::rng();
                 let (x, y) = (rng.random_range(0.0..WIDTH), rng.random_range(0.0..HEIGHT));
-                let new_drone = NodeGUI::new_drone(drone, x, y);
+                let new_drone = NodeGUI::new_drone(&drone, x, y);
 
                 // ad to various instances neighbors
                 for drone in neighbors {
@@ -492,14 +487,14 @@ impl SimCtrlGUI {
                         .push(new_drone.id);
                 }
 
-                self.nodes.insert(*id, new_drone);
+                self.nodes.insert(id, new_drone);
 
                 // add edges
-                self.edges.insert(*id, (neighbors.clone(), Color32::GRAY));
+                self.edges.insert(id, (neighbors.clone(), Color32::GRAY));
 
                 self.spawn_command = None;
 
-                info!("[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller", "GUI".green(), id, neighbors, pdr)
+                info!("[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller", "GUI".green(), id, neighbors, pdr);
             }
             Err(e) => error!(
                 "[ {} ] Unable to send GUICommand::Spawn from GUI to Simulation Controller: {}",
@@ -509,8 +504,8 @@ impl SimCtrlGUI {
         };
     }
 
-    pub(super) fn send_message(&mut self, src: &NodeId, dest: &NodeId, msg: String) {
-        match self.sender.send(GUICommands::SendMessageTo(*src, *dest, msg.clone())) {
+    pub(super) fn send_message(&mut self, src: NodeId, dest: NodeId, msg: &str) {
+        match self.sender.send(GUICommands::SendMessageTo(src, dest, msg.to_string())) {
             Ok(()) => info!(
                 "[ {} ] Successfully sent GUICommand::SendMessageTo({}, {}, {}) from GUI to Simulation Controller",
                 "GUI".green(),
@@ -526,11 +521,11 @@ impl SimCtrlGUI {
                 e
             ),
         }
-        self.nodes.get_mut(src).unwrap().command = None;
+        self.nodes.get_mut(&src).unwrap().command = None;
     }
 
-    pub(super) fn register(&mut self, client: &NodeId, server: &NodeId) {
-        match self.sender.send(GUICommands::RegisterTo(*client, *server)) {
+    pub(super) fn register(&mut self, client: NodeId, server: NodeId) {
+        match self.sender.send(GUICommands::RegisterTo(client, server)) {
             Ok(()) => info!(
                 "[ {} ] Successfully sent GUICommand::RegisterTo({}, {}) from GUI to Simulation Controller",
                 "GUI".green(),
@@ -544,11 +539,11 @@ impl SimCtrlGUI {
                 e
             ),
         }
-        self.nodes.get_mut(client).unwrap().command = None;
+        self.nodes.get_mut(&client).unwrap().command = None;
     }
 
-    pub(super) fn get_list(&mut self, client: &NodeId) {
-        match self.sender.send(GUICommands::GetClientList(*client)) {
+    pub(super) fn get_list(&mut self, client: NodeId) {
+        match self.sender.send(GUICommands::GetClientList(client)) {
             Ok(()) => info!(
                 "[ {} ] Successfully sent GUICommand::GetClientList({}) from GUI to Simulation Controller",
                 "GUI".green(),
@@ -560,11 +555,11 @@ impl SimCtrlGUI {
                 e
             ),
         }
-        self.nodes.get_mut(client).unwrap().command = None;
+        self.nodes.get_mut(&client).unwrap().command = None;
     }
 
-    pub(super) fn logout(&mut self, client: &NodeId, server: &NodeId) {
-        match self.sender.send(GUICommands::LogOut(*client, *server)) {
+    pub(super) fn logout(&mut self, client: NodeId, server: NodeId) {
+        match self.sender.send(GUICommands::LogOut(client, server)) {
             Ok(()) => info!(
                 "[ {} ] Successfully sent GUICommand::LogOut({}, {}) from GUI to Simulation Controller",
                 "GUI".green(),
@@ -578,11 +573,11 @@ impl SimCtrlGUI {
                 e
             ),
         }
-        self.nodes.get_mut(client).unwrap().command = None;
+        self.nodes.get_mut(&client).unwrap().command = None;
     }
 
-    pub(super) fn ask_for_file_list(&mut self, client: &NodeId, server: &NodeId) {
-        match self.sender.send(GUICommands::AskForFileList(*client, *server)) {
+    pub(super) fn ask_for_file_list(&mut self, client: NodeId, server: NodeId) {
+        match self.sender.send(GUICommands::AskForFileList(client, server)) {
             Ok(()) => info!(
                 "[ {} ] Successfully sent GUICommand::AskForFileList({}, {}) from GUI to Simulation Controller",
                 "GUI".green(),
@@ -596,11 +591,11 @@ impl SimCtrlGUI {
                 e
             ),
         }
-        self.nodes.get_mut(client).unwrap().command = None;
+        self.nodes.get_mut(&client).unwrap().command = None;
     }
 
-    pub(super) fn get_file(&mut self, client: &NodeId, server: &NodeId, title: String) {
-        match self.sender.send(GUICommands::GetFile(*client, *server, title.clone())) {
+    pub(super) fn get_file(&mut self, client: NodeId, server: NodeId, title: &str) {
+        match self.sender.send(GUICommands::GetFile(client, server, title.to_string())) {
             Ok(()) => info!(
                 "[ {} ] Successfully sent GUICommand::GetFile({}, {}, {:?}) from GUI to Simulation Controller",
                 "GUI".green(),
@@ -616,6 +611,6 @@ impl SimCtrlGUI {
                 e
             ),
         }
-        self.nodes.get_mut(client).unwrap().command = None;
+        self.nodes.get_mut(&client).unwrap().command = None;
     }
 }

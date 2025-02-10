@@ -19,8 +19,8 @@ use messages::{gui_commands::{GUICommands, GUIEvents}, high_level_messages::Serv
 use crate::helpers::types::ClientType;
 
 
-pub const HEIGHT: f32 = 900.0;
-pub const WIDTH: f32 = 900.0;
+pub const HEIGHT: f32 = 400.0;
+pub const WIDTH: f32 = 400.0;
 
 #[derive(Clone, Debug)]
 pub struct SimCtrlGUI {
@@ -41,6 +41,7 @@ pub struct SimCtrlGUI {
     file_list: HashMap<NodeId, Vec<String>>,
 }
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug)]
 pub struct NodeGUI {
     pub id: NodeId,
@@ -78,7 +79,8 @@ pub struct NodeGUI {
 }
 
 impl NodeGUI {
-    pub fn new_drone(drone: ConfigDrone, x: f32, y: f32) -> Self {
+    #[must_use]
+    pub fn new_drone(drone: &ConfigDrone, x: f32, y: f32) -> Self {
         Self {
             id: drone.id,
             neighbor: drone.connected_node_ids.clone(),
@@ -115,16 +117,19 @@ impl NodeGUI {
         }
     }
 
+    #[must_use] 
     pub fn new_client(
-        client: ConfigClient,
+        client: &ConfigClient,
         x: f32,
         y: f32,
         client_type: Option<ClientType>,
     ) -> Self {
-        let color;
-        match client_type.unwrap() {
-            ClientType::Chat => color = Color32::YELLOW,
-            ClientType::Media => color = Color32::ORANGE,
+        let mut color = Color32::PLACEHOLDER;
+        if let Some(ctype) = client_type {
+            match ctype {
+                ClientType::Chat => color = Color32::YELLOW,
+                ClientType::Media => color = Color32::ORANGE,
+            }
         }
 
         Self {
@@ -163,17 +168,20 @@ impl NodeGUI {
         }
     }
 
+    #[must_use] 
     pub fn new_server(
-        server: ConfigServer,
+        server: &ConfigServer,
         x: f32,
         y: f32,
         server_type: Option<ServerType>,
     ) -> Self {
-        let color;
-        match server_type.unwrap() {
-            ServerType::Chat => color = Color32::GREEN,
-            ServerType::Text => color = Color32::BLUE,
-            ServerType::Media => color = Color32::RED,
+        let mut color= Color32::PLACEHOLDER;
+        if let Some(stype) = server_type {
+            match stype {
+                ServerType::Chat => color = Color32::GREEN,
+                ServerType::Text => color = Color32::BLUE,
+                ServerType::Media => color = Color32::RED,
+            }
         }
 
         Self {
@@ -214,6 +222,7 @@ impl NodeGUI {
 }
 
 impl SimCtrlGUI {
+    #[must_use]
     pub fn new(sender: Sender<GUICommands>, receiver: Receiver<GUIEvents>) -> Self {
         Self {
             sender,
@@ -254,7 +263,7 @@ impl SimCtrlGUI {
             }
             GUIEvents::Topology(drones, clients, servers) => {
                 info!("[ {} ]: Received Topology ]", "GUI".green());
-                self.topology(drones, clients, servers)
+                self.topology(&drones, &clients, &servers);
             }
 
             GUIEvents::ClientList(client, client_list) => {
@@ -267,7 +276,7 @@ impl SimCtrlGUI {
                 info!("[ {} ]: [ Client {} ] received the message {:?} from [ Client {} ]", "GUI".green(), dest, msg, src);
                 self.nodes.get_mut(&dest).unwrap().recv_message_client_value = Some(msg);
             }
-            GUIEvents::FileList(server, dest, items) => {
+            GUIEvents::FileList(server, _, items) => {
                 info!("[ {} ]: Received FileList from [ Client {} ]", "GUI".green(), server);
                 self.file_list.insert(server, items);
             }
@@ -276,29 +285,10 @@ impl SimCtrlGUI {
 }
 
 impl eframe::App for SimCtrlGUI {
+    #[allow(clippy::too_many_lines)]
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         // Not initialized from Network Initializer message
-        if !self.initialized {
-            warn!("[ {} ] Waiting for initialization", "GUI".green());
-            // Wait for Topology message
-            match self.receiver.try_recv() {
-                Ok(event) => match event.clone() {
-                    GUIEvents::Topology(_, _, _) => self.handle_events(event),
-                    _ => error!(
-                        "[ {} ] Received NON-Topology GUIEvent before Initialization",
-                        "GUI".red()
-                    ),
-                },
-                Err(e) => match e {
-                    crossbeam_channel::TryRecvError::Empty => (),
-                    crossbeam_channel::TryRecvError::Disconnected => eprintln!(
-                        "[ {} ]: GUICommands receiver channel disconnected: {}",
-                        "Simulation Controller".red(),
-                        e
-                    ),
-                },
-            }
-        } else {
+        if self.initialized {
             // Check for messages
             match self.receiver.try_recv() {
                 Ok(event) => self.handle_events(event),
@@ -370,7 +360,7 @@ impl eframe::App for SimCtrlGUI {
                             .selected_text(format!("{:?}", self.spawn_neighbors))
                             .show_ui(ui, |ui| {
                                 for &neighbor in self.nodes.keys() {
-                                    let label = format!("{}", neighbor);
+                                    let label = format!("{neighbor}");
                                     let is_selected = self.spawn_neighbors.contains(&neighbor);
 
                                     if ui.selectable_label(is_selected, label).clicked() {
@@ -418,17 +408,16 @@ impl eframe::App for SimCtrlGUI {
                         }
                     });
                 }
-                if self.spawn_button {
-                    if ui.button("Spawn Drone").clicked() {
-                        self.spawn_toggle = true;
-                        self.spawn_button = false;
-                        info!("[ {} ] Spawn button pressed", "GUI".green());
-                    }
+
+                if self.spawn_button && ui.button("Spawn Drone").clicked() {
+                    self.spawn_toggle = true;
+                    self.spawn_button = false;
+                    info!("[ {} ] Spawn button pressed", "GUI".green());
                 }
 
                 // Allocating space for drawing and preparing the painter for rendering
                 let (_response, painter) =
-                    ui.allocate_painter(egui::Vec2::new(900.0, 900.0), egui::Sense::hover());
+                    ui.allocate_painter(egui::Vec2::new(WIDTH, HEIGHT), egui::Sense::hover());
 
                 // Drawing connections between drones/client
                 for (start_id, neighbor) in self.edges.clone() {
@@ -443,7 +432,7 @@ impl eframe::App for SimCtrlGUI {
                 }
 
                 // Drawing the drones/client
-                for (_, pos) in self.nodes.iter_mut() {
+                for (_, pos) in &mut self.nodes.iter_mut() {
                     let screen_pos = egui::pos2(pos.x, pos.y);
                     let radius = 10.0;
 
@@ -462,52 +451,42 @@ impl eframe::App for SimCtrlGUI {
                 }
 
                 let mut cclient_list = Vec::<NodeId>::new();
-                for (id, instance) in self.nodes.iter() {
-                    if instance.node_type == NodeType::Client {
-                        if instance.client_type.unwrap() == ClientType::Chat {
-                           cclient_list.push(*id);
-                        }
+                for (id, instance) in &self.nodes {
+                    if instance.node_type == NodeType::Client && instance.client_type.unwrap() == ClientType::Chat {
+                        cclient_list.push(*id);
                     }
                 }
 
                 let mut mclient_list = Vec::<NodeId>::new();
-                for (id, instance) in self.nodes.iter() {
-                    if instance.node_type == NodeType::Client {
-                        if instance.client_type.unwrap() == ClientType::Media {
-                           mclient_list.push(*id);
-                        }
+                for (id, instance) in &self.nodes {
+                    if instance.node_type == NodeType::Client && instance.client_type.unwrap() == ClientType::Media {
+                        mclient_list.push(*id);
                     }
                 }
 
                 let mut cserver_list = Vec::<NodeId>::new();
-                for (id, instance) in self.nodes.iter() {
-                    if instance.node_type == NodeType::Server {
-                        if instance.server_type.unwrap() == ServerType::Chat {
-                            cserver_list.push(*id);
-                        }
+                for (id, instance) in &self.nodes {
+                    if instance.node_type == NodeType::Server && instance.server_type.unwrap() == ServerType::Chat {
+                        cserver_list.push(*id);
                     }
                 }
 
                 let mut tserver_list = Vec::<NodeId>::new();
-                for (id, instance) in self.nodes.iter() {
-                    if instance.node_type == NodeType::Server {
-                        if instance.server_type.unwrap() == ServerType::Text {
-                            tserver_list.push(*id);
-                        }
+                for (id, instance) in &self.nodes {
+                    if instance.node_type == NodeType::Server && instance.server_type.unwrap() == ServerType::Text {
+                        tserver_list.push(*id);
                     }
                 }
 
                 let mut iserver_list = Vec::<NodeId>::new();
-                for (id, instance) in self.nodes.iter() {
-                    if instance.node_type == NodeType::Server {
-                        if instance.server_type.unwrap() == ServerType::Media {
-                            iserver_list.push(*id);
-                        }
+                for (id, instance) in &self.nodes {
+                    if instance.node_type == NodeType::Server &&  instance.server_type.unwrap() == ServerType::Media {
+                        iserver_list.push(*id);
                     }
                 }
 
                 // Displaying a pop-up with drone's information
-                for (_, instance) in self.nodes.iter_mut() {
+                for (_, instance) in &mut self.nodes.iter_mut() {
                     if instance.selected {
                         let title;
                         if instance.node_type == NodeType::Server {
@@ -586,12 +565,10 @@ impl eframe::App for SimCtrlGUI {
                                                         instance.command = Some(GUICommands::LogOut(instance.id, server));
                                                     }
                                                 }
-                                            } else {
-                                                if ui.button("AskForFile").clicked() {
-                                                    instance.ask_for_file_list = !instance.ask_for_file_list;
-                                                    instance.add_sender = false;
-                                                    instance.remove_sender = false;
-                                                }
+                                            } else if ui.button("AskForFile").clicked() {
+                                                instance.ask_for_file_list = !instance.ask_for_file_list;
+                                                instance.add_sender = false;
+                                                instance.remove_sender = false;
                                             }
                                         }
                                     });
@@ -601,9 +578,9 @@ impl eframe::App for SimCtrlGUI {
                                 if !instance.crashed && !instance.logout {
                                     // if pressed RemoveSender button
                                     if instance.remove_sender {
-                                        let mut _value: Option<String> = None;
+                                        let mut value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Sender to remove: ")
-                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
@@ -619,11 +596,11 @@ impl eframe::App for SimCtrlGUI {
                                                         &option,
                                                     ).clicked() {
                                                         // Get selected option
-                                                        _value = Some(option.to_string());
+                                                        value = Some(option.to_string());
                                                         instance.remove_sender = false;
 
                                                         // Parse and handle
-                                                        match _value.unwrap().parse::<u8>() {
+                                                        match value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
                                                                 info!(
                                                                     "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
@@ -647,13 +624,13 @@ impl eframe::App for SimCtrlGUI {
 
                                     // if pressed AddSender button
                                     if instance.add_sender {
-                                        let mut _value: Option<String> = None;
+                                        let mut value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Sender to add: ")
-                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
-                                                for (numbers, _) in self.edges.iter() {
+                                                for numbers in self.edges.keys() {
                                                     if !instance.neighbor.contains(numbers) && *numbers != instance.id {
                                                         options.push(numbers.to_string());
                                                     }
@@ -667,11 +644,11 @@ impl eframe::App for SimCtrlGUI {
                                                         &option,
                                                     ).clicked() {
                                                         // Get selected option
-                                                        _value = Some(option.to_string());
+                                                        value = Some(option.to_string());
                                                         instance.remove_sender = false;
 
                                                         // Parse and handle
-                                                        match _value.unwrap().parse::<u8>() {
+                                                        match value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
                                                                 info!("[ {} ] Passing to handler GUICommands::AddSender({}, {})", "GUI".green(), instance.id, digit);
                                                                 instance.command = Some(GUICommands::AddSender(instance.id, digit));
@@ -785,13 +762,13 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.register_to {
-                                        let mut _value: Option<String> = None;
+                                        let mut value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Server to register to: ")
-                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
-                                                for numbers in cserver_list.iter() {
+                                                for numbers in &cserver_list {
                                                     options.push(numbers.to_string());
                                                 }
 
@@ -803,15 +780,15 @@ impl eframe::App for SimCtrlGUI {
                                                         &option,
                                                     ).clicked() {
                                                         // Get selected option
-                                                        _value = Some(option.to_string());
+                                                        value = Some(option.to_string());
                                                         instance.register_to = false;
 
                                                         // Parse and handle
-                                                        match _value.unwrap().parse::<u8>() {
+                                                        match value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
                                                                 instance.register_value = Some(digit);
                                                                 info!("[ {} ] Passing to handler GUICommands::RegisterTo({}, {})", "GUI".green(), instance.id, digit);
-                                                                instance.command = Some(GUICommands::RegisterTo(instance.id, digit))
+                                                                instance.command = Some(GUICommands::RegisterTo(instance.id, digit));
                                                             },
                                                             Err(e) => {
                                                                 error!(
@@ -827,9 +804,9 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.ask_for_file_list {
-                                        let mut _value: Option<String> = None;
+                                        let mut value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Server to get List: ")
-                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
@@ -845,11 +822,11 @@ impl eframe::App for SimCtrlGUI {
                                                         &option,
                                                     ).clicked() {
                                                         // Get selected option
-                                                        _value = Some(option.to_string());
+                                                        value = Some(option.to_string());
                                                         instance.ask_for_file_list = false;
 
                                                         // Parse and handle
-                                                        match _value.unwrap().parse::<u8>() {
+                                                        match value.unwrap().parse::<u8>() {
                                                             Ok(digit) => {
                                                                 if !self.file_list.contains_key(&digit) {
                                                                     info!(
@@ -876,14 +853,14 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.server_value.is_some() && self.file_list.contains_key(&instance.server_value.unwrap()) && instance.get_file {
-                                        let mut _value: Option<String> = None;
+                                        let mut value: Option<String> = None;
                                         egui::ComboBox::from_label("Select file: ")
-                                            .selected_text(_value.clone().unwrap_or("None".to_string()))
+                                            .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
                                                 let vec = self.file_list.get(&instance.server_value.unwrap()).unwrap();
-                                                for numbers in vec.iter() {
+                                                for numbers in vec {
                                                     options.push(numbers.clone());
                                                 }
 
@@ -895,11 +872,11 @@ impl eframe::App for SimCtrlGUI {
                                                         &option,
                                                     ).clicked() {
                                                         // Get selected option
-                                                        _value = Some(option.to_string());
+                                                        value = Some(option.to_string());
                                                         instance.remove_sender = false;
 
-                                                        info!("[ {} ] Passing to handler GUICommands::Get({}, {}, {:?})", "GUI".green(), instance.id, instance.server_value.unwrap(), _value.clone().unwrap());
-                                                        instance.command = Some(GUICommands::GetFile(instance.id, instance.server_value.unwrap(), _value.unwrap()));
+                                                        info!("[ {} ] Passing to handler GUICommands::Get({}, {}, {:?})", "GUI".green(), instance.id, instance.server_value.unwrap(), value.clone().unwrap());
+                                                        instance.command = Some(GUICommands::GetFile(instance.id, instance.server_value.unwrap(), value.unwrap()));
                                                         instance.add_sender = false;
                                                     }
                                                 }
@@ -912,10 +889,10 @@ impl eframe::App for SimCtrlGUI {
                                 if instance.node_type == NodeType::Client && instance.client_type.unwrap() == ClientType::Chat {
                                     match &instance.recv_message_client_value {
                                         Some(msg) => {
-                                            ui.label(format!("MessageReceived: {:?}", msg));
+                                            ui.label(format!("MessageReceived: {msg:?}"));
                                         }
                                         None => {
-                                            ui.label(format!("MessageReceived: None"));
+                                            ui.label("MessageReceived: None".to_string());
                                         }
                                     }
                                 }
@@ -931,6 +908,29 @@ impl eframe::App for SimCtrlGUI {
                 }
 
             });
+        } else {
+            warn!("[ {} ] Waiting for initialization", "GUI".green());
+            // Wait for Topology message
+            match self.receiver.try_recv() {
+                Ok(event) => {
+                    if let GUIEvents::Topology(_, _, _) = event.clone() {
+                        self.handle_events(event);
+                    } else {
+                        error!(
+                            "[ {} ] Received NON-Topology GUIEvent before Initialization",
+                            "GUI".red()
+                        );
+                    }
+                },
+                Err(e) => match e {
+                    crossbeam_channel::TryRecvError::Empty => (),
+                    crossbeam_channel::TryRecvError::Disconnected => eprintln!(
+                        "[ {} ]: GUICommands receiver channel disconnected: {}",
+                        "Simulation Controller".red(),
+                        e
+                    ),
+                },
+            }
         }
 
         // Handle Commands
@@ -939,43 +939,44 @@ impl eframe::App for SimCtrlGUI {
                 info!("[ {} ] Handling {:?}", "GUI".green(), command);
                 match command {
                     GUICommands::Crash(drone) => {
-                        self.crash(drone);
+                        self.crash(*drone);
                     }
                     GUICommands::RemoveSender(drone, to_remove) => {
-                        self.remove_sender(drone, to_remove)
+                        self.remove_sender(*drone, *to_remove);
                     }
-                    GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),
+                    GUICommands::AddSender(drone, to_add) => self.add_sender(*drone, *to_add),
                     GUICommands::SetPDR(drone, pdr) => {
-                        self.set_pdr(drone, pdr);
+                        self.set_pdr(*drone, *pdr);
                     }
                     GUICommands::SendMessageTo(src, dest, msg) => {
-                        self.send_message(src, dest, msg.clone());
+                        self.send_message(*src, *dest, msg);
                     }
                     GUICommands::RegisterTo(client, server) => {
-                        self.register(client, server);
+                        self.register(*client, *server);
                     }
                     GUICommands::GetClientList(client) => {
-                        self.get_list(client);
+                        self.get_list(*client);
                     }
                     GUICommands::LogOut(client, server) => {
-                        self.logout(client, server);
+                        self.logout(*client, *server);
                     }
                     GUICommands::AskForFileList(client, server) => {
-                        self.ask_for_file_list(client, server);
+                        self.ask_for_file_list(*client, *server);
                     }
                     GUICommands::GetFile(client, server, title) => {
-                        self.get_file(client, server, title.clone());
+                        self.get_file(*client, *server, title);
                     }
-                    _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
+                    _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command)
                 }
             }
         }
 
         if let Some(command) = &self.spawn_command.clone() {
             info!("[ {} ] Handling {:?}", "GUI".green(), command);
-            match command {
-                GUICommands::Spawn(id, neighbor, pdr) => self.spawn(id, &neighbor.clone(), *pdr),
-                _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
+            if let GUICommands::Spawn(id, neighbor, pdr) = command {
+                self.spawn(*id, &neighbor.clone(), *pdr);
+            } else {
+                error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command);
             }
         }
     }
