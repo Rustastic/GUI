@@ -253,9 +253,8 @@ impl SimCtrlGUI {
             }
 
             GUIEvents::ClientList(client, client_list) => {
-                println!("[ {} ]: Received ClientList from [ Client {} ]", "GUI".green(), client);
-                let instance = self.nodes.get_mut(&client).unwrap();
-                instance.client_list_value = Some(client_list);
+                info!("[ {} ]: Received ClientList from [ Client {} ]", "GUI".green(), client);
+                self.nodes.get_mut(&client).unwrap().client_list_value = Some(client_list);
             }
 
             // show message
@@ -723,7 +722,7 @@ impl eframe::App for SimCtrlGUI {
                                         });
                                     }
 
-                                    if instance.send_message {
+                                    if instance.send_message && instance.client_list_value.is_some() {
                                         ui.vertical(|ui| {
                                             // Title
                                             ui.heading("Send a Message");
@@ -733,8 +732,9 @@ impl eframe::App for SimCtrlGUI {
                                             egui::ComboBox::from_label("Select Client: ")
                                                 .selected_text(instance.send_message_client_value.clone().unwrap_or("None".to_string()))
                                                 .show_ui(ui, |ui| {
+                                                    let iter_options = instance.client_list_value.clone().unwrap();
                                                     let mut options = Vec::<String>::new();
-                                                    for numbers in cclient_list.iter() {
+                                                    for numbers in iter_options {
                                                         options.push(numbers.to_string());
                                                     }
 
@@ -816,15 +816,14 @@ impl eframe::App for SimCtrlGUI {
                                             });
                                     }
 
-                                    if instance.ask_for_file_list && instance.client_list_value.is_some() {
+                                    if instance.ask_for_file_list {
                                         let mut _value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Server to get List: ")
                                             .selected_text(_value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
-                                                let iter = instance.client_list_value.clone().unwrap();
                                                 let mut options = Vec::<String>::new();
-                                                for numbers in iter{
+                                                for numbers in tserver_list.clone() {
                                                     options.push(numbers.to_string());
                                                 }
 
