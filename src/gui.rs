@@ -579,10 +579,6 @@ impl eframe::App for SimCtrlGUI {
                                                     instance.remove_sender = false;
                                                 }
                                             }
-                                        } else {
-                                            if ui.button("GetClientList").clicked() {
-                                                instance.command = Some(GUICommands::GetClientList(instance.id));
-                                            }
                                         }
                                     });
                                 }
