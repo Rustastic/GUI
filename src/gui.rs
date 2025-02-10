@@ -922,7 +922,7 @@ impl eframe::App for SimCtrlGUI {
                         self.register(client, server);
                     }
                     GUICommands::GetClientList(client) => {
-
+                        self.get_list(client);
                     }
                     GUICommands::LogOut(client, server) => {
                         self.logout(client, server);
