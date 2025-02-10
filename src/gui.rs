@@ -1,6 +1,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use eframe::egui::{self, Color32};
+use eframe::egui::{self, Color32, Pos2};
+
 use crossbeam_channel::{Receiver, Sender};
 use std::{collections::HashMap, thread};
 
@@ -298,6 +299,27 @@ impl eframe::App for SimCtrlGUI {
             // GUI
             egui::CentralPanel::default().show(ctx, |ui| {
                 ui.heading("Simulation Controller");
+
+                // 
+                let y_offset = 50.0;
+                let x_pos = 50.0;
+                
+                let circles = [
+                    (y_offset, Color32::BLUE, "Circle 1"),
+                    (y_offset + 50.0, Color32::RED, "Circle 2"),
+                    (y_offset + 100.0, Color32::GREEN, "Circle 3"),
+                    (y_offset + 150.0, Color32::YELLOW, "Circle 4"),
+                ];
+            
+                for (y, color, label) in circles {
+                    ui.horizontal(|ui| {
+                        let center = Pos2::new(x_pos, y);
+                        ui.painter().add(egui::Shape::circle_filled(center, 10.0, color));
+                        ui.add_space(10.0);
+                        ui.label(label);
+                    });
+                    ui.add_space(10.0);
+                }
 
                 // Spawn button
                 if self.spawn_toggle {
