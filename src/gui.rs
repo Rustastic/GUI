@@ -249,6 +249,7 @@ impl SimCtrlGUI {
                 self.nodes.get_mut(&src).unwrap().color = Color32::BLUE;
             }
             GUIEvents::Topology(drones, clients, servers) => {
+                info!("[ {} ]: Received Topology ]", "GUI".green());
                 self.topology(drones, clients, servers)
             }
 
@@ -258,10 +259,11 @@ impl SimCtrlGUI {
             }
 
             // show message
-            GUIEvents::MessageReceived(_, _) => {
-                info!("[ {} ] Nope not implemented", "GUI".red());
+            GUIEvents::MessageReceived(src, msg) => {
+                info!("[ {} ]: Received the message {:?} from [ Client {} ]", "GUI".green(), msg, src);
             }
             GUIEvents::FileList(server, items) => {
+                info!("[ {} ]: Received FileList from [ Client {} ]", "GUI".green(), server);
                 if !self.file_list.contains_key(&server) {
                     self.file_list.insert(server, items);
                 }
@@ -735,7 +737,9 @@ impl eframe::App for SimCtrlGUI {
                                                     let iter_options = instance.client_list_value.clone().unwrap();
                                                     let mut options = Vec::<String>::new();
                                                     for numbers in iter_options {
-                                                        options.push(numbers.to_string());
+                                                        if numbers == instance.id {
+                                                            options.push(numbers.to_string());
+                                                        }
                                                     }
 
                                                     for option in options {
@@ -764,6 +768,7 @@ impl eframe::App for SimCtrlGUI {
                                                         info!("[ {} ] Sending message to {}: {}", "GUI".green(), client_id, message);
                                                         instance.command = Some(GUICommands::SendMessageTo(instance.id, client_id, message));
                                                         instance.send_message = false;
+                                                        instance.client_list_value = None;
                                                     } else {
                                                         error!("[ {} ] Invalid client ID format", "GUI".red());
                                                     }
