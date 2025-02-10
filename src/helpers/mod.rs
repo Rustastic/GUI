@@ -15,7 +15,7 @@ use wg_2024::{
 
 use crate::{NodeGUI, SimCtrlGUI, HEIGHT, WIDTH};
 
-pub(crate) mod commands;
+pub mod commands;
 
 impl SimCtrlGUI {
     fn fruchterman_reingold(
