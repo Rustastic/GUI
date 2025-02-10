@@ -305,10 +305,12 @@ impl eframe::App for SimCtrlGUI {
                 let x_pos = 50.0;
                 
                 let circles = [
-                    (y_offset, Color32::BLUE, "Circle 1"),
-                    (y_offset + 50.0, Color32::RED, "Circle 2"),
-                    (y_offset + 100.0, Color32::GREEN, "Circle 3"),
-                    (y_offset + 150.0, Color32::YELLOW, "Circle 4"),
+                    (y_offset, Color32::LIGHT_BLUE, "Drone"),
+                    (y_offset + 50.0, Color32::GREEN, "CommunicationServer"),
+                    (y_offset + 100.0, Color32::BLUE, "TextContentServer"),
+                    (y_offset + 150.0, Color32::RED, "MediaContentServer"),
+                    (y_offset + 200.0, Color32::YELLOW, "ChatClient"),
+                    (y_offset + 250.0, Color32::ORANGE, "MediaClient"),
                 ];
             
                 for (y, color, label) in circles {
@@ -318,8 +320,10 @@ impl eframe::App for SimCtrlGUI {
                         ui.add_space(10.0);
                         ui.label(label);
                     });
-                    ui.add_space(10.0);
+                    ui.add_space(20.0);
                 }
+
+                ui.add_space(10.0);
 
                 // Spawn button
                 if self.spawn_toggle {
