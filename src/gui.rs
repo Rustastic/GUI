@@ -574,6 +574,9 @@ impl eframe::App for SimCtrlGUI {
                                                     }
                                                 }
                                             } else {
+                                                if ui.button("GetClientList").clicked() {
+                                                    instance.command = Some(GUICommands::GetClientList(instance.id));
+                                                }
                                                 if ui.button("AskForFile").clicked() {
                                                     instance.ask_for_file_list = !instance.ask_for_file_list;
                                                     instance.add_sender = false;
