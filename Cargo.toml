@@ -14,3 +14,5 @@ petgraph = "0.7.1"
 
 eframe = { version = "0.31.0", features = ["default", "__screenshot"] }
 egui_extras = { version = "0.31.0", features = ["default", "image"] }
+
+messages = { git = "https://github.com/Rustastic/Messages" }

@@ -1,8 +1,7 @@
-use commands::{ClientType, GUICommands, ServerType};
+use std::collections::HashMap;
 use eframe::egui::Color32;
 use petgraph::{graph::NodeIndex, Graph, Undirected};
 use rand::Rng;
-use std::collections::HashMap;
 
 use colored::Colorize;
 use log::{error, info};
@@ -13,9 +12,12 @@ use wg_2024::{
     packet::NodeType,
 };
 
-use crate::{NodeGUI, SimCtrlGUI, HEIGHT, WIDTH};
+use messages::gui_commands::GUICommands;
 
-pub mod commands;
+use crate::{NodeGUI, SimCtrlGUI, HEIGHT, WIDTH};
+use types::{ClientType, ServerType};
+
+pub mod types;
 
 impl SimCtrlGUI {
     fn fruchterman_reingold(

@@ -1,19 +1,21 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
+use eframe::egui::{self, Color32};
 use crossbeam_channel::{Receiver, Sender};
 use std::{collections::HashMap, thread};
 
 use colored::Colorize;
-use eframe::egui::{self, Color32};
-
 use log::{error, info, warn};
+
 use wg_2024::{
     config::{Client as ConfigClient, Drone as ConfigDrone, Server as ConfigServer},
     network::NodeId,
     packet::NodeType,
 };
 
-use crate::helpers::commands::{ClientType, GUICommands, GUIEvents, ServerType};
+use messages::gui_commands::{GUICommands, GUIEvents};
+
+use crate::helpers::types::{ClientType, ServerType};
 
 pub const HEIGHT: f32 = 900.0;
 pub const WIDTH: f32 = 900.0;
