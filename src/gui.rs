@@ -1,3 +1,5 @@
+#![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
+
 use crossbeam_channel::{Receiver, Sender};
 use std::{collections::HashMap, thread};
 
@@ -11,10 +13,7 @@ use wg_2024::{
     packet::NodeType,
 };
 
-use crate::{
-    actions,
-    commands::{ClientType, ServerType, GUICommands, GUIEvents},
-};
+use crate::helpers::commands::{ClientType, GUICommands, GUIEvents, ServerType};
 
 pub const HEIGHT: f32 = 900.0;
 pub const WIDTH: f32 = 900.0;
@@ -103,11 +102,15 @@ impl NodeGUI {
             ask_for_file_list: false,
             server_value: None,
             get_file: false,
-            
         }
     }
 
-    pub fn new_client(client: ConfigClient, x: f32, y: f32, client_type: Option<ClientType>) -> Self {
+    pub fn new_client(
+        client: ConfigClient,
+        x: f32,
+        y: f32,
+        client_type: Option<ClientType>,
+    ) -> Self {
         Self {
             id: client.id,
             neighbor: client.connected_drone_ids.clone(),
@@ -141,7 +144,12 @@ impl NodeGUI {
         }
     }
 
-    pub fn new_server(server: ConfigServer, x: f32, y: f32, server_type: Option<ServerType>) -> Self {
+    pub fn new_server(
+        server: ConfigServer,
+        x: f32,
+        y: f32,
+        server_type: Option<ServerType>,
+    ) -> Self {
         Self {
             id: server.id,
             neighbor: server.connected_drone_ids.clone(),
@@ -216,16 +224,18 @@ impl SimCtrlGUI {
                 self.nodes.get_mut(&src).unwrap().color = Color32::BLUE;
             }
             GUIEvents::Topology(drones, clients, servers) => {
-                actions::topology(self, drones, clients, servers)
+                self.topology(drones, clients, servers)
             }
 
             // show message
-            GUIEvents::MessageReceived(src, msg) => (),
+            GUIEvents::MessageReceived(_, _) => {
+                info!("[ GUI ] Nope not implemented")
+            }
             GUIEvents::FileList(server, items) => {
                 if !self.file_list.contains_key(&server) {
                     self.file_list.insert(server, items);
                 }
-            },
+            }
         }
     }
 }
@@ -820,7 +830,7 @@ impl eframe::App for SimCtrlGUI {
                                                         instance.command = Some(GUICommands::GetFile(instance.id, instance.server_value.unwrap(), _value.unwrap()));
                                                         instance.add_sender = false;
                                                     }
-                                                }                   
+                                                }
                                             });
                                     }
                                 }
@@ -842,30 +852,31 @@ impl eframe::App for SimCtrlGUI {
             if let Some(command) = &instance.command {
                 info!("[ {} ] Handling {:?}", "GUI".green(), command);
                 match command {
-                    GUICommands::Crash(drone) => actions::crash(self, drone),
+                    GUICommands::Crash(drone) => {
+                        self.crash(drone);
+                    }
                     GUICommands::RemoveSender(drone, to_remove) => {
-                        actions::remove_sender(self, drone, to_remove)
+                        self.remove_sender(drone, to_remove)
                     }
-                    GUICommands::AddSender(drone, to_add) => {
-                        actions::add_sender(self, drone, *to_add)
+                    GUICommands::AddSender(drone, to_add) => self.add_sender(drone, *to_add),
+                    GUICommands::SetPDR(drone, pdr) => {
+                        self.set_pdr(drone, pdr);
                     }
-                    GUICommands::SetPDR(drone, pdr) => actions::set_pdr(self, drone, pdr),
-
                     GUICommands::SendMessageTo(src, dest, msg) => {
-                        actions::send_message(self, src, dest, msg.clone());
+                        self.send_message(src, dest, msg.clone());
                     }
                     GUICommands::RegisterTo(client, server) => {
-                        actions::register(self, client, server);
+                        self.register(client, server);
                     }
                     GUICommands::LogOut(client, server) => {
-                        actions::logout(self, client, server);
+                        self.logout(client, server);
                     }
                     GUICommands::AskForFileList(client, server) => {
-                        actions::ask_for_file_list(self, client, server);
-                    },
+                        self.ask_for_file_list(client, server);
+                    }
                     GUICommands::GetFile(client, server, title) => {
-                        actions::get_file(self, client, server, title.clone());
-                    },
+                        self.get_file(client, server, title.clone());
+                    }
                     _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
                 }
             }
@@ -874,9 +885,7 @@ impl eframe::App for SimCtrlGUI {
         if let Some(command) = &self.spawn_command.clone() {
             info!("[ {} ] Handling {:?}", "GUI".green(), command);
             match command {
-                GUICommands::Spawn(id, neighbor, pdr) => {
-                    actions::spawn(self, id, &neighbor.clone(), *pdr)
-                }
+                GUICommands::Spawn(id, neighbor, pdr) => self.spawn(id, &neighbor.clone(), *pdr),
                 _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
             }
         }

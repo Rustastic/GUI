@@ -1,5 +1,4 @@
-mod gui;
-mod helpers;
+pub mod gui;
+pub mod helpers;
 
 pub use gui::*;
-pub use helpers::*;

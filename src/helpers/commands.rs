@@ -29,7 +29,7 @@ pub enum GUICommands {
     LogOut(NodeId, NodeId),
 
     AskForFileList(NodeId, NodeId),
-    GetFile(NodeId, NodeId, String)
+    GetFile(NodeId, NodeId, String),
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
