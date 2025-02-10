@@ -66,6 +66,7 @@ pub struct NodeGUI {
     send_message_msg_value: Option<String>,
     send_message_client_value: Option<String>,
     register_to: bool,
+    get_client_list: bool,
     register_value: Option<NodeId>,
     logout: bool,
 
@@ -100,6 +101,7 @@ impl NodeGUI {
             send_message_msg_value: None,
             send_message_client_value: None,
             register_to: false,
+            get_client_list: false,
             register_value: None,
             logout: false,
 
@@ -145,6 +147,7 @@ impl NodeGUI {
             send_message_msg_value: None,
             send_message_client_value: None,
             register_to: false,
+            get_client_list: false,
             register_value: None,
             logout: false,
 
@@ -191,6 +194,7 @@ impl NodeGUI {
             send_message_msg_value: None,
             send_message_client_value: None,
             register_to: false,
+            get_client_list: false,
             register_value: None,
             logout: false,
 
@@ -552,12 +556,17 @@ impl eframe::App for SimCtrlGUI {
                                                     instance.add_sender = false;
                                                     instance.remove_sender = false;
                                                     instance.register_to = false;
+                                                    instance.get_client_list = false;
+                                                }
+                                                if ui.button("GetClientList").clicked() {
+                                                    instance.command = Some(GUICommands::GetClientList(instance.id));
                                                 }
                                                 if ui.button("RegisterTo").clicked() {
                                                     instance.register_to = !instance.register_to;
                                                     instance.add_sender = false;
                                                     instance.remove_sender = false;
                                                     instance.send_message = false;
+                                                    instance.get_client_list = false;
                                                 }
                                                 if ui.button("LogOut").clicked() {
                                                     if let Some(server) = instance.register_value {
