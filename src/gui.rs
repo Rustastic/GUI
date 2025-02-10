@@ -66,8 +66,9 @@ pub struct NodeGUI {
     send_message_msg_value: Option<String>,
     send_message_client_value: Option<String>,
     register_to: bool,
-    get_client_list: bool,
     register_value: Option<NodeId>,
+    get_client_list: bool,
+    client_list_value: Option<Vec<NodeId>>,
     logout: bool,
 
     ask_for_file_list: bool,
@@ -101,8 +102,9 @@ impl NodeGUI {
             send_message_msg_value: None,
             send_message_client_value: None,
             register_to: false,
-            get_client_list: false,
             register_value: None,
+            get_client_list: false,
+            client_list_value: None,
             logout: false,
 
             ask_for_file_list: false,
@@ -147,8 +149,9 @@ impl NodeGUI {
             send_message_msg_value: None,
             send_message_client_value: None,
             register_to: false,
-            get_client_list: false,
             register_value: None,
+            get_client_list: false,
+            client_list_value: None,
             logout: false,
 
             ask_for_file_list: false,
@@ -194,8 +197,9 @@ impl NodeGUI {
             send_message_msg_value: None,
             send_message_client_value: None,
             register_to: false,
-            get_client_list: false,
             register_value: None,
+            get_client_list: false,
+            client_list_value: None,
             logout: false,
 
             ask_for_file_list: false,
@@ -248,9 +252,14 @@ impl SimCtrlGUI {
                 self.topology(drones, clients, servers)
             }
 
+            GUIEvents::ClientList(client, client_list) => {
+                let instance = self.nodes.get_mut(&client).unwrap();
+                instance.client_list_value = Some(client_list);
+            }
+
             // show message
             GUIEvents::MessageReceived(_, _) => {
-                info!("[ GUI ] Nope not implemented")
+                info!("[ {} ] Nope not implemented", "GUI".red());
             }
             GUIEvents::FileList(server, items) => {
                 if !self.file_list.contains_key(&server) {
@@ -806,14 +815,15 @@ impl eframe::App for SimCtrlGUI {
                                             });
                                     }
 
-                                    if instance.ask_for_file_list {
+                                    if instance.ask_for_file_list && instance.client_list_value.is_some() {
                                         let mut _value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Server to get List: ")
                                             .selected_text(_value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
+                                                let iter = instance.client_list_value.clone().unwrap();
                                                 let mut options = Vec::<String>::new();
-                                                for numbers in tserver_list.clone() {
+                                                for numbers in iter{
                                                     options.push(numbers.to_string());
                                                 }
 
