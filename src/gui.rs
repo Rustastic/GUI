@@ -307,10 +307,10 @@ impl eframe::App for SimCtrlGUI {
                 let circles = [
                     (x_pos, Color32::LIGHT_BLUE, "Drone"),
                     (x_pos + 65.0, Color32::GREEN, "CommunicationServer"),
-                    (x_pos + 210.0, Color32::BLUE, "TextContentServer"),
-                    (x_pos + 300.0, Color32::RED, "MediaContentServer"),
-                    (x_pos + 400.0, Color32::YELLOW, "ChatClient"),
-                    (x_pos + 500.0, Color32::ORANGE, "MediaClient"),
+                    (x_pos + 240.0, Color32::BLUE, "TextContentServer"),
+                    (x_pos + 350.0, Color32::RED, "MediaContentServer"),
+                    (x_pos + 490.0, Color32::YELLOW, "ChatClient"),
+                    (x_pos + 600.0, Color32::ORANGE, "MediaClient"),
                 ];
             
                 ui.horizontal(|ui| {
