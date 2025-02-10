@@ -921,6 +921,9 @@ impl eframe::App for SimCtrlGUI {
                     GUICommands::RegisterTo(client, server) => {
                         self.register(client, server);
                     }
+                    GUICommands::GetClientList(client) => {
+
+                    }
                     GUICommands::LogOut(client, server) => {
                         self.logout(client, server);
                     }

@@ -547,6 +547,22 @@ impl SimCtrlGUI {
         self.nodes.get_mut(client).unwrap().command = None;
     }
 
+    pub(super) fn get_list(&mut self, client: &NodeId) {
+        match self.sender.send(GUICommands::GetClientList(*client)) {
+            Ok(()) => info!(
+                "[ {} ] Successfully sent GUICommand::GetClientList({}) from GUI to Simulation Controller",
+                "GUI".green(),
+                client,
+            ),
+            Err(e) => error!("[ {} ] Unable to send GUICommand::GetClientList({}) from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                client,
+                e
+            ),
+        }
+        self.nodes.get_mut(client).unwrap().command = None;
+    }
+
     pub(super) fn logout(&mut self, client: &NodeId, server: &NodeId) {
         match self.sender.send(GUICommands::LogOut(*client, *server)) {
             Ok(()) => info!(
