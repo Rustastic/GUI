@@ -253,6 +253,7 @@ impl SimCtrlGUI {
             }
 
             GUIEvents::ClientList(client, client_list) => {
+                println!("[ {} ]: Received ClientList from [ Client {} ]", "GUI".green(), client);
                 let instance = self.nodes.get_mut(&client).unwrap();
                 instance.client_list_value = Some(client_list);
             }
