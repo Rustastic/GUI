@@ -83,7 +83,7 @@ impl NodeGUI {
             node_type: NodeType::Drone,
             client_type: None,
             server_type: None,
-            color: Color32::DARK_GREEN,
+            color: Color32::LIGHT_BLUE,
 
             command: None,
 
@@ -160,7 +160,7 @@ impl NodeGUI {
     ) -> Self {
         let color;
         match server_type.unwrap() {
-            ServerType::Communication => color = Color32::LIGHT_BLUE,
+            ServerType::Communication => color = Color32::GREEN,
             ServerType::Text => color = Color32::BLUE,
             ServerType::Image => color = Color32::RED,
         }
