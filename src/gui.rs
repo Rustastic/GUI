@@ -316,7 +316,7 @@ impl eframe::App for SimCtrlGUI {
                 for (y, color, label) in circles {
                     ui.horizontal(|ui| {
                         let center = Pos2::new(x_pos, y);
-                        ui.painter().add(egui::Shape::circle_filled(center, 10.0, color));
+                        ui.painter().add(egui::Shape::circle_filled(center, 5.0, color));
                         ui.add_space(10.0);
                         ui.label(label);
                     });
