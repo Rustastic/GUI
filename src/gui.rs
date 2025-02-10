@@ -267,7 +267,7 @@ impl SimCtrlGUI {
                 info!("[ {} ]: [ Client {} ] received the message {:?} from [ Client {} ]", "GUI".green(), dest, msg, src);
                 self.nodes.get_mut(&dest).unwrap().recv_message_client_value = Some(msg);
             }
-            GUIEvents::FileList(server, items) => {
+            GUIEvents::FileList(server, dest, items) => {
                 info!("[ {} ]: Received FileList from [ Client {} ]", "GUI".green(), server);
                 self.file_list.insert(server, items);
             }
@@ -909,15 +909,16 @@ impl eframe::App for SimCtrlGUI {
 
                                 ui.add_space(20.0);
 
-                                match &instance.recv_message_client_value {
-                                    Some(msg) => {
-                                        ui.label(format!("MessageReceived: {:?}", msg));
-                                    }
-                                    None => {
-                                        ui.label(format!("MessageReceived: None"));
+                                if instance.node_type == NodeType::Client && instance.client_type.unwrap() == ClientType::Chat {
+                                    match &instance.recv_message_client_value {
+                                        Some(msg) => {
+                                            ui.label(format!("MessageReceived: {:?}", msg));
+                                        }
+                                        None => {
+                                            ui.label(format!("MessageReceived: None"));
+                                        }
                                     }
                                 }
-                                
 
                                 ui.add_space(20.0);
 
