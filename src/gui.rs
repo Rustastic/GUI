@@ -313,15 +313,17 @@ impl eframe::App for SimCtrlGUI {
                     (y_offset + 250.0, Color32::ORANGE, "MediaClient"),
                 ];
             
-                for (y, color, label) in circles {
-                    ui.horizontal(|ui| {
-                        let center = Pos2::new(x_pos, y);
-                        ui.painter().add(egui::Shape::circle_filled(center, 5.0, color));
-                        ui.add_space(10.0);
-                        ui.label(label);
-                    });
-                    ui.add_space(20.0);
-                }
+                ui.horizontal(|ui| {
+                    for (y, color, label) in circles {
+                        ui.horizontal(|ui| {
+                            let center = Pos2::new(x_pos, y);
+                            ui.painter().add(egui::Shape::circle_filled(center, 5.0, color));
+                            ui.add_space(15.0);
+                            ui.label(label);
+                        });
+                        ui.add_space(5.0);
+                    }
+                });
 
                 ui.add_space(10.0);
 
