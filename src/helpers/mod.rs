@@ -12,10 +12,10 @@ use wg_2024::{
     packet::NodeType,
 };
 
-use messages::gui_commands::GUICommands;
+use messages::{gui_commands::GUICommands, high_level_messages::ServerType};
 
 use crate::{NodeGUI, SimCtrlGUI, HEIGHT, WIDTH};
-use types::{ClientType, ServerType};
+use types::ClientType;
 
 pub mod types;
 
@@ -230,10 +230,10 @@ impl SimCtrlGUI {
             /*if count > (third * 2) {
                 new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Text));
             } else if count > third {
-                new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Image));
+                new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Media));
             } else {*/
                 new_server =
-                    NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Communication));
+                    NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Chat));
             //}
 
             if !self.edges.contains_key(&new_server.id) {

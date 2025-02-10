@@ -14,9 +14,10 @@ use wg_2024::{
     packet::NodeType,
 };
 
-use messages::gui_commands::{GUICommands, GUIEvents};
+use messages::{gui_commands::{GUICommands, GUIEvents}, high_level_messages::ServerType};
 
-use crate::helpers::types::{ClientType, ServerType};
+use crate::helpers::types::ClientType;
+
 
 pub const HEIGHT: f32 = 900.0;
 pub const WIDTH: f32 = 900.0;
@@ -161,9 +162,9 @@ impl NodeGUI {
     ) -> Self {
         let color;
         match server_type.unwrap() {
-            ServerType::Communication => color = Color32::GREEN,
+            ServerType::Chat => color = Color32::GREEN,
             ServerType::Text => color = Color32::BLUE,
-            ServerType::Image => color = Color32::RED,
+            ServerType::Media => color = Color32::RED,
         }
 
         Self {
@@ -463,7 +464,7 @@ impl eframe::App for SimCtrlGUI {
                 let mut cserver_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
                     if instance.node_type == NodeType::Server {
-                        if instance.server_type.unwrap() == ServerType::Communication {
+                        if instance.server_type.unwrap() == ServerType::Chat {
                             cserver_list.push(*id);
                         }
                     }
@@ -481,7 +482,7 @@ impl eframe::App for SimCtrlGUI {
                 let mut iserver_list = Vec::<NodeId>::new();
                 for (id, instance) in self.nodes.iter() {
                     if instance.node_type == NodeType::Server {
-                        if instance.server_type.unwrap() == ServerType::Image {
+                        if instance.server_type.unwrap() == ServerType::Media {
                             iserver_list.push(*id);
                         }
                     }
