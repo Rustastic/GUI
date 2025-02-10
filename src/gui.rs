@@ -548,8 +548,7 @@ impl eframe::App for SimCtrlGUI {
                                                 instance.remove_sender = false;
                                                 instance.add_sender = false;
                                             }
-                                        }
-                                        if instance.node_type == NodeType::Client {
+                                        } else if instance.node_type == NodeType::Client {
                                             if instance.client_type.unwrap() == ClientType::Chat {
                                                 if ui.button("SendMessage").clicked() {
                                                     instance.send_message = !instance.send_message;
@@ -574,14 +573,15 @@ impl eframe::App for SimCtrlGUI {
                                                     }
                                                 }
                                             } else {
-                                                if ui.button("GetClientList").clicked() {
-                                                    instance.command = Some(GUICommands::GetClientList(instance.id));
-                                                }
                                                 if ui.button("AskForFile").clicked() {
                                                     instance.ask_for_file_list = !instance.ask_for_file_list;
                                                     instance.add_sender = false;
                                                     instance.remove_sender = false;
                                                 }
+                                            }
+                                        } else {
+                                            if ui.button("GetClientList").clicked() {
+                                                instance.command = Some(GUICommands::GetClientList(instance.id));
                                             }
                                         }
                                     });
