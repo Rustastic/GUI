@@ -265,7 +265,7 @@ impl SimCtrlGUI {
             // show message
             GUIEvents::MessageReceived(src, dest, msg) => {
                 info!("[ {} ]: [ Client {} ] received the message {:?} from [ Client {} ]", "GUI".green(), dest, msg, src);
-                self.nodes.get_mut(&client).unwrap().client_list_value = Some(client_list);
+                self.nodes.get_mut(&dest).unwrap().client_list_value = Some(client_list);
             }
             GUIEvents::FileList(server, items) => {
                 info!("[ {} ]: Received FileList from [ Client {} ]", "GUI".green(), server);
