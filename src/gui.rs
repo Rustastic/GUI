@@ -269,9 +269,7 @@ impl SimCtrlGUI {
             }
             GUIEvents::FileList(server, items) => {
                 info!("[ {} ]: Received FileList from [ Client {} ]", "GUI".green(), server);
-                if !self.file_list.contains_key(&server) {
-                    self.file_list.insert(server, items);
-                }
+                self.file_list.insert(server, items);
             }
         }
     }

@@ -207,11 +207,11 @@ impl SimCtrlGUI {
         for (count, client) in clients.iter().enumerate() {
             let (x, y) = coordinates.get(vertexes.get(&client.id).unwrap()).unwrap();
             let new_client;
-            //if count < half {
+            if count < half {
                 new_client = NodeGUI::new_client(client.clone(), *x, *y, Some(ClientType::Chat));
-            /* else {
+            } else {
                 new_client = NodeGUI::new_client(client.clone(), *x, *y, Some(ClientType::Media));
-            }*/
+            }
 
             if !self.edges.contains_key(&new_client.id) {
                 self.edges
@@ -227,14 +227,14 @@ impl SimCtrlGUI {
             let (x, y) = coordinates.get(vertexes.get(&server.id).unwrap()).unwrap();
 
             let new_server;
-            /*if count > (third * 2) {
+            if count > (third * 2) {
                 new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Text));
             } else if count > third {
                 new_server = NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Media));
-            } else {*/
+            } else {
                 new_server =
                     NodeGUI::new_server(server.clone(), *x, *y, Some(ServerType::Chat));
-            //}
+            }
 
             if !self.edges.contains_key(&new_server.id) {
                 self.edges
