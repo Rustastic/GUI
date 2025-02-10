@@ -740,7 +740,7 @@ impl eframe::App for SimCtrlGUI {
                                                     let iter_options = instance.client_list_value.clone().unwrap();
                                                     let mut options = Vec::<String>::new();
                                                     for numbers in iter_options {
-                                                        if numbers == instance.id {
+                                                        if numbers != instance.id {
                                                             options.push(numbers.to_string());
                                                         }
                                                     }
