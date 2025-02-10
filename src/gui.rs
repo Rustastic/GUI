@@ -83,7 +83,7 @@ impl NodeGUI {
             node_type: NodeType::Drone,
             client_type: None,
             server_type: None,
-            color: Color32::BLUE,
+            color: Color32::DARK_GRAY,
 
             command: None,
 
@@ -113,6 +113,12 @@ impl NodeGUI {
         y: f32,
         client_type: Option<ClientType>,
     ) -> Self {
+        let color;
+        match client_type.unwrap() {
+            ClientType::Chat => color = Color32::YELLOW,
+            ClientType::Media => color = Color32::ORANGE,
+        }
+
         Self {
             id: client.id,
             neighbor: client.connected_drone_ids.clone(),
@@ -122,7 +128,7 @@ impl NodeGUI {
             node_type: NodeType::Client,
             client_type,
             server_type: None,
-            color: Color32::YELLOW,
+            color,
 
             command: None,
 
@@ -152,6 +158,13 @@ impl NodeGUI {
         y: f32,
         server_type: Option<ServerType>,
     ) -> Self {
+        let color;
+        match server_type.unwrap() {
+            ServerType::Communication => color = Color32::LIGHT_BLUE,
+            ServerType::Text => color = Color32::BLUE,
+            ServerType::Image => color = Color32::PURPLE,
+        }
+
         Self {
             id: server.id,
             neighbor: server.connected_drone_ids.clone(),
@@ -161,7 +174,7 @@ impl NodeGUI {
             node_type: NodeType::Server,
             client_type: None,
             server_type,
-            color: Color32::GREEN,
+            color,
 
             command: None,
 
