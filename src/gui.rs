@@ -909,7 +909,15 @@ impl eframe::App for SimCtrlGUI {
 
                                 ui.add_space(20.0);
 
-                                ui.label(format!("MessageReceived: {:?}", instance.recv_message_client_value));
+                                match &instance.recv_message_client_value {
+                                    Some(msg) => {
+                                        ui.label(format!("MessageReceived: {:?}", msg));
+                                    }
+                                    None => {
+                                        ui.label(format!("MessageReceived: None"));
+                                    }
+                                }
+                                
 
                                 ui.add_space(20.0);
 
