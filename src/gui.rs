@@ -301,22 +301,22 @@ impl eframe::App for SimCtrlGUI {
                 ui.heading("Simulation Controller");
 
                 // 
-                let y_offset = 50.0;
+                let y_pos = 50.0;
                 let x_pos = 50.0;
                 
                 let circles = [
-                    (y_offset, Color32::LIGHT_BLUE, "Drone"),
-                    (y_offset + 50.0, Color32::GREEN, "CommunicationServer"),
-                    (y_offset + 100.0, Color32::BLUE, "TextContentServer"),
-                    (y_offset + 150.0, Color32::RED, "MediaContentServer"),
-                    (y_offset + 200.0, Color32::YELLOW, "ChatClient"),
-                    (y_offset + 250.0, Color32::ORANGE, "MediaClient"),
+                    (x_pos, Color32::LIGHT_BLUE, "Drone"),
+                    (x_pos + 50.0, Color32::GREEN, "CommunicationServer"),
+                    (x_pos + 100.0, Color32::BLUE, "TextContentServer"),
+                    (x_pos + 150.0, Color32::RED, "MediaContentServer"),
+                    (x_pos + 200.0, Color32::YELLOW, "ChatClient"),
+                    (x_pos + 250.0, Color32::ORANGE, "MediaClient"),
                 ];
             
                 ui.horizontal(|ui| {
-                    for (y, color, label) in circles {
+                    for (x, color, label) in circles {
                         ui.horizontal(|ui| {
-                            let center = Pos2::new(x_pos, y);
+                            let center = Pos2::new(x, y_pos);
                             ui.painter().add(egui::Shape::circle_filled(center, 5.0, color));
                             ui.add_space(15.0);
                             ui.label(label);
