@@ -119,7 +119,7 @@ impl SimCtrlGUI {
 
                     positions.insert(
                         node_index,
-                        (new_x.clamp(25.0, max_width), new_y.clamp(100.0, max_height)),
+                        (new_x.clamp(25.0, max_width), new_y.clamp(125.0, max_height)),
                     );
                 }
             }
@@ -185,7 +185,7 @@ impl SimCtrlGUI {
             }
         }
 
-        let coordinates = Self::fruchterman_reingold(&graph, 500, WIDTH, HEIGHT);
+        let coordinates = Self::fruchterman_reingold(&graph, 500, WIDTH - 25.0, HEIGHT - 25.0);
 
         for drone in drones {
             let (x, y) = coordinates.get(vertexes.get(&drone.id).unwrap()).unwrap();
