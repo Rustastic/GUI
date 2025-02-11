@@ -1,5 +1,5 @@
-use std::thread;
 use eframe::egui::Color32;
+use std::thread;
 
 use colored::Colorize;
 use log::{error, info};
@@ -77,7 +77,9 @@ impl SimCtrlGUI {
                     GUICommands::RemoveSender(drone, to_remove) => {
                         self.remove_sender(*drone, *to_remove);
                     }
-                    GUICommands::AddSender(drone, to_add) => self.add_sender(*drone, *to_add),
+                    GUICommands::AddSender(drone, to_add) => {
+                        self.add_sender(*drone, *to_add);
+                    }
                     GUICommands::SetPDR(drone, pdr) => {
                         self.set_pdr(*drone, *pdr);
                     }

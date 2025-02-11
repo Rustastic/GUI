@@ -3,7 +3,7 @@
 use eframe::egui::{self, Color32, Pos2};
 
 use crossbeam_channel::{Receiver, Sender};
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use colored::Colorize;
 use log::{error, info, warn};
