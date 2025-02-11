@@ -119,7 +119,7 @@ impl SimCtrlGUI {
 
                     positions.insert(
                         node_index,
-                        (new_x.clamp(0.0, max_width-100.0), new_y.clamp(100.0, max_height)),
+                        (new_x.clamp(25.0, max_width-100.0), new_y.clamp(100.0, max_height)),
                     );
                 }
             }
