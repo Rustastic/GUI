@@ -578,7 +578,7 @@ impl eframe::App for SimCtrlGUI {
                                 if !instance.crashed && !instance.logout {
                                     // if pressed RemoveSender button
                                     if instance.remove_sender {
-                                        let mut value: Option<String> = None;
+                                        let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Sender to remove: ")
                                             .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
@@ -590,32 +590,30 @@ impl eframe::App for SimCtrlGUI {
 
                                                 // Check if option is selected
                                                 for option in options {
-                                                    // If something selected
-                                                    if ui.selectable_label(
-                                                        false,
-                                                        &option,
-                                                    ).clicked() {
-                                                        // Get selected option
-                                                        value = Some(option.to_string());
+                                                    if ui.selectable_label(false, &option).clicked() {
+                                                        let value = Some(option.to_string());
                                                         instance.remove_sender = false;
-
-                                                        // Parse and handle
-                                                        match value.unwrap().parse::<u8>() {
-                                                            Ok(digit) => {
-                                                                info!(
-                                                                    "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
-                                                                    "GUI".green(),
-                                                                    instance.id,
-                                                                    digit
-                                                                );
-                                                                instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
-                                                                instance.remove_sender = false;
-                                                            },
-                                                            Err(e) => error!(
-                                                                "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
-                                                                "GUI".red(),
-                                                                e
-                                                            ),
+                                                
+                                                        if let Some(value_str) = value {
+                                                            match value_str.parse::<u8>() {
+                                                                Ok(digit) => {
+                                                                    info!(
+                                                                        "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
+                                                                        "GUI".green(),
+                                                                        instance.id,
+                                                                        digit
+                                                                    );
+                                                                    instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
+                                                                    instance.remove_sender = false;
+                                                                },
+                                                                Err(e) => error!(
+                                                                    "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
+                                                                    "GUI".red(),
+                                                                    e
+                                                                ),
+                                                            }
+                                                        } else {
+                                                            error!("[ {} ] Value is None after selectable_label click. This is unexpected.", "GUI".red());
                                                         }
                                                     }
                                                 }
@@ -624,7 +622,7 @@ impl eframe::App for SimCtrlGUI {
 
                                     // if pressed AddSender button
                                     if instance.add_sender {
-                                        let mut value: Option<String> = None;
+                                        let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Sender to add: ")
                                             .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
@@ -638,29 +636,32 @@ impl eframe::App for SimCtrlGUI {
 
                                                 // If something selected
                                                 for option in options {
-                                                    // If something selected
-                                                    if ui.selectable_label(
-                                                        false,
-                                                        &option,
-                                                    ).clicked() {
-                                                        // Get selected option
-                                                        value = Some(option.to_string());
+                                                    if ui.selectable_label(false, &option).clicked() {
+                                                        let value = Some(option.to_string());
                                                         instance.remove_sender = false;
-
-                                                        // Parse and handle
-                                                        match value.unwrap().parse::<u8>() {
-                                                            Ok(digit) => {
-                                                                info!("[ {} ] Passing to handler GUICommands::AddSender({}, {})", "GUI".green(), instance.id, digit);
-                                                                instance.command = Some(GUICommands::AddSender(instance.id, digit));
-                                                                instance.add_sender = false;
-                                                            },
-                                                            Err(e) => {
-                                                                error!(
-                                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::AddSender: {}",
-                                                                    "GUI".red(),
-                                                                    e
-                                                                );
+                                                
+                                                        if let Some(value_str) = value {
+                                                            match value_str.parse::<u8>() {
+                                                                Ok(digit) => {
+                                                                    info!(
+                                                                        "[ {} ] Passing to handler GUICommands::AddSender({}, {})",
+                                                                        "GUI".green(),
+                                                                        instance.id,
+                                                                        digit
+                                                                    );
+                                                                    instance.command = Some(GUICommands::AddSender(instance.id, digit));
+                                                                    instance.add_sender = false;
+                                                                },
+                                                                Err(e) => {
+                                                                    error!(
+                                                                        "[ {} ] Unable to parse neighbor NodeId in GUICommand::AddSender: {}",
+                                                                        "GUI".red(),
+                                                                        e
+                                                                    );
+                                                                }
                                                             }
+                                                        } else {
+                                                            error!("[ {} ] option value is None after click. This is unexpected.", "GUI".red());
                                                         }
                                                     }
                                                 }
@@ -762,7 +763,7 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.register_to {
-                                        let mut value: Option<String> = None;
+                                        let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Server to register to: ")
                                             .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
@@ -774,29 +775,32 @@ impl eframe::App for SimCtrlGUI {
 
                                                 // If something selected
                                                 for option in options {
-                                                    // If something selected
-                                                    if ui.selectable_label(
-                                                        false,
-                                                        &option,
-                                                    ).clicked() {
-                                                        // Get selected option
-                                                        value = Some(option.to_string());
+                                                    if ui.selectable_label(false, &option).clicked() {
+                                                        let value = Some(option.to_string());
                                                         instance.register_to = false;
-
-                                                        // Parse and handle
-                                                        match value.unwrap().parse::<u8>() {
-                                                            Ok(digit) => {
-                                                                instance.register_value = Some(digit);
-                                                                info!("[ {} ] Passing to handler GUICommands::RegisterTo({}, {})", "GUI".green(), instance.id, digit);
-                                                                instance.command = Some(GUICommands::RegisterTo(instance.id, digit));
-                                                            },
-                                                            Err(e) => {
-                                                                error!(
-                                                                    "[ {} ] Unable to parse neighbor NodeId in GUICommand::RegisterTo: {}",
-                                                                    "GUI".red(),
-                                                                    e
-                                                                );
+                                                
+                                                        if let Some(value_str) = value {
+                                                            match value_str.parse::<u8>() {
+                                                                Ok(digit) => {
+                                                                    instance.register_value = Some(digit);
+                                                                    info!(
+                                                                        "[ {} ] Passing to handler GUICommands::RegisterTo({}, {})",
+                                                                        "GUI".green(),
+                                                                        instance.id,
+                                                                        digit
+                                                                    );
+                                                                    instance.command = Some(GUICommands::RegisterTo(instance.id, digit));
+                                                                },
+                                                                Err(e) => {
+                                                                    error!(
+                                                                        "[ {} ] Unable to parse neighbor NodeId in GUICommand::RegisterTo: {}",
+                                                                        "GUI".red(),
+                                                                        e
+                                                                    );
+                                                                }
                                                             }
+                                                        } else {
+                                                            error!("[ {} ] Option value is None after click. This is unexpected.", "GUI".red());
                                                         }
                                                     }
                                                 }
@@ -804,7 +808,7 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.ask_for_file_list {
-                                        let mut value: Option<String> = None;
+                                        let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Server to get List: ")
                                             .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
@@ -816,36 +820,35 @@ impl eframe::App for SimCtrlGUI {
 
                                                 // Check if option is selected
                                                 for option in options {
-                                                    // If something selected
-                                                    if ui.selectable_label(
-                                                        false,
-                                                        &option,
-                                                    ).clicked() {
-                                                        // Get selected option
-                                                        value = Some(option.to_string());
+                                                    if ui.selectable_label(false, &option).clicked() {
+                                                        let value = Some(option.to_string());
+                                                
                                                         instance.ask_for_file_list = false;
-
-                                                        // Parse and handle
-                                                        match value.unwrap().parse::<u8>() {
-                                                            Ok(digit) => {
-                                                                if !self.file_list.contains_key(&digit) {
-                                                                    info!(
-                                                                        "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
-                                                                        "GUI".green(),
-                                                                        instance.id,
-                                                                        digit
-                                                                    );
-                                                                    instance.server_value = Some(digit);
-                                                                    instance.command = Some(GUICommands::AskForFileList(instance.id, digit));
-                                                                }
-                                                                instance.ask_for_file_list = false;
-                                                                instance.get_file = true;
-                                                            },
-                                                            Err(e) => error!(
-                                                                "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
-                                                                "GUI".red(),
-                                                                e
-                                                            ),
+                                                
+                                                        if let Some(value_str) = value {
+                                                            match value_str.parse::<u8>() {
+                                                                Ok(digit) => {
+                                                                    if !self.file_list.contains_key(&digit) {
+                                                                        info!(
+                                                                            "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
+                                                                            "GUI".green(),
+                                                                            instance.id,
+                                                                            digit
+                                                                        );
+                                                                        instance.server_value = Some(digit);
+                                                                        instance.command = Some(GUICommands::AskForFileList(instance.id, digit));
+                                                                    }
+                                                                    instance.ask_for_file_list = false;
+                                                                    instance.get_file = true;
+                                                                },
+                                                                Err(e) => error!(
+                                                                    "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
+                                                                    "GUI".red(),
+                                                                    e
+                                                                ),
+                                                            }
+                                                        } else {
+                                                            error!("[ {} ]: Option value is None after click. This is unexpected.", "GUI".red());
                                                         }
                                                     }
                                                 }
@@ -853,7 +856,7 @@ impl eframe::App for SimCtrlGUI {
                                     }
 
                                     if instance.server_value.is_some() && self.file_list.contains_key(&instance.server_value.unwrap()) && instance.get_file {
-                                        let mut value: Option<String> = None;
+                                        let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select file: ")
                                             .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
@@ -866,18 +869,27 @@ impl eframe::App for SimCtrlGUI {
 
                                                 // If something selected
                                                 for option in options {
-                                                    // If something selected
-                                                    if ui.selectable_label(
-                                                        false,
-                                                        &option,
-                                                    ).clicked() {
-                                                        // Get selected option
-                                                        value = Some(option.to_string());
+                                                    if ui.selectable_label(false, &option).clicked() {
+                                                        let value = Some(option.to_string());
                                                         instance.remove_sender = false;
-
-                                                        info!("[ {} ] Passing to handler GUICommands::Get({}, {}, {:?})", "GUI".green(), instance.id, instance.server_value.unwrap(), value.clone().unwrap());
-                                                        instance.command = Some(GUICommands::GetFile(instance.id, instance.server_value.unwrap(), value.unwrap()));
-                                                        instance.add_sender = false;
+                                                
+                                                        if let Some(value_str) = value {
+                                                            if let Some(server_value) = instance.server_value {
+                                                                info!(
+                                                                    "[ {} ] Passing to handler GUICommands::Get({}, {}, {:?})",
+                                                                    "GUI".green(),
+                                                                    instance.id,
+                                                                    server_value,
+                                                                    value_str
+                                                                );
+                                                                instance.command = Some(GUICommands::GetFile(instance.id, server_value, value_str));
+                                                                instance.add_sender = false;
+                                                            } else {
+                                                                error!("[ {} ] instance.server_value is None. Cannot execute GetFile command.", "GUI".red());
+                                                            }
+                                                        } else {
+                                                            error!("[ {} ] Value is None after selectable_label click. This is unexpected.", "GUI".red());
+                                                        }
                                                     }
                                                 }
                                             });
@@ -937,6 +949,7 @@ impl eframe::App for SimCtrlGUI {
         for (_, instance) in self.nodes.clone() {
             if let Some(command) = &instance.command {
                 info!("[ {} ] Handling {:?}", "GUI".green(), command);
+                #[allow(clippy::match_wildcard_for_single_variants)]
                 match command {
                     GUICommands::Crash(drone) => {
                         self.crash(*drone);
