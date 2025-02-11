@@ -17,8 +17,8 @@ use messages::{
 
 use crate::{helpers::types::ClientType, node::NodeGUI};
 
-pub const HEIGHT: f32 = 400.0;
-pub const WIDTH: f32 = 400.0;
+pub const HEIGHT: f32 = 600.0;
+pub const WIDTH: f32 = 600.0;
 
 #[derive(Clone, Debug)]
 pub struct SimCtrlGUI {
@@ -194,6 +194,16 @@ impl eframe::App for SimCtrlGUI {
                 // Allocating space for drawing and preparing the painter for rendering
                 let (_response, painter) =
                     ui.allocate_painter(egui::Vec2::new(WIDTH, HEIGHT), egui::Sense::hover());
+
+                // Define an offset of 100 pixels from the top
+                let offset = egui::pos2(0.0, 100.0);
+
+                // Use the offset when drawing
+                painter.rect_filled(
+                    egui::Rect::from_min_size(offset, egui::Vec2::new(WIDTH, HEIGHT - 100.0)),
+                    0.0, // No corner rounding
+                    egui::Color32::WHITE,
+                );
 
                 // Drawing connections between drones/client
                 for (start_id, neighbor) in self.edges.clone() {
