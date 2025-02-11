@@ -195,15 +195,12 @@ impl eframe::App for SimCtrlGUI {
                 let (_response, painter) =
                     ui.allocate_painter(egui::Vec2::new(WIDTH, HEIGHT), egui::Sense::hover());
 
-                // Define an offset of 100 pixels from the top
-                let offset = egui::pos2(0.0, 100.0);
+                // Offset the painter by 100 pixels down
+                let painter = painter.with_clip_rect(egui::Rect::from_min_max(
+                    egui::pos2(0.0, 100.0),
+                    egui::pos2(WIDTH, HEIGHT),
+                ));
 
-                // Use the offset when drawing
-                painter.rect_filled(
-                    egui::Rect::from_min_size(offset, egui::Vec2::new(WIDTH, HEIGHT - 100.0)),
-                    0.0, // No corner rounding
-                    egui::Color32::WHITE,
-                );
 
                 // Drawing connections between drones/client
                 for (start_id, neighbor) in self.edges.clone() {
