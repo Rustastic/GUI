@@ -14,10 +14,12 @@ use wg_2024::{
     packet::NodeType,
 };
 
-use messages::{gui_commands::{GUICommands, GUIEvents}, high_level_messages::ServerType};
+use messages::{
+    gui_commands::{GUICommands, GUIEvents},
+    high_level_messages::ServerType,
+};
 
 use crate::helpers::types::ClientType;
-
 
 pub const HEIGHT: f32 = 400.0;
 pub const WIDTH: f32 = 400.0;
@@ -117,7 +119,7 @@ impl NodeGUI {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn new_client(
         client: &ConfigClient,
         x: f32,
@@ -168,14 +170,14 @@ impl NodeGUI {
         }
     }
 
-    #[must_use] 
+    #[must_use]
     pub fn new_server(
         server: &ConfigServer,
         x: f32,
         y: f32,
         server_type: Option<ServerType>,
     ) -> Self {
-        let mut color= Color32::PLACEHOLDER;
+        let mut color = Color32::PLACEHOLDER;
         if let Some(stype) = server_type {
             match stype {
                 ServerType::Chat => color = Color32::GREEN,
@@ -267,17 +269,31 @@ impl SimCtrlGUI {
             }
 
             GUIEvents::ClientList(client, client_list) => {
-                info!("[ {} ]: Received ClientList from [ Client {} ]", "GUI".green(), client);
+                info!(
+                    "[ {} ]: Received ClientList from [ Client {} ]",
+                    "GUI".green(),
+                    client
+                );
                 self.nodes.get_mut(&client).unwrap().client_list_value = Some(client_list);
             }
 
             // show message
             GUIEvents::MessageReceived(src, dest, msg) => {
-                info!("[ {} ]: [ Client {} ] received the message {:?} from [ Client {} ]", "GUI".green(), dest, msg, src);
+                info!(
+                    "[ {} ]: [ Client {} ] received the message {:?} from [ Client {} ]",
+                    "GUI".green(),
+                    dest,
+                    msg,
+                    src
+                );
                 self.nodes.get_mut(&dest).unwrap().recv_message_client_value = Some(msg);
             }
             GUIEvents::FileList(server, _, items) => {
-                info!("[ {} ]: Received FileList from [ Client {} ]", "GUI".green(), server);
+                info!(
+                    "[ {} ]: Received FileList from [ Client {} ]",
+                    "GUI".green(),
+                    server
+                );
                 self.file_list.insert(server, items);
             }
         }
@@ -312,7 +328,7 @@ impl eframe::App for SimCtrlGUI {
                 // 
                 let y_pos = 40.0;
                 let x_pos = 10.0;
-                
+
                 let circles = [
                     (x_pos, Color32::LIGHT_BLUE, "Drone"),
                     (x_pos + 65.0, Color32::GREEN, "CommunicationServer"),
@@ -321,7 +337,7 @@ impl eframe::App for SimCtrlGUI {
                     (x_pos + 495.0, Color32::YELLOW, "ChatClient"),
                     (x_pos + 582.5, Color32::ORANGE, "MediaClient"),
                 ];
-            
+
                 ui.horizontal(|ui| {
                     for (x, color, label) in circles {
                         ui.horizontal(|ui| {
@@ -593,7 +609,7 @@ impl eframe::App for SimCtrlGUI {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
                                                         instance.remove_sender = false;
-                                                
+
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
                                                                 Ok(digit) => {
@@ -639,7 +655,7 @@ impl eframe::App for SimCtrlGUI {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
                                                         instance.remove_sender = false;
-                                                
+
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
                                                                 Ok(digit) => {
@@ -778,7 +794,7 @@ impl eframe::App for SimCtrlGUI {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
                                                         instance.register_to = false;
-                                                
+
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
                                                                 Ok(digit) => {
@@ -822,9 +838,8 @@ impl eframe::App for SimCtrlGUI {
                                                 for option in options {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
-                                                
                                                         instance.ask_for_file_list = false;
-                                                
+
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
                                                                 Ok(digit) => {
@@ -872,7 +887,7 @@ impl eframe::App for SimCtrlGUI {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
                                                         instance.remove_sender = false;
-                                                
+
                                                         if let Some(value_str) = value {
                                                             if let Some(server_value) = instance.server_value {
                                                                 info!(
@@ -933,7 +948,7 @@ impl eframe::App for SimCtrlGUI {
                             "GUI".red()
                         );
                     }
-                },
+                }
                 Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => (),
                     crossbeam_channel::TryRecvError::Disconnected => eprintln!(
@@ -979,7 +994,7 @@ impl eframe::App for SimCtrlGUI {
                     GUICommands::GetFile(client, server, title) => {
                         self.get_file(*client, *server, title);
                     }
-                    _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command)
+                    _ => error!("[ {} ] Not supposed to handle {:?}", "GUI".red(), command),
                 }
             }
         }

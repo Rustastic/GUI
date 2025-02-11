@@ -1,7 +1,7 @@
-use std::collections::HashMap;
 use eframe::egui::Color32;
 use petgraph::{graph::NodeIndex, Graph, Undirected};
 use rand::Rng;
+use std::collections::HashMap;
 
 use colored::Colorize;
 use log::{error, info};
@@ -206,13 +206,15 @@ impl SimCtrlGUI {
         let half = clients.len() / 2;
         for (count, client) in clients.iter().enumerate() {
             let (x, y) = coordinates.get(vertexes.get(&client.id).unwrap()).unwrap();
-            let new_client= if count < half {
+            let new_client = if count < half {
                 NodeGUI::new_client(client, *x, *y, Some(ClientType::Chat))
             } else {
                 NodeGUI::new_client(client, *x, *y, Some(ClientType::Media))
             };
 
-            self.edges.entry(new_client.id).or_insert_with(|| (Vec::new(), Color32::GRAY));
+            self.edges
+                .entry(new_client.id)
+                .or_insert_with(|| (Vec::new(), Color32::GRAY));
 
             self.nodes.insert(new_client.id, new_client);
         }
@@ -228,11 +230,12 @@ impl SimCtrlGUI {
             } else if count > third {
                 new_server = NodeGUI::new_server(server, *x, *y, Some(ServerType::Media));
             } else {
-                new_server =
-                    NodeGUI::new_server(server, *x, *y, Some(ServerType::Chat));
+                new_server = NodeGUI::new_server(server, *x, *y, Some(ServerType::Chat));
             }
 
-            self.edges.entry(new_server.id).or_insert_with(|| (Vec::new(), Color32::GRAY));
+            self.edges
+                .entry(new_server.id)
+                .or_insert_with(|| (Vec::new(), Color32::GRAY));
 
             self.nodes.insert(new_server.id, new_server);
 
@@ -397,7 +400,9 @@ impl SimCtrlGUI {
                 );
                 return;
             }
-        } else if self.nodes.get(&to_add).unwrap().node_type == NodeType::Client && self.nodes.get(&to_add).unwrap().neighbor.len() == 2 {
+        } else if self.nodes.get(&to_add).unwrap().node_type == NodeType::Client
+            && self.nodes.get(&to_add).unwrap().neighbor.len() == 2
+        {
             self.nodes.get_mut(&node_id).unwrap().command = None;
             error!(
                 "[ {} ] Unable to send GUICommand::AddSender from GUI to Simulation Controller: {}",
