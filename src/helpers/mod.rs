@@ -17,6 +17,7 @@ use messages::{gui_commands::GUICommands, high_level_messages::ServerType};
 use crate::{NodeGUI, SimCtrlGUI, HEIGHT, WIDTH};
 use types::ClientType;
 
+pub mod handlers;
 pub mod types;
 
 impl SimCtrlGUI {
