@@ -185,7 +185,7 @@ impl SimCtrlGUI {
             }
         }
 
-        let coordinates = Self::fruchterman_reingold(&graph, 300, WIDTH, HEIGHT);
+        let coordinates = Self::fruchterman_reingold(&graph, 500, WIDTH-100.0, HEIGHT-100.0);
 
         for drone in drones {
             let (x, y) = coordinates.get(vertexes.get(&drone.id).unwrap()).unwrap();
