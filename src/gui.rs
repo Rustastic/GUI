@@ -17,8 +17,8 @@ use messages::{
 
 use crate::{helpers::types::ClientType, node::NodeGUI};
 
-pub const HEIGHT: f32 = 600.0;
-pub const WIDTH: f32 = 600.0;
+pub const HEIGHT: f32 = 900.0;
+pub const WIDTH: f32 = 900.0;
 
 #[derive(Clone, Debug)]
 pub struct SimCtrlGUI {
