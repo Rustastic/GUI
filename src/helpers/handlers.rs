@@ -40,7 +40,11 @@ impl SimCtrlGUI {
                     "GUI".green(),
                     client
                 );
-                self.nodes.get_mut(&client).unwrap().client_list_value = Some(client_list);
+                self.nodes
+                    .get_mut(&client)
+                    .unwrap()
+                    .chat_params
+                    .client_list_value = Some(client_list);
             }
 
             // show message
@@ -52,7 +56,11 @@ impl SimCtrlGUI {
                     msg,
                     src
                 );
-                self.nodes.get_mut(&dest).unwrap().recv_message_client_value = Some(msg);
+                self.nodes
+                    .get_mut(&dest)
+                    .unwrap()
+                    .chat_params
+                    .recv_message_client_value = Some(msg);
             }
             GUIEvents::FileList(server, _, items) => {
                 info!(

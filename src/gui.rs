@@ -8,18 +8,14 @@ use std::collections::HashMap;
 use colored::Colorize;
 use log::{error, info, warn};
 
-use wg_2024::{
-    config::{Client as ConfigClient, Drone as ConfigDrone, Server as ConfigServer},
-    network::NodeId,
-    packet::NodeType,
-};
+use wg_2024::{network::NodeId, packet::NodeType};
 
 use messages::{
     gui_commands::{GUICommands, GUIEvents},
     high_level_messages::ServerType,
 };
 
-use crate::helpers::types::ClientType;
+use crate::{helpers::types::ClientType, node::NodeGUI};
 
 pub const HEIGHT: f32 = 400.0;
 pub const WIDTH: f32 = 400.0;
@@ -41,186 +37,6 @@ pub struct SimCtrlGUI {
     pub spawn_command: Option<GUICommands>,
 
     pub file_list: HashMap<NodeId, Vec<String>>,
-}
-
-#[allow(clippy::struct_excessive_bools)]
-#[derive(Clone, Debug)]
-pub struct NodeGUI {
-    pub id: NodeId,
-    pub neighbor: Vec<NodeId>,
-    pub pdr: f32,
-    x: f32,
-    y: f32,
-    pub node_type: NodeType,
-    client_type: Option<ClientType>,
-    server_type: Option<ServerType>,
-    pub color: egui::Color32,
-
-    pub command: Option<GUICommands>,
-
-    selected: bool,
-    crashed: bool,
-    remove_sender: bool,
-    add_sender: bool,
-    set_pdr: bool,
-    pdr_value: Option<String>,
-
-    send_message: bool,
-    send_message_msg_value: Option<String>,
-    send_message_client_value: Option<String>,
-    pub recv_message_client_value: Option<String>,
-    register_to: bool,
-    register_value: Option<NodeId>,
-    get_client_list: bool,
-    pub client_list_value: Option<Vec<NodeId>>,
-    logout: bool,
-
-    ask_for_file_list: bool,
-    server_value: Option<NodeId>,
-    get_file: bool,
-}
-
-impl NodeGUI {
-    #[must_use]
-    pub fn new_drone(drone: &ConfigDrone, x: f32, y: f32) -> Self {
-        Self {
-            id: drone.id,
-            neighbor: drone.connected_node_ids.clone(),
-            pdr: drone.pdr,
-            x,
-            y,
-            node_type: NodeType::Drone,
-            client_type: None,
-            server_type: None,
-            color: Color32::LIGHT_BLUE,
-
-            command: None,
-
-            selected: false,
-            crashed: false,
-            remove_sender: false,
-            add_sender: false,
-            set_pdr: false,
-            pdr_value: None,
-
-            send_message: false,
-            send_message_msg_value: None,
-            send_message_client_value: None,
-            recv_message_client_value: None,
-            register_to: false,
-            register_value: None,
-            get_client_list: false,
-            client_list_value: None,
-            logout: false,
-
-            ask_for_file_list: false,
-            server_value: None,
-            get_file: false,
-        }
-    }
-
-    #[must_use]
-    pub fn new_client(
-        client: &ConfigClient,
-        x: f32,
-        y: f32,
-        client_type: Option<ClientType>,
-    ) -> Self {
-        let mut color = Color32::PLACEHOLDER;
-        if let Some(ctype) = client_type {
-            match ctype {
-                ClientType::Chat => color = Color32::YELLOW,
-                ClientType::Media => color = Color32::ORANGE,
-            }
-        }
-
-        Self {
-            id: client.id,
-            neighbor: client.connected_drone_ids.clone(),
-            pdr: 0.0,
-            x,
-            y,
-            node_type: NodeType::Client,
-            client_type,
-            server_type: None,
-            color,
-
-            command: None,
-
-            selected: false,
-            crashed: false,
-            remove_sender: false,
-            add_sender: false,
-            set_pdr: false,
-            pdr_value: None,
-
-            send_message: false,
-            send_message_msg_value: None,
-            send_message_client_value: None,
-            recv_message_client_value: None,
-            register_to: false,
-            register_value: None,
-            get_client_list: false,
-            client_list_value: None,
-            logout: false,
-
-            ask_for_file_list: false,
-            server_value: None,
-            get_file: false,
-        }
-    }
-
-    #[must_use]
-    pub fn new_server(
-        server: &ConfigServer,
-        x: f32,
-        y: f32,
-        server_type: Option<ServerType>,
-    ) -> Self {
-        let mut color = Color32::PLACEHOLDER;
-        if let Some(stype) = server_type {
-            match stype {
-                ServerType::Chat => color = Color32::GREEN,
-                ServerType::Text => color = Color32::BLUE,
-                ServerType::Media => color = Color32::RED,
-            }
-        }
-
-        Self {
-            id: server.id,
-            neighbor: server.connected_drone_ids.clone(),
-            pdr: 0.0,
-            x,
-            y,
-            node_type: NodeType::Server,
-            client_type: None,
-            server_type,
-            color,
-
-            command: None,
-
-            selected: false,
-            crashed: false,
-            remove_sender: false,
-            add_sender: false,
-            set_pdr: false,
-            pdr_value: None,
-
-            send_message: false,
-            send_message_msg_value: None,
-            send_message_client_value: None,
-            recv_message_client_value: None,
-            register_to: false,
-            register_value: None,
-            get_client_list: false,
-            client_list_value: None,
-            logout: false,
-
-            ask_for_file_list: false,
-            server_value: None,
-            get_file: false,
-        }
-    }
 }
 
 impl SimCtrlGUI {
@@ -463,7 +279,7 @@ impl eframe::App for SimCtrlGUI {
                             .collapsible(true) // activate collapsable
                             .show(ctx, |ui| {
 
-                                if !instance.crashed {
+                                if !instance.drone_params.crashed {
 
                                     // Display information
                                     ui.label(format!("Id: {}", instance.id));
@@ -481,52 +297,52 @@ impl eframe::App for SimCtrlGUI {
                                         if ui.button("RemoveSender").clicked() {
                                             instance.remove_sender = !instance.remove_sender;
                                             instance.add_sender = false;
-                                            instance.set_pdr = false;
-                                            instance.send_message = false;
-                                            instance.register_to = false;
+                                            instance.drone_params.set_pdr = false;
+                                            instance.chat_params.send_message = false;
+                                            instance.chat_params.register_to = false;
                                         }
                                         if ui.button("AddSender").clicked() {
                                             instance.add_sender = !instance.add_sender;
                                             instance.remove_sender = false;
-                                            instance.set_pdr = false;
-                                            instance.send_message = false;
-                                            instance.register_to = false;
+                                            instance.drone_params.set_pdr = false;
+                                            instance.chat_params.send_message = false;
+                                            instance.chat_params.register_to = false;
                                         }
                                         if instance.node_type == NodeType::Drone {
                                             if ui.button("Crash").clicked() {
                                                 instance.command = Some(GUICommands::Crash(instance.id));
                                             }
                                             if ui.button("SetPacketDropRate").clicked() {
-                                                instance.set_pdr = !instance.set_pdr;
+                                                instance.drone_params.set_pdr = !instance.drone_params.set_pdr;
                                                 instance.remove_sender = false;
                                                 instance.add_sender = false;
                                             }
                                         } else if instance.node_type == NodeType::Client {
                                             if instance.client_type.unwrap() == ClientType::Chat {
                                                 if ui.button("SendMessage").clicked() {
-                                                    instance.send_message = !instance.send_message;
+                                                    instance.chat_params.send_message = !instance.chat_params.send_message;
                                                     instance.add_sender = false;
                                                     instance.remove_sender = false;
-                                                    instance.register_to = false;
-                                                    instance.get_client_list = false;
+                                                    instance.chat_params.register_to = false;
+                                                    instance.chat_params.get_client_list = false;
                                                 }
                                                 if ui.button("GetClientList").clicked() {
                                                     instance.command = Some(GUICommands::GetClientList(instance.id));
                                                 }
                                                 if ui.button("RegisterTo").clicked() {
-                                                    instance.register_to = !instance.register_to;
+                                                    instance.chat_params.register_to = !instance.chat_params.register_to;
                                                     instance.add_sender = false;
                                                     instance.remove_sender = false;
-                                                    instance.send_message = false;
-                                                    instance.get_client_list = false;
+                                                    instance.chat_params.send_message = false;
+                                                    instance.chat_params.get_client_list = false;
                                                 }
                                                 if ui.button("LogOut").clicked() {
-                                                    if let Some(server) = instance.register_value {
+                                                    if let Some(server) = instance.chat_params.register_value {
                                                         instance.command = Some(GUICommands::LogOut(instance.id, server));
                                                     }
                                                 }
                                             } else if ui.button("AskForFile").clicked() {
-                                                instance.ask_for_file_list = !instance.ask_for_file_list;
+                                                instance.media_params.ask_for_file_list = !instance.media_params.ask_for_file_list;
                                                 instance.add_sender = false;
                                                 instance.remove_sender = false;
                                             }
@@ -535,7 +351,7 @@ impl eframe::App for SimCtrlGUI {
                                 }
 
                                 // if not crashed
-                                if !instance.crashed && !instance.logout {
+                                if !instance.drone_params.crashed && !instance.chat_params.logout {
                                     // if pressed RemoveSender button
                                     if instance.remove_sender {
                                         let value: Option<String> = None;
@@ -628,12 +444,12 @@ impl eframe::App for SimCtrlGUI {
                                             });
                                     }
 
-                                    if instance.set_pdr{
+                                    if instance.drone_params.set_pdr{
                                         ui.horizontal(|ui| {
                                             ui.label("Enter desired PDR:");
 
                                             // Default value
-                                            let text_input = instance.pdr_value.clone().unwrap_or_default();
+                                            let text_input = instance.drone_params.pdr_value.clone().unwrap_or_default();
                                             // Copy for mutation
                                             let mut buffer = text_input.clone();
 
@@ -641,12 +457,12 @@ impl eframe::App for SimCtrlGUI {
 
                                             // Update only if changed
                                             if text_edit.changed() {
-                                                instance.pdr_value = Some(buffer);
+                                                instance.drone_params.pdr_value = Some(buffer);
                                             }
 
                                             // "Confirm" button to process input
                                             if ui.button("Confirm").clicked() {
-                                                if let Some(pdr_value) = &instance.pdr_value {
+                                                if let Some(pdr_value) = &instance.drone_params.pdr_value {
                                                     match pdr_value.parse::<f32>() {
                                                         Ok(digit) => {
                                                             info!(
@@ -656,7 +472,7 @@ impl eframe::App for SimCtrlGUI {
                                                                 digit
                                                             );
                                                             instance.command = Some(GUICommands::SetPDR(instance.id, digit));
-                                                            instance.set_pdr = false;
+                                                            instance.drone_params.set_pdr = false;
                                                         }
                                                         Err(e) => error!("[ {} ] Invalid PDR input: {}", "GUI".red(), e),
                                                     }
@@ -665,7 +481,7 @@ impl eframe::App for SimCtrlGUI {
                                         });
                                     }
 
-                                    if instance.send_message && instance.client_list_value.is_some() {
+                                    if instance.chat_params.send_message && instance.chat_params.client_list_value.is_some() {
                                         ui.vertical(|ui| {
                                             // Title
                                             ui.heading("Send a Message");
@@ -673,9 +489,9 @@ impl eframe::App for SimCtrlGUI {
                                             // Multi-Select Neighbor Dropdown
                                             ui.label("Select a Client:");
                                             egui::ComboBox::from_label("Select Client: ")
-                                                .selected_text(instance.send_message_client_value.clone().unwrap_or("None".to_string()))
+                                                .selected_text(instance.chat_params.send_message_client_value.clone().unwrap_or("None".to_string()))
                                                 .show_ui(ui, |ui| {
-                                                    let iter_options = instance.client_list_value.clone().unwrap();
+                                                    let iter_options = instance.chat_params.client_list_value.clone().unwrap();
                                                     let mut options = Vec::<String>::new();
                                                     for numbers in iter_options {
                                                         if numbers != instance.id {
@@ -685,7 +501,7 @@ impl eframe::App for SimCtrlGUI {
 
                                                     for option in options {
                                                         if ui.selectable_label(false, &option).clicked() {
-                                                            instance.send_message_client_value = Some(option.to_string());
+                                                            instance.chat_params.send_message_client_value = Some(option.to_string());
                                                         }
                                                     }
                                                 });
@@ -693,25 +509,25 @@ impl eframe::App for SimCtrlGUI {
                                             // Message Input
                                             ui.horizontal(|ui| {
                                                 ui.label("Enter Message:");
-                                                let text_input = instance.send_message_msg_value.clone().unwrap_or_default();
+                                                let text_input = instance.chat_params.send_message_msg_value.clone().unwrap_or_default();
                                                 let mut buffer = text_input.clone();
 
                                                 let text_edit = ui.text_edit_singleline(&mut buffer);
                                                 if text_edit.changed() {
-                                                    instance.send_message_msg_value = Some(buffer);
+                                                    instance.chat_params.send_message_msg_value = Some(buffer);
                                                 }
                                             });
 
                                             // "Send" Button
                                             if ui.button("Send").clicked() {
-                                                if let (Some(client), Some(message)) = (instance.send_message_client_value.clone(), instance.send_message_msg_value.clone()) {
+                                                if let (Some(client), Some(message)) = (instance.chat_params.send_message_client_value.clone(), instance.chat_params.send_message_msg_value.clone()) {
                                                     if let Ok(client_id) = client.parse::<u8>() {
                                                         info!("[ {} ] Sending message to {}: {}", "GUI".green(), client_id, message);
                                                         instance.command = Some(GUICommands::SendMessageTo(instance.id, client_id, message));
-                                                        instance.send_message = false;
-                                                        instance.client_list_value = None;
-                                                        instance.send_message_client_value = None;
-                                                        instance.send_message_msg_value = None;
+                                                        instance.chat_params.send_message = false;
+                                                        instance.chat_params.client_list_value = None;
+                                                        instance.chat_params.send_message_client_value = None;
+                                                        instance.chat_params.send_message_msg_value = None;
                                                     } else {
                                                         error!("[ {} ] Invalid client ID format", "GUI".red());
                                                     }
@@ -722,7 +538,7 @@ impl eframe::App for SimCtrlGUI {
                                         });
                                     }
 
-                                    if instance.register_to {
+                                    if instance.chat_params.register_to {
                                         let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Server to register to: ")
                                             .selected_text(value.clone().unwrap_or("None".to_string()))
@@ -737,12 +553,12 @@ impl eframe::App for SimCtrlGUI {
                                                 for option in options {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
-                                                        instance.register_to = false;
+                                                        instance.chat_params.register_to = false;
 
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
                                                                 Ok(digit) => {
-                                                                    instance.register_value = Some(digit);
+                                                                    instance.chat_params.register_value = Some(digit);
                                                                     info!(
                                                                         "[ {} ] Passing to handler GUICommands::RegisterTo({}, {})",
                                                                         "GUI".green(),
@@ -767,7 +583,7 @@ impl eframe::App for SimCtrlGUI {
                                             });
                                     }
 
-                                    if instance.ask_for_file_list {
+                                    if instance.media_params.ask_for_file_list {
                                         let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select Server to get List: ")
                                             .selected_text(value.clone().unwrap_or("None".to_string()))
@@ -782,7 +598,7 @@ impl eframe::App for SimCtrlGUI {
                                                 for option in options {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
-                                                        instance.ask_for_file_list = false;
+                                                        instance.media_params.ask_for_file_list = false;
 
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
@@ -794,11 +610,11 @@ impl eframe::App for SimCtrlGUI {
                                                                             instance.id,
                                                                             digit
                                                                         );
-                                                                        instance.server_value = Some(digit);
+                                                                        instance.media_params.server_value = Some(digit);
                                                                         instance.command = Some(GUICommands::AskForFileList(instance.id, digit));
                                                                     }
-                                                                    instance.ask_for_file_list = false;
-                                                                    instance.get_file = true;
+                                                                    instance.media_params.ask_for_file_list = false;
+                                                                    instance.media_params.get_file = true;
                                                                 },
                                                                 Err(e) => error!(
                                                                     "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
@@ -814,14 +630,14 @@ impl eframe::App for SimCtrlGUI {
                                             });
                                     }
 
-                                    if instance.server_value.is_some() && self.file_list.contains_key(&instance.server_value.unwrap()) && instance.get_file {
+                                    if instance.media_params.server_value.is_some() && self.file_list.contains_key(&instance.media_params.server_value.unwrap()) && instance.media_params.get_file {
                                         let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select file: ")
                                             .selected_text(value.clone().unwrap_or("None".to_string()))
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
-                                                let vec = self.file_list.get(&instance.server_value.unwrap()).unwrap();
+                                                let vec = self.file_list.get(&instance.media_params.server_value.unwrap()).unwrap();
                                                 for numbers in vec {
                                                     options.push(numbers.clone());
                                                 }
@@ -833,7 +649,7 @@ impl eframe::App for SimCtrlGUI {
                                                         instance.remove_sender = false;
 
                                                         if let Some(value_str) = value {
-                                                            if let Some(server_value) = instance.server_value {
+                                                            if let Some(server_value) = instance.media_params.server_value {
                                                                 info!(
                                                                     "[ {} ] Passing to handler GUICommands::Get({}, {}, {:?})",
                                                                     "GUI".green(),
@@ -858,7 +674,7 @@ impl eframe::App for SimCtrlGUI {
                                 ui.add_space(20.0);
 
                                 if instance.node_type == NodeType::Client && instance.client_type.unwrap() == ClientType::Chat {
-                                    match &instance.recv_message_client_value {
+                                    match &instance.chat_params.recv_message_client_value {
                                         Some(msg) => {
                                             ui.label(format!("MessageReceived: {msg:?}"));
                                         }
