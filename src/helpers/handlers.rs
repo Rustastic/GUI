@@ -12,12 +12,12 @@ impl SimCtrlGUI {
     pub fn handle_events(&mut self, event: GUIEvents, ctx: &Context) {
         match event {
             // light up edge for 0.5 sec in green
-            GUIEvents::PacketSent(src, _, _) => {
-                info!("[ {} ]: Received PacketSent", "GUI".yellow());
+            GUIEvents::PacketSent(_, _, _) => {
+                /*info!("[ {} ]: Received PacketSent", "GUI".yellow());
                 self.nodes.get_mut(&src).unwrap().color = Color32::PURPLE;
                 ctx.request_repaint();
                 thread::sleep(std::time::Duration::from_secs_f32(0.25));
-                self.nodes.get_mut(&src).unwrap().color = Color32::LIGHT_BLUE;
+                self.nodes.get_mut(&src).unwrap().color = Color32::LIGHT_BLUE;*/
             }
             // light up node  for 0.5 sec in red
             GUIEvents::PacketDropped(src, _) => {
