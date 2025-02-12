@@ -67,7 +67,7 @@ impl eframe::App for SimCtrlGUI {
         if self.initialized {
             // Check for messages
             match self.receiver.try_recv() {
-                Ok(event) => self.handle_events(event),
+                Ok(event) => self.handle_events(event, ctx),
                 Err(e) => match e {
                     crossbeam_channel::TryRecvError::Empty => (),
                     crossbeam_channel::TryRecvError::Disconnected => {
@@ -708,7 +708,7 @@ impl eframe::App for SimCtrlGUI {
             match self.receiver.try_recv() {
                 Ok(event) => {
                     if let GUIEvents::Topology(_, _, _) = event.clone() {
-                        self.handle_events(event);
+                        self.handle_events(event, ctx);
                     } else {
                         error!(
                             "[ {} ] Received NON-Topology GUIEvent before Initialization",
