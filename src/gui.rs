@@ -729,5 +729,7 @@ impl eframe::App for SimCtrlGUI {
 
         // Handle Commands
         self.handle_commands();
+
+        ctx.request_repaint()
     }
 }
