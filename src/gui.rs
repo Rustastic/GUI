@@ -36,6 +36,7 @@ pub struct SimCtrlGUI {
     pub spawn_pdr: Option<String>,
     pub spawn_command: Option<GUICommands>,
 
+    // i choose to use a hashmap because if u ask from multiple client the file list in this way they can all be saved 
     pub file_list: HashMap<NodeId, Vec<String>>,
 }
 
@@ -673,6 +674,9 @@ impl eframe::App for SimCtrlGUI {
                                                     }
                                                 }
                                             });
+                                            if ui.button("Exit").clicked() {
+                                                instance.media_params.get_file = false;
+                                            }
                                     }
                                 }
 
