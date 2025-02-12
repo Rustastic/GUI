@@ -663,7 +663,7 @@ impl eframe::App for SimCtrlGUI {
                                                                     value_str
                                                                 );
                                                                 instance.command = Some(GUICommands::GetFile(instance.id, server_value, value_str));
-                                                                instance.add_sender = false;
+                                                                instance.media_params.get_file = false;
                                                             } else {
                                                                 error!("[ {} ] instance.server_value is None. Cannot execute GetFile command.", "GUI".red());
                                                             }
