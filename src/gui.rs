@@ -610,16 +610,14 @@ impl eframe::App for SimCtrlGUI {
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
                                                                 Ok(digit) => {
-                                                                    if !self.file_list.contains_key(&digit) {
-                                                                        info!(
-                                                                            "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
-                                                                            "GUI".green(),
-                                                                            instance.id,
-                                                                            digit
-                                                                        );
-                                                                        instance.media_params.server_value = Some(digit);
-                                                                        instance.command = Some(GUICommands::AskForFileList(instance.id, digit));
-                                                                    }
+                                                                    info!(
+                                                                        "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
+                                                                        "GUI".green(),
+                                                                        instance.id,
+                                                                        digit
+                                                                    );
+                                                                    instance.media_params.server_value = Some(digit);
+                                                                    instance.command = Some(GUICommands::AskForFileList(instance.id, digit));
                                                                     instance.media_params.ask_for_file_list = false;
                                                                     instance.media_params.get_file = true;
                                                                 },
