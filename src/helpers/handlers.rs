@@ -29,7 +29,7 @@ impl SimCtrlGUI {
                 info!("[ {} ]: Received PacketDropped", "GUI".yellow());
                 self.nodes.get_mut(&src).unwrap().color = Color32::RED;
                 thread::sleep(std::time::Duration::from_secs_f32(0.5));
-                self.nodes.get_mut(&src).unwrap().color = Color32::BLUE;
+                self.nodes.get_mut(&src).unwrap().color = Color32::LIGHT_BLUE;
             }
             GUIEvents::Topology(drones, clients, servers) => {
                 info!("[ {} ]: Received Topology", "GUI".green());
