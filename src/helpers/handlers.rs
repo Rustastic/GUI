@@ -12,8 +12,8 @@ impl SimCtrlGUI {
     pub fn handle_events(&mut self, event: GUIEvents) {
         match event {
             // light up edge for 0.5 sec in green
-            GUIEvents::PacketSent(src, dest, _) => {
-                info!("[ {} ]: Received PacketSent", "GUI".green());
+            GUIEvents::PacketSent(_, _, _) => {
+                /*info!("[ {} ]: Received PacketSent", "GUI".green());
                 if self.edges.get(&src).unwrap().0.contains(&dest) {
                     self.edges.get_mut(&src).unwrap().1 = Color32::GREEN;
                     thread::sleep(std::time::Duration::from_secs_f32(0.1));
@@ -22,13 +22,13 @@ impl SimCtrlGUI {
                     self.edges.get_mut(&dest).unwrap().1 = Color32::GREEN;
                     thread::sleep(std::time::Duration::from_secs_f32(0.1));
                     self.edges.get_mut(&dest).unwrap().1 = Color32::GRAY;
-                }
+                }*/
             }
             // light up node  for 0.5 sec in red
             GUIEvents::PacketDropped(src, _) => {
                 info!("[ {} ]: Received PacketDropped", "GUI".yellow());
                 self.nodes.get_mut(&src).unwrap().color = Color32::RED;
-                thread::sleep(std::time::Duration::from_secs_f32(0.25));
+                thread::sleep(std::time::Duration::from_secs_f32(0.5));
                 self.nodes.get_mut(&src).unwrap().color = Color32::BLUE;
             }
             GUIEvents::Topology(drones, clients, servers) => {
