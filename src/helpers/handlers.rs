@@ -1,5 +1,5 @@
 use eframe::egui::{Color32, Context};
-use std::thread;
+use std::{thread, time::Instant};
 
 use colored::Colorize;
 use log::{error, info};
@@ -12,12 +12,13 @@ impl SimCtrlGUI {
     pub fn handle_events(&mut self, event: GUIEvents, ctx: &Context) {
         match event {
             // light up edge for 0.5 sec in green
-            GUIEvents::PacketSent(_, _, _) => {
-                /*info!("[ {} ]: Received PacketSent", "GUI".yellow());
-                self.nodes.get_mut(&src).unwrap().color = Color32::PURPLE;
+            GUIEvents::PacketSent(src, _, _) => {
+                if let Some(node) = self.nodes.get_mut(&src) {
+                    node.color = Color32::PURPLE;
+                }
+                self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
+                self.nodes.get_mut(&src).unwrap().pending_reset = true;
                 ctx.request_repaint();
-                thread::sleep(std::time::Duration::from_secs_f32(0.25));
-                self.nodes.get_mut(&src).unwrap().color = Color32::LIGHT_BLUE;*/
             }
             // light up node  for 0.5 sec in red
             GUIEvents::PacketDropped(src, _) => {

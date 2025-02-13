@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use eframe::egui::{self, Color32};
 use messages::{gui_commands::GUICommands, high_level_messages::ServerType};
 use wg_2024::{
@@ -29,6 +31,9 @@ pub struct NodeGUI {
     pub drone_params: DroneParams,
     pub chat_params: ChatParam,
     pub media_params: MediaParams,
+
+    pub last_packet_time: Option<Instant>,
+    pub pending_reset: bool,
 }
 
 #[derive(Debug, Clone)]
@@ -118,6 +123,9 @@ impl NodeGUI {
             drone_params: DroneParams::new(),
             chat_params: ChatParam::new(),
             media_params: MediaParams::new(),
+
+            last_packet_time: None,
+            pending_reset: false
         }
     }
 
@@ -156,6 +164,9 @@ impl NodeGUI {
             drone_params: DroneParams::new(),
             chat_params: ChatParam::new(),
             media_params: MediaParams::new(),
+
+            last_packet_time: None,
+            pending_reset: false
         }
     }
 
@@ -195,6 +206,9 @@ impl NodeGUI {
             drone_params: DroneParams::new(),
             chat_params: ChatParam::new(),
             media_params: MediaParams::new(),
+
+            last_packet_time: None,
+            pending_reset: false
         }
     }
 }

@@ -1,9 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use eframe::egui::{self, Color32, Pos2};
+use eframe::egui::{self, Color32, Context, Pos2};
 
 use crossbeam_channel::{Receiver, Sender};
-use std::collections::HashMap;
+use std::{collections::HashMap, time::{Duration, Instant}};
 
 use colored::Colorize;
 use log::{error, info, warn};
@@ -269,8 +269,20 @@ impl eframe::App for SimCtrlGUI {
                     }
                 }
 
+                for (_, instance) in &mut self.nodes.iter_mut() {
+                    if let Some(start_time) = instance.last_packet_time {
+                        if start_time.elapsed() > Duration::from_secs_f32(0.25) {
+                            if instance.pending_reset {
+                                instance.color = Color32::LIGHT_BLUE;
+                            }
+                            instance.pending_reset = false;
+                        }
+                    }
+                }
+
                 // Displaying a pop-up with drone's information
                 for (_, instance) in &mut self.nodes.iter_mut() {
+
                     if instance.selected {
                         let title;
                         if instance.node_type == NodeType::Server {
