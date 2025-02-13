@@ -14,7 +14,7 @@ impl SimCtrlGUI {
             // light up edge for 0.5 sec in green
             GUIEvents::PacketSent(src, _, _) => {
                 if let Some(node) = self.nodes.get_mut(&src) {
-                    node.color = Color32::ORANGE;
+                    node.color = Color32::BLUE;
                 }
                 self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
                 self.nodes.get_mut(&src).unwrap().pending_reset = true;

@@ -181,7 +181,7 @@ impl NodeGUI {
         if let Some(stype) = server_type {
             match stype {
                 ServerType::Chat => color = Color32::GREEN,
-                ServerType::Text => color = Color32::BLUE,
+                ServerType::Text => color = Color32::PURPLE,
                 ServerType::Media => color = Color32::RED,
             }
         }
