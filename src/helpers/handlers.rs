@@ -14,7 +14,7 @@ impl SimCtrlGUI {
             // light up edge for 0.5 sec in green
             GUIEvents::PacketSent(src, _, _) => {
                 if let Some(node) = self.nodes.get_mut(&src) {
-                    node.color = Color32::PURPLE;
+                    node.color = Color32::ORANGE;
                 }
                 self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
                 self.nodes.get_mut(&src).unwrap().pending_reset = true;
@@ -22,11 +22,12 @@ impl SimCtrlGUI {
             }
             // light up node  for 0.5 sec in red
             GUIEvents::PacketDropped(src, _) => {
-                info!("[ {} ]: Received PacketDropped", "GUI".yellow());
-                self.nodes.get_mut(&src).unwrap().color = Color32::RED;
+                if let Some(node) = self.nodes.get_mut(&src) {
+                    node.color = Color32::RED;
+                }
+                self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
+                self.nodes.get_mut(&src).unwrap().pending_reset = true;
                 ctx.request_repaint();
-                thread::sleep(std::time::Duration::from_secs_f32(0.25));
-                self.nodes.get_mut(&src).unwrap().color = Color32::LIGHT_BLUE;
             }
             GUIEvents::Topology(drones, clients, servers) => {
                 info!("[ {} ]: Received Topology", "GUI".green());
