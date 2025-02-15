@@ -1,5 +1,5 @@
 use eframe::egui::{Color32, Context};
-use std::{thread, time::Instant};
+use std::time::Instant;
 
 use colored::Colorize;
 use log::{error, info};

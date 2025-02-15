@@ -1,9 +1,9 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")] // hide console window on Windows in release
 
-use eframe::egui::{self, Color32, Context, Pos2};
+use eframe::egui::{self, Color32, Pos2};
 
 use crossbeam_channel::{Receiver, Sender};
-use std::{collections::HashMap, time::{Duration, Instant}};
+use std::{collections::HashMap, time::Duration};
 
 use colored::Colorize;
 use log::{error, info, warn};
