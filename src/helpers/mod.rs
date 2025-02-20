@@ -253,7 +253,7 @@ impl SimCtrlGUI {
                 let instance = self.nodes.get(&node).unwrap();
                 if (instance.node_type == NodeType::Client && instance.neighbor.len() == 1) || (instance.node_type == NodeType::Server && instance.neighbor.len() == 2) {
                     error!(
-                        "[ {} ]: failed to spawn a new Drone [ Client {} ] is already connected to 2 drones",
+                        "[ {} ]: failed to crash a [ Drone {} ] Client/Server connection rules",
                         "GUI".red(),
                         instance.id
                     );
