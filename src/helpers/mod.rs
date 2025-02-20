@@ -464,50 +464,80 @@ impl SimCtrlGUI {
     }
 
     pub(super) fn spawn(&mut self, id: NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
-        match self
-            .sender
-            .send(GUICommands::Spawn(id, neighbors.clone(), pdr))
-        {
-            Ok(()) => {
-                self.spawn_id = None;
-                self.spawn_neighbors.clear();
-                self.spawn_pdr = None;
-
-                let drone = ConfigDrone {
-                    id,
-                    connected_node_ids: neighbors.clone(),
-                    pdr,
-                };
-
-                // add to nodes
-                let mut rng = rand::rng();
-                let (x, y) = (rng.random_range(0.0..WIDTH), rng.random_range(0.0..HEIGHT));
-                let new_drone = NodeGUI::new_drone(&drone, x, y);
-
-                // ad to various instances neighbors
-                for drone in neighbors {
-                    self.nodes
-                        .get_mut(drone)
-                        .unwrap()
-                        .neighbor
-                        .push(new_drone.id);
-                }
-
-                self.nodes.insert(id, new_drone);
-
-                // add edges
-                self.edges.insert(id, (neighbors.clone(), Color32::GRAY));
-
-                self.spawn_command = None;
-
-                info!("[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller", "GUI".green(), id, neighbors, pdr);
-            }
-            Err(e) => error!(
-                "[ {} ] Unable to send GUICommand::Spawn from GUI to Simulation Controller: {}",
+        if self.nodes.contains_key(&id) {
+            error!(
+                "[ {} ]: failed to spawn a new Drone because a Drone with Id {} already exists",
                 "GUI".red(),
-                e
-            ),
-        };
+                id
+            );
+            return;
+        } else {
+            for node in neighbors {
+                let instance = self.nodes.get(node).unwrap();
+                if instance.node_type == NodeType::Client && instance.neighbor.len() == 2 {
+                    error!(
+                        "[ {} ]: failed to spawn a new Drone [ Client {} ] is already connected to 2 drones",
+                        "GUI".red(),
+                        instance.id
+                    );
+                    return;
+                }
+            }
+
+            if (0.0..=1.0).contains(&pdr) {
+                match self
+                    .sender
+                    .send(GUICommands::Spawn(id, neighbors.clone(), pdr))
+                {
+                    Ok(()) => {
+                        self.spawn_id = None;
+                        self.spawn_neighbors.clear();
+                        self.spawn_pdr = None;
+
+                        let drone = ConfigDrone {
+                            id,
+                            connected_node_ids: neighbors.clone(),
+                            pdr,
+                        };
+
+                        // add to nodes
+                        let mut rng = rand::rng();
+                        let (x, y) = (rng.random_range(0.0..WIDTH), rng.random_range(0.0..HEIGHT));
+                        let new_drone = NodeGUI::new_drone(&drone, x, y);
+
+                        // ad to various instances neighbors
+                        for drone in neighbors {
+                            self.nodes
+                                .get_mut(drone)
+                                .unwrap()
+                                .neighbor
+                                .push(new_drone.id);
+                        }
+
+                        self.nodes.insert(id, new_drone);
+
+                        // add edges
+                        self.edges.insert(id, (neighbors.clone(), Color32::GRAY));
+
+                        self.spawn_command = None;
+
+                        info!("[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller", "GUI".green(), id, neighbors, pdr);
+                    }
+                    Err(e) => error!(
+                        "[ {} ] Unable to send GUICommand::Spawn from GUI to Simulation Controller: {}",
+                        "GUI".red(),
+                        e
+                    ),
+                }
+            } else {
+                error!(
+                    "[ {} ]: The PDR number is out of range. Please enter a number between 0.00 and 1.00",
+                    "GUI".red(),
+                );
+
+                return;
+            }   
+        }
     }
 
     pub(super) fn send_message(&mut self, src: NodeId, dest: NodeId, msg: &str) {
