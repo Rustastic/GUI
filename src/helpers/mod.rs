@@ -250,14 +250,14 @@ impl SimCtrlGUI {
     pub(super) fn crash(&mut self, drone: NodeId) {
         if self.nodes.contains_key(&drone) {
             for node in self.nodes.get(&drone).unwrap().neighbor.clone() {
-                let instance = self.nodes.get_mut(&node).unwrap();
+                let instance = self.nodes.get(&node).unwrap();
                 if (instance.node_type == NodeType::Client && instance.neighbor.len() == 1) || (instance.node_type == NodeType::Server && instance.neighbor.len() == 2) {
                     error!(
                         "[ {} ]: failed to crash a [ Drone {} ] Client/Server connection rules",
                         "GUI".red(),
                         instance.id
                     );
-                    instance.command = None;
+                    self.nodes.get_mut(&drone).unwrap().command = None;
                     return;
                 }
             }
