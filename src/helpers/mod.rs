@@ -470,7 +470,6 @@ impl SimCtrlGUI {
                 "GUI".red(),
                 id
             );
-            return;
         } else {
             for node in neighbors {
                 let instance = self.nodes.get(node).unwrap();
@@ -480,6 +479,7 @@ impl SimCtrlGUI {
                         "GUI".red(),
                         instance.id
                     );
+                    self.spawn_command = None;
                     return;
                 }
             }
@@ -519,8 +519,6 @@ impl SimCtrlGUI {
                         // add edges
                         self.edges.insert(id, (neighbors.clone(), Color32::GRAY));
 
-                        self.spawn_command = None;
-
                         info!("[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller", "GUI".green(), id, neighbors, pdr);
                     }
                     Err(e) => error!(
@@ -534,10 +532,10 @@ impl SimCtrlGUI {
                     "[ {} ]: The PDR number is out of range. Please enter a number between 0.00 and 1.00",
                     "GUI".red(),
                 );
-
-                return;
             }   
         }
+
+        self.spawn_command = None;
     }
 
     pub(super) fn send_message(&mut self, src: NodeId, dest: NodeId, msg: &str) {
