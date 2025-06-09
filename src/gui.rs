@@ -648,16 +648,6 @@ impl eframe::App for SimCtrlGUI {
                                             });
                                     }
 
-                                    info!("{}, {}, {}",
-                                        instance.media_params.server_value.is_some(),
-                                        if instance.media_params.server_value.is_some() {
-                                            self.file_list.contains_key(&instance.media_params.server_value.unwrap())
-                                        } else {
-                                            false
-                                        },
-                                        instance.media_params.get_file
-                                    );
-
                                     if instance.media_params.server_value.is_some() && self.file_list.contains_key(&instance.media_params.server_value.unwrap()) && instance.media_params.get_file {
                                         let value: Option<String> = None;
                                         egui::ComboBox::from_label("Select file: ")
