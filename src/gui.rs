@@ -269,7 +269,6 @@ impl eframe::App for SimCtrlGUI {
                     }
                 }
 
-                // forse
                 for (_, instance) in &mut self.nodes.iter_mut() {
                     if let Some(start_time) = instance.last_packet_time {
                         if start_time.elapsed() > Duration::from_secs_f32(0.1) {
@@ -619,13 +618,13 @@ impl eframe::App for SimCtrlGUI {
                                                 for option in options {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
-                                                        instance.media_params.ask_for_file_list = false;
+                                                        //instance.media_params.ask_for_file_list = false;
 
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
                                                                 Ok(digit) => {
                                                                     info!(
-                                                                        "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
+                                                                        "[ {} ] Passing to handler GUICommands::AskForFileList({}, {})",
                                                                         "GUI".green(),
                                                                         instance.id,
                                                                         digit
