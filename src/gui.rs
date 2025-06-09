@@ -383,7 +383,7 @@ impl eframe::App for SimCtrlGUI {
                                                 for numbers in instance.neighbor.clone() {
                                                     options.push(numbers.to_string());
                                                 }
-                                                numbers.sort_by_key(|s| s.parse::<i32>().unwrap());
+                                                options.sort_by_key(|s| s.parse::<i32>().unwrap());
 
                                                 // Check if option is selected
                                                 for option in options {
@@ -430,7 +430,7 @@ impl eframe::App for SimCtrlGUI {
                                                         options.push(numbers.to_string());
                                                     }
                                                 }
-                                                numbers.sort_by_key(|s| s.parse::<i32>().unwrap());
+                                                options.sort_by_key(|s| s.parse::<i32>().unwrap());
 
                                                 // If something selected
                                                 for option in options {
@@ -520,7 +520,7 @@ impl eframe::App for SimCtrlGUI {
                                                             options.push(numbers.to_string());
                                                         }
                                                     }
-                                                    numbers.sort_by_key(|s| s.parse::<i32>().unwrap());
+                                                    options.sort_by_key(|s| s.parse::<i32>().unwrap());
 
                                                     for option in options {
                                                         if ui.selectable_label(false, &option).clicked() {
@@ -571,7 +571,7 @@ impl eframe::App for SimCtrlGUI {
                                                 for numbers in &cserver_list {
                                                     options.push(numbers.to_string());
                                                 }
-                                                numbers.sort_by_key(|s| s.parse::<i32>().unwrap());
+                                                options.sort_by_key(|s| s.parse::<i32>().unwrap());
 
                                                 // If something selected
                                                 for option in options {
@@ -617,7 +617,7 @@ impl eframe::App for SimCtrlGUI {
                                                 for numbers in iserver_list.clone() {
                                                     options.push(numbers.to_string());
                                                 }
-                                                numbers.sort_by_key(|s| s.parse::<i32>().unwrap());
+                                                options.sort_by_key(|s| s.parse::<i32>().unwrap());
 
                                                 // Check if option is selected
                                                 for option in options {
