@@ -650,7 +650,11 @@ impl eframe::App for SimCtrlGUI {
 
                                     info!("{}, {}, {}",
                                         instance.media_params.server_value.is_some(),
-                                        self.file_list.contains_key(&instance.media_params.server_value.unwrap()),
+                                        if instance.media_params.server_value.is_some() {
+                                            self.file_list.contains_key(&instance.media_params.server_value.unwrap())
+                                        } else {
+                                            false
+                                        },
                                         instance.media_params.get_file
                                     );
 
