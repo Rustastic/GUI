@@ -320,6 +320,7 @@ impl eframe::App for SimCtrlGUI {
                                             instance.drone_params.set_pdr = false;
                                             instance.chat_params.send_message = false;
                                             instance.chat_params.register_to = false;
+                                            instance.media_params.ask_for_file_list = false;
                                         }
                                         if ui.button("AddSender").clicked() {
                                             instance.add_sender = !instance.add_sender;
@@ -327,6 +328,7 @@ impl eframe::App for SimCtrlGUI {
                                             instance.drone_params.set_pdr = false;
                                             instance.chat_params.send_message = false;
                                             instance.chat_params.register_to = false;
+                                            instance.media_params.ask_for_file_list = false;
                                         }
                                         if instance.node_type == NodeType::Drone {
                                             if ui.button("Crash").clicked() {
