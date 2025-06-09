@@ -383,6 +383,8 @@ impl eframe::App for SimCtrlGUI {
                                                 for numbers in instance.neighbor.clone() {
                                                     options.push(numbers.to_string());
                                                 }
+                                                options.sort();                                                options.sort();
+
 
                                                 // Check if option is selected
                                                 for option in options {
@@ -429,6 +431,7 @@ impl eframe::App for SimCtrlGUI {
                                                         options.push(numbers.to_string());
                                                     }
                                                 }
+                                                options.sort();
 
                                                 // If something selected
                                                 for option in options {
@@ -518,6 +521,7 @@ impl eframe::App for SimCtrlGUI {
                                                             options.push(numbers.to_string());
                                                         }
                                                     }
+                                                    options.sort();
 
                                                     for option in options {
                                                         if ui.selectable_label(false, &option).clicked() {
@@ -568,6 +572,7 @@ impl eframe::App for SimCtrlGUI {
                                                 for numbers in &cserver_list {
                                                     options.push(numbers.to_string());
                                                 }
+                                                options.sort();
 
                                                 // If something selected
                                                 for option in options {
@@ -613,12 +618,12 @@ impl eframe::App for SimCtrlGUI {
                                                 for numbers in iserver_list.clone() {
                                                     options.push(numbers.to_string());
                                                 }
+                                                options.sort();
 
                                                 // Check if option is selected
                                                 for option in options {
                                                     if ui.selectable_label(false, &option).clicked() {
                                                         let value = Some(option.to_string());
-                                                        //instance.media_params.ask_for_file_list = false;
 
                                                         if let Some(value_str) = value {
                                                             match value_str.parse::<u8>() {
@@ -659,6 +664,7 @@ impl eframe::App for SimCtrlGUI {
                                                 for numbers in vec {
                                                     options.push(numbers.clone());
                                                 }
+                                                options.sort();
 
                                                 // If something selected
                                                 for option in options {
