@@ -24,16 +24,16 @@ impl SimCtrlGUI {
                         }
                     }
                 }
-                /*self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
-                self.nodes.get_mut(&src).unwrap().pending_reset = true;*/
+                self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
+                self.nodes.get_mut(&src).unwrap().pending_reset = true;
                 ctx.request_repaint();
             }
             GUIEvents::PacketDropped(src, _) => {
                 if let Some(node) = self.nodes.get_mut(&src) {
                     node.color = Color32::RED;
                 }
-                /*self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
-                self.nodes.get_mut(&src).unwrap().pending_reset = true;*/
+                self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
+                self.nodes.get_mut(&src).unwrap().pending_reset = true;
                 ctx.request_repaint();
             }
             GUIEvents::Topology(drones, clients, servers) => {
