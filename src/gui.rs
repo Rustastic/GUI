@@ -616,7 +616,7 @@ impl eframe::App for SimCtrlGUI {
                                             .show_ui(ui, |ui| {
                                                 // Get options
                                                 let mut options = Vec::<String>::new();
-                                                for numbers in iserver_list.clone() {
+                                                for numbers in tserver_list.clone() {
                                                     options.push(numbers.to_string());
                                                 }
                                                 options.sort_by_key(|s| s.parse::<i32>().unwrap());
