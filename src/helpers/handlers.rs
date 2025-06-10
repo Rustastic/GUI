@@ -21,7 +21,7 @@ impl SimCtrlGUI {
                             PacketType::Ack(_) => node.color = Color32::DARK_GREEN,
                             PacketType::Nack(_) => node.color = Color32::DARK_RED,
                             PacketType::FloodRequest(_) => node.color = Color32::WHITE,
-                            PacketType::FloodResponse(_) => node.color = Color32::GRAY,
+                            PacketType::FloodResponse(_) => node.color = Color32::DEBUG_COLOR,
                         }
                     }
                 }
