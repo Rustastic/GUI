@@ -12,7 +12,6 @@ use crate::SimCtrlGUI;
 impl SimCtrlGUI {
     pub fn handle_events(&mut self, event: GUIEvents, ctx: &Context) {
         match event {
-            // light up edge for 0.5 sec in green
             GUIEvents::PacketSent(src, _, packet) => {
                 if let Some(node) = self.nodes.get_mut(&src) {
                     if node.node_type == NodeType::Drone {
@@ -25,17 +24,16 @@ impl SimCtrlGUI {
                         }
                     }
                 }
-                self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
-                self.nodes.get_mut(&src).unwrap().pending_reset = true;
+                /*self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
+                self.nodes.get_mut(&src).unwrap().pending_reset = true;*/
                 ctx.request_repaint();
             }
-            // light up node  for 0.5 sec in red
             GUIEvents::PacketDropped(src, _) => {
                 if let Some(node) = self.nodes.get_mut(&src) {
                     node.color = Color32::RED;
                 }
-                self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
-                self.nodes.get_mut(&src).unwrap().pending_reset = true;
+                /*self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
+                self.nodes.get_mut(&src).unwrap().pending_reset = true;*/
                 ctx.request_repaint();
             }
             GUIEvents::Topology(drones, clients, servers) => {
