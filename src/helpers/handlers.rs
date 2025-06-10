@@ -1,5 +1,5 @@
 use eframe::egui::{Color32, Context};
-use wg_2024::packet::NodeType;
+use wg_2024::packet::{NodeType, PacketType};
 use std::time::Instant;
 
 use colored::Colorize;
@@ -13,10 +13,16 @@ impl SimCtrlGUI {
     pub fn handle_events(&mut self, event: GUIEvents, ctx: &Context) {
         match event {
             // light up edge for 0.5 sec in green
-            GUIEvents::PacketSent(src, _, _) => {
+            GUIEvents::PacketSent(src, _, packet) => {
                 if let Some(node) = self.nodes.get_mut(&src) {
                     if node.node_type == NodeType::Drone {
-                        node.color = Color32::BLUE;
+                        match packet.pack_type {
+                            PacketType::MsgFragment(_) => node.color = Color32::BLUE,
+                            PacketType::Ack(_) => node.color = Color32::BLUE,
+                            PacketType::Nack(_) => node.color = Color32::BLUE,
+                            PacketType::FloodRequest(_) => node.color = Color32::WHITE,
+                            PacketType::FloodResponse(_) => node.color = Color32::WHITE,
+                        }
                     }
                 }
                 self.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
