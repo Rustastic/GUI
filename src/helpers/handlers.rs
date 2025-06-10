@@ -18,10 +18,10 @@ impl SimCtrlGUI {
                     if node.node_type == NodeType::Drone {
                         match packet.pack_type {
                             PacketType::MsgFragment(_) => node.color = Color32::BLUE,
-                            PacketType::Ack(_) => node.color = Color32::BLUE,
-                            PacketType::Nack(_) => node.color = Color32::BLUE,
+                            PacketType::Ack(_) => node.color = Color32::DARK_GREEN,
+                            PacketType::Nack(_) => node.color = Color32::DARK_RED,
                             PacketType::FloodRequest(_) => node.color = Color32::WHITE,
-                            PacketType::FloodResponse(_) => node.color = Color32::WHITE,
+                            PacketType::FloodResponse(_) => node.color = Color32::GRAY,
                         }
                     }
                 }
