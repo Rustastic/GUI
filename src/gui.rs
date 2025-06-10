@@ -271,7 +271,7 @@ impl eframe::App for SimCtrlGUI {
 
                 for (_, instance) in &mut self.nodes.iter_mut() {
                     if let Some(start_time) = instance.last_packet_time {
-                        if start_time.elapsed() > Duration::from_secs_f32(0.1) {
+                        if start_time.elapsed() > Duration::from_secs_f32(0.01) {
                             if instance.pending_reset && instance.node_type == NodeType::Drone {
                                 instance.color = Color32::LIGHT_BLUE;
                             }
