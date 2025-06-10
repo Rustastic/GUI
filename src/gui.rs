@@ -274,7 +274,7 @@ impl eframe::App for SimCtrlGUI {
                         //if start_time.elapsed() > Duration::from_secs_f32(0.01) {
                             if /*instance.pending_reset &&*/ instance.node_type == NodeType::Drone {
                                 instance.color = Color32::LIGHT_BLUE;
-                            //}
+                            }
                             instance.pending_reset = false;
                         //}
                     }
