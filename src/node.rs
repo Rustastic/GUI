@@ -10,6 +10,7 @@ use wg_2024::{
 
 use crate::helpers::types::ClientType;
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug)]
 pub struct NodeGUI {
     pub id: NodeId,
@@ -125,7 +126,7 @@ impl NodeGUI {
             media_params: MediaParams::new(),
 
             last_packet_time: None,
-            pending_reset: false
+            pending_reset: false,
         }
     }
 
@@ -166,7 +167,7 @@ impl NodeGUI {
             media_params: MediaParams::new(),
 
             last_packet_time: None,
-            pending_reset: false
+            pending_reset: false,
         }
     }
 
@@ -208,7 +209,7 @@ impl NodeGUI {
             media_params: MediaParams::new(),
 
             last_packet_time: None,
-            pending_reset: false
+            pending_reset: false,
         }
     }
 }

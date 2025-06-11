@@ -1,6 +1,6 @@
 use eframe::egui::{Color32, Context};
-use wg_2024::packet::{NodeType, PacketType};
 use std::time::Instant;
+use wg_2024::packet::{NodeType, PacketType};
 
 use colored::Colorize;
 use log::{error, info};

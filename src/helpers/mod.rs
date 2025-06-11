@@ -251,7 +251,9 @@ impl SimCtrlGUI {
         if self.nodes.contains_key(&drone) {
             for node in self.nodes.get(&drone).unwrap().neighbor.clone() {
                 let instance = self.nodes.get(&node).unwrap();
-                if (instance.node_type == NodeType::Client && instance.neighbor.len() == 1) || (instance.node_type == NodeType::Server && instance.neighbor.len() == 2) {
+                if (instance.node_type == NodeType::Client && instance.neighbor.len() == 1)
+                    || (instance.node_type == NodeType::Server && instance.neighbor.len() == 2)
+                {
                     error!(
                         "[ {} ]: failed to crash a [ Drone {} ] due to Client/Server connection rules",
                         "GUI".red(),
@@ -547,7 +549,7 @@ impl SimCtrlGUI {
                     "[ {} ]: The PDR number is out of range. Please enter a number between 0.00 and 1.00",
                     "GUI".red(),
                 );
-            }   
+            }
         }
 
         self.spawn_command = None;
