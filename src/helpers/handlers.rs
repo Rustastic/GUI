@@ -63,11 +63,12 @@ impl SimCtrlGUI {
                     msg,
                     src
                 );
+                let formatted_msg = format!("[{}] {}", src, msg);
                 self.nodes
                     .get_mut(&dest)
                     .unwrap()
                     .chat_params
-                    .recv_message_client_value = Some(msg);
+                    .recv_message_client_value = Some(formatted_msg);
             }
             GUIEvents::FileList(server, _, items) => {
                 info!(
