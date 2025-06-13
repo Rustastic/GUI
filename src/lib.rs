@@ -1,5 +1,4 @@
-pub mod gui;
-pub mod helpers;
-pub mod node;
-
-pub use gui::*;
+pub mod constants;
+pub mod logic;
+pub mod ui;
+pub mod app;
