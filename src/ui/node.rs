@@ -19,7 +19,7 @@ impl NodeDetails {
         self.update_node_animations(state);
         
         // Render detail windows for selected nodes
-        let mut nodes_to_update = Vec::new();
+        /*let mut nodes_to_update = Vec::new();
         
         for (id, instance) in &state.nodes {
             if instance.selected {
@@ -31,6 +31,14 @@ impl NodeDetails {
         for node_id in nodes_to_update {
             if let Some(instance) = state.nodes.clone().get_mut(&node_id) {
                 self.render_node_window(state, instance, ctx);
+            }
+        }*/
+
+        for (id, node) in state.nodes.clone() {
+            if node.selected {
+                if let Some(instance) = state.nodes.clone().get_mut(&id) {
+                    self.render_node_window(state, instance, ctx);
+                }
             }
         }
     }
