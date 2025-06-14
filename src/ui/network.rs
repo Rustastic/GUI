@@ -2,18 +2,22 @@ use eframe::egui::{self, Color32, Pos2, Vec2, Rect, Sense, Stroke};
 use wg_2024::{network::NodeId, packet::NodeType};
 
 use crate::{
-    constants::*, logic::{nodes::{types::ClientType, NodeGUI}, state::GUIState}
+    constants::*, logic::{nodes::{types::ClientType, NodeGUI}, state::GUIState}, ui::node::NodeDetails
 };
 use messages::high_level_messages::ServerType;
 
-pub struct NetworkVisualization;
+pub struct NetworkVisualization {
+    node_details: NodeDetails,
+}
 
 impl NetworkVisualization {
-    pub fn new() -> Self {
-        Self
+    pub fn new(node_details: NodeDetails) -> Self {
+        Self {
+            node_details
+        }
     }
     
-    pub fn render(&mut self, state: &mut GUIState, ui: &mut egui::Ui, _ctx: &egui::Context) {
+    pub fn render(&mut self, state: &mut GUIState, ui: &mut egui::Ui, ctx: &egui::Context) {
         // Allocate space for drawing
         let (response, painter) = ui.allocate_painter(
             Vec2::new(WIDTH, HEIGHT), 
@@ -34,6 +38,8 @@ impl NetworkVisualization {
         
         // Update node colors based on type
         self.update_node_colors(state);
+
+        self.node_details.render(state, ctx);
     }
     
     fn draw_connections(&self, painter: &egui::Painter, state: &GUIState) {

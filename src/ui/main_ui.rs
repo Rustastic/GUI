@@ -1,7 +1,7 @@
 use eframe::egui;
 use crate::{
     logic::state::GUIState,
-    ui::{spawn::SpawnPanel, legend::Legend, network::NetworkVisualization},
+    ui::{legend::Legend, network::NetworkVisualization, node::NodeDetails, spawn::SpawnPanel},
 };
 
 /// Main UI coordinator
@@ -16,7 +16,7 @@ impl MainUI {
         Self {
             spawn_panel: SpawnPanel::new(),
             legend: Legend::new(),
-            network_viz: NetworkVisualization::new(),
+            network_viz: NetworkVisualization::new(NodeDetails::new()),
         }
     }
     
