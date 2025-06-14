@@ -23,6 +23,7 @@ impl NodeDetails {
         
         for (id, instance) in &state.nodes {
             if instance.selected {
+                println!("Node {} selected", instance.id);
                 nodes_to_update.push(*id);
             }
         }
