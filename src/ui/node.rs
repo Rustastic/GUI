@@ -62,7 +62,7 @@ impl NodeDetails {
                     self.render_interactive_controls(state, ui, instance);
                 }
                 
-                println("rendering node {}", instance.id);
+                println!("rendering node {}", instance.id);
 
                 self.render_status_info(ui, instance);
                 
