@@ -39,6 +39,7 @@ impl NetworkVisualization {
         // Update node colors based on type
         self.update_node_colors(state);
 
+        // render NodeDetails -> pop-up
         self.node_details.render(state, ctx);
     }
     
