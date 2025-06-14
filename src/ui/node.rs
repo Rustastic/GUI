@@ -66,7 +66,7 @@ impl NodeDetails {
                 ui.add_space(20.0);
                 
                 if ui.button("Close").clicked() {
-                    println!("Node {} instance.selected = false");
+                    println!("Node {} instance.selected = false", instance.id);
                     instance.selected = false;
                 }
             });
