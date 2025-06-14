@@ -90,7 +90,6 @@ impl NetworkVisualization {
             if node_response.clicked() {
                 if let Some(node) = state.nodes.get_mut(&node_id) {
                     node.selected = true;
-                    println!("Node {} selected = true", node.id);
                 }
             }
             

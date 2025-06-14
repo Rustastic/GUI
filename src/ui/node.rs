@@ -24,7 +24,6 @@ impl NodeDetails {
         for (id, instance) in &state.nodes {
             if instance.selected {
                 nodes_to_update.push(*id);
-                println!("Node {} pushed in nodes_to_update", instance.id);
             }
         }
         
@@ -62,8 +61,6 @@ impl NodeDetails {
                     self.render_interactive_controls(state, ui, instance);
                 }
                 
-                println!("rendering node {}", instance.id);
-
                 self.render_status_info(ui, instance);
                 
                 ui.add_space(20.0);
