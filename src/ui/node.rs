@@ -17,28 +17,22 @@ impl NodeDetails {
     pub fn render(&mut self, state: &mut GUIState, ctx: &egui::Context) {
         // Update node colors based on packet animation timing
         self.update_node_animations(state);
-        
-        // Render detail windows for selected nodes
-        /*let mut nodes_to_update = Vec::new();
-        
+    
+        // Collect node IDs of selected nodes
+        let mut selected_ids = Vec::new();
         for (id, instance) in &state.nodes {
             if instance.selected {
-                nodes_to_update.push(*id);
+                selected_ids.push(*id);
                 println!("Node {} pushed in nodes_to_update", instance.id);
             }
         }
-        
-        for node_id in nodes_to_update {
-            if let Some(instance) = state.nodes.clone().get_mut(&node_id) {
-                self.render_node_window(state, instance, ctx);
-            }
-        }*/
+    
+        // Now mutate the actual instances
+        for node_id in selected_ids {
+            if let Some(mut instance) = state.nodes.remove(&node_id) {
+                self.render_node_window(state, &mut instance, ctx);
 
-        for (id, node) in state.nodes.clone() {
-            if node.selected {
-                if let Some(instance) = state.nodes.clone().get_mut(&id) {
-                    self.render_node_window(state, instance, ctx);
-                }
+                state.nodes.insert(node_id, instance);
             }
         }
     }
