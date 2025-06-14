@@ -1,4 +1,6 @@
-use eframe::egui::{self, Color32, Pos2, Vec2, Rect, Sense, Stroke};
+use std::{cell::RefCell, rc::{Rc, Weak}};
+
+use eframe::egui::{self, accesskit::Node, Color32, Pos2, Rect, Sense, Stroke, Vec2};
 use wg_2024::{network::NodeId, packet::NodeType};
 
 use crate::{
@@ -6,15 +8,26 @@ use crate::{
 };
 use messages::high_level_messages::ServerType;
 
+#[derive(Debug)]
 pub struct NetworkVisualization {
     node_details: NodeDetails,
 }
 
 impl NetworkVisualization {
-    pub fn new(node_details: NodeDetails) -> Self {
+    /*pub fn new(node_details: NodeDetails) -> Self {
         Self {
             node_details
         }
+    }*/
+
+    pub fn new() -> Rc<RefCell<Self>> {
+        let net = Rc::new(RefCell::new(NetworkVisualization {
+            node_details: NodeDetails { parent: Weak::new() },
+        }));
+        
+        // Set up the back-reference
+        net.borrow_mut().node_details.parent = Rc::downgrade(&net);
+        net
     }
     
     pub fn render(&mut self, state: &mut GUIState, ui: &mut egui::Ui, ctx: &egui::Context) {

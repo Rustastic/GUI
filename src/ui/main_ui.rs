@@ -1,3 +1,5 @@
+use std::rc::Rc;
+
 use eframe::egui;
 use crate::{
     logic::state::GUIState,
@@ -13,10 +15,12 @@ pub struct MainUI {
 
 impl MainUI {
     pub fn new() -> Self {
+        let new= NetworkVisualization::new();
+        let network_viz = Rc::try_unwrap(new).unwrap().into_inner();
         Self {
             spawn_panel: SpawnPanel::new(),
             legend: Legend::new(),
-            network_viz: NetworkVisualization::new(NodeDetails::new()),
+            network_viz,
         }
     }
     

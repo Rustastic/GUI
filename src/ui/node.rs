@@ -1,17 +1,22 @@
-use std::time::Duration;
+use std::{cell::RefCell, rc::{Rc, Weak}, time::Duration};
 use eframe::egui;
 use colored::Colorize;
 use log::{info, error};
 use wg_2024::packet::NodeType;
 
 use messages::gui_commands::GUICommands;
-use crate::{constants::*, logic::{nodes::{types::ClientType, NodeGUI}, state::GUIState}};
+use crate::{constants::*, logic::{nodes::{types::ClientType, NodeGUI}, state::GUIState}, ui::network::NetworkVisualization};
 
-pub struct NodeDetails;
+#[derive(Debug)]
+pub struct NodeDetails {
+    pub parent: Weak<RefCell<NetworkVisualization>>
+}
 
 impl NodeDetails {
-    pub fn new() -> Self {
-        Self
+    pub fn new(parent: Weak<RefCell<NetworkVisualization>>) -> Self {
+        Self {
+            parent
+        }
     }
     
     pub fn render(&mut self, state: &mut GUIState, ctx: &egui::Context) {
@@ -157,7 +162,7 @@ impl NodeDetails {
         if !instance.drone_params.crashed && !instance.chat_params.logout {
             self.render_sender_controls(state, ui, instance);
             self.render_drone_controls(ui, instance);
-            self.render_chat_controls(ui, instance);
+            self.render_chat_controls(state, ui, instance);
             self.render_media_controls(state, ui, instance);
         }
     }
@@ -263,13 +268,13 @@ impl NodeDetails {
         }
     }
     
-    fn render_chat_controls(&self, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_chat_controls(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         if instance.chat_params.send_message && instance.chat_params.client_list_value.is_some() {
             self.render_send_message_form(ui, instance);
         }
         
         if instance.chat_params.register_to {
-            self.render_register_to_dropdown(ui, instance);
+            self.render_register_to_dropdown(state, ui, instance);
         }
     }
     
@@ -334,9 +339,7 @@ impl NodeDetails {
         });
     }
     
-    fn render_register_to_dropdown(&self, ui: &mut egui::Ui, instance: &mut NodeGUI) {
-        // Note: This would need access to the server list from state
-        // For now, showing the structure
+    fn render_register_to_dropdown(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         egui::ComboBox::from_label("Select Server to register to:")
             .selected_text("None")
             .show_ui(ui, |ui| {
