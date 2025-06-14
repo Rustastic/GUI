@@ -22,7 +22,6 @@ impl NodeDetails {
         let mut nodes_to_update = Vec::new();
         
         for (id, instance) in &state.nodes {
-            println!("reading Node {}", instance.id);
             if instance.selected {
                 nodes_to_update.push(*id);
                 println!("Node {} pushed in nodes_to_update", instance.id);
