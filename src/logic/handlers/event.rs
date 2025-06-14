@@ -2,9 +2,9 @@ use std::time::Instant;
 
 use crossbeam_channel::TryRecvError;
 
+use colored::Colorize;
 use eframe::egui::{self, Color32};
 use log::{error, info};
-use colored::Colorize;
 
 use messages::gui_commands::GUIEvents;
 use wg_2024::packet::{NodeType, PacketType};
@@ -53,7 +53,7 @@ impl EventHandler {
         }
     }
 
-    fn process_event(&self, state: &mut GUIState, event: GUIEvents, ctx: &egui::Context) {        
+    fn process_event(&self, state: &mut GUIState, event: GUIEvents, ctx: &egui::Context) {
         match event {
             GUIEvents::Topology(drones, clients, servers) => {
                 info!("[ {} ]: Received Topology", "GUI".green());
@@ -73,7 +73,8 @@ impl EventHandler {
                     "GUI".green(),
                     client
                 );
-                state.nodes
+                state
+                    .nodes
                     .get_mut(&client)
                     .unwrap()
                     .chat_params
@@ -112,7 +113,8 @@ impl EventHandler {
                     src
                 );
                 let formatted_msg = format!("[{}] {}", src, msg);
-                state.nodes
+                state
+                    .nodes
                     .get_mut(&dest)
                     .unwrap()
                     .chat_params

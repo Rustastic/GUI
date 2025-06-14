@@ -1,10 +1,10 @@
-use std::time::Instant;
 use eframe::egui;
 use messages::{gui_commands::GUICommands, high_level_messages::ServerType};
+use std::time::Instant;
 use wg_2024::{network::NodeId, packet::NodeType};
 
+use super::{ChatParam, DroneParams, MediaParams};
 use crate::logic::nodes::types::ClientType;
-use super::{DroneParams, ChatParam, MediaParams};
 
 #[derive(Clone, Debug)]
 pub struct NodeGUI {

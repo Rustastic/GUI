@@ -3,10 +3,7 @@ use eframe::egui::Color32;
 use colored::Colorize;
 use log::{error, info};
 
-use wg_2024::{
-    network::NodeId,
-    packet::NodeType,
-};
+use wg_2024::{network::NodeId, packet::NodeType};
 
 use messages::gui_commands::GUICommands;
 

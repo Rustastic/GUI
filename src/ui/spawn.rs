@@ -1,9 +1,9 @@
-use eframe::egui;
 use colored::Colorize;
-use log::{info, error};
+use eframe::egui;
+use log::{error, info};
 
-use messages::gui_commands::GUICommands;
 use crate::logic::state::GUIState;
+use messages::gui_commands::GUICommands;
 
 pub struct SpawnPanel;
 
@@ -11,7 +11,7 @@ impl SpawnPanel {
     pub fn new() -> Self {
         Self
     }
-    
+
     pub fn render(&mut self, state: &mut GUIState, ui: &mut egui::Ui) {
         // Show spawn form if panel is open
         if state.spawn.panel_open {
@@ -25,7 +25,7 @@ impl SpawnPanel {
             info!("[ {} ] Spawn button pressed", "GUI".green());
         }
     }
-    
+
     fn render_spawn_form(&self, state: &mut GUIState, ui: &mut egui::Ui) {
         ui.vertical(|ui| {
             ui.heading("Spawn a New Drone");
@@ -63,7 +63,7 @@ impl SpawnPanel {
             }
         });
     }
-    
+
     fn render_neighbor_selection(&self, state: &mut GUIState, ui: &mut egui::Ui) {
         ui.label("Select Neighbors:");
         egui::ComboBox::from_label("Neighbors")
@@ -83,7 +83,7 @@ impl SpawnPanel {
                 }
             });
     }
-    
+
     fn handle_spawn_click(&self, state: &mut GUIState) {
         if let (Some(id_str), Some(pdr_str)) = (&state.spawn.id, &state.spawn.pdr) {
             if let Ok(id) = id_str.parse::<u8>() {

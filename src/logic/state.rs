@@ -1,5 +1,5 @@
-use std::collections::HashMap;
 use crossbeam_channel::{Receiver, Sender};
+use std::collections::HashMap;
 
 use eframe::egui::Color32;
 
@@ -14,15 +14,15 @@ use crate::logic::nodes::NodeGUI;
 pub struct GUIState {
     pub sender: Sender<GUICommands>,
     pub receiver: Receiver<GUIEvents>,
-    
+
     // Core state
     pub initialized: bool,
     pub nodes: HashMap<NodeId, NodeGUI>,
     pub edges: HashMap<NodeId, (Vec<NodeId>, Color32)>,
-    
+
     // Spawn drone state
     pub spawn: SpawnState,
-    
+
     // File management
     pub file_list: HashMap<NodeId, Vec<String>>,
 }
@@ -57,7 +57,7 @@ impl GUIState {
             file_list: HashMap::new(),
         }
     }
-    
+
     /// Reset spawn state after successful spawn
     pub fn reset_spawn_state(&mut self) {
         self.spawn = SpawnState {

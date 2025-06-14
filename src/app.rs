@@ -1,13 +1,13 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use eframe::egui;
 use colored::Colorize;
+use eframe::egui;
 use log::warn;
 
 use crate::{
     logic::{
+        handlers::{CommandHandler, EventHandler},
         state::GUIState,
-        handlers::{EventHandler, CommandHandler}
     },
     ui::MainUI,
 };
@@ -24,10 +24,10 @@ impl SimCtrlGUI {
     #[must_use]
     pub fn new(
         sender: crossbeam_channel::Sender<messages::gui_commands::GUICommands>,
-        receiver: crossbeam_channel::Receiver<messages::gui_commands::GUIEvents>
+        receiver: crossbeam_channel::Receiver<messages::gui_commands::GUIEvents>,
     ) -> Self {
         let state = GUIState::new(sender, receiver);
-        
+
         Self {
             event_handler: EventHandler::new(),
             command_handler: CommandHandler::new(),
@@ -42,13 +42,14 @@ impl eframe::App for SimCtrlGUI {
         if self.state.initialized {
             // Handle incoming events
             self.event_handler.handle_events(&mut self.state, ctx);
-            
+
             // Render main UI
             self.main_ui.render(&mut self.state, ctx);
         } else {
             warn!("[ {} ] Waiting for initialization", "GUI".green());
             // Handle initialization
-            self.event_handler.handle_initialization(&mut self.state, ctx);
+            self.event_handler
+                .handle_initialization(&mut self.state, ctx);
         }
 
         // Process pending commands

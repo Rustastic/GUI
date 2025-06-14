@@ -6,8 +6,8 @@ use wg_2024::{
     packet::NodeType,
 };
 
+use super::{ChatParam, DroneParams, MediaParams, NodeGUI};
 use crate::logic::nodes::types::ClientType;
-use super::{NodeGUI, DroneParams, ChatParam, MediaParams};
 
 impl NodeGUI {
     #[must_use]

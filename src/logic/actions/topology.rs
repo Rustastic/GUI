@@ -8,12 +8,18 @@ use log::info;
 
 use wg_2024::{
     config::{Client as ConfigClient, Drone as ConfigDrone, Server as ConfigServer},
-    network::NodeId
+    network::NodeId,
 };
 
 use messages::high_level_messages::ServerType;
 
-use crate::{constants::{HEIGHT, WIDTH}, logic::{nodes::{types::ClientType, NodeGUI}, state::GUIState}};
+use crate::{
+    constants::{HEIGHT, WIDTH},
+    logic::{
+        nodes::{types::ClientType, NodeGUI},
+        state::GUIState,
+    },
+};
 
 fn fruchterman_reingold(
     graph: &Graph<(), (), Undirected>,
@@ -41,8 +47,7 @@ fn fruchterman_reingold(
     let mut temperature = 4.0; // Start with a high temperature
 
     for _ in 0..iterations {
-        let mut displacements: HashMap<NodeIndex, (f32, f32)> =
-            HashMap::with_capacity(node_count);
+        let mut displacements: HashMap<NodeIndex, (f32, f32)> = HashMap::with_capacity(node_count);
         for node_index in graph.node_indices() {
             displacements.insert(node_index, (0.0, 0.0));
         }

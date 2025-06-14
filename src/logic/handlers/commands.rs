@@ -9,17 +9,17 @@ use crate::logic::{actions::*, state::GUIState};
 
 pub struct CommandHandler;
 
-impl CommandHandler{
+impl CommandHandler {
     pub fn new() -> Self {
         Self
     }
-    
+
     pub fn handle_commands(&self, state: &mut GUIState) {
         // Handle spawn command
         if let Some(command) = state.spawn.command.take() {
             self.send_spawn_command(state, command);
         }
-        
+
         // Handle node-specific commands
         for (_, node) in state.nodes.clone().iter_mut() {
             if let Some(command) = node.command.take() {
@@ -27,7 +27,7 @@ impl CommandHandler{
             }
         }
     }
-    
+
     fn send_command(&self, state: &mut GUIState, command: GUICommands) {
         match state.sender.try_send(command.clone()) {
             Ok(()) => {

@@ -1,5 +1,5 @@
-pub mod event;
 pub mod commands;
+pub mod event;
 
-pub use event::EventHandler;
 pub use commands::CommandHandler;
+pub use event::EventHandler;

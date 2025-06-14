@@ -4,15 +4,14 @@ use rand::Rng;
 use colored::Colorize;
 use log::{error, info};
 
-use wg_2024::{
-    config::Drone as ConfigDrone,
-    network::NodeId,
-    packet::NodeType,
-};
+use wg_2024::{config::Drone as ConfigDrone, network::NodeId, packet::NodeType};
 
 use messages::gui_commands::GUICommands;
 
-use crate::{constants::{HEIGHT, WIDTH}, logic::{nodes::NodeGUI, state::GUIState}};
+use crate::{
+    constants::{HEIGHT, WIDTH},
+    logic::{nodes::NodeGUI, state::GUIState},
+};
 
 pub fn crash(state: &mut GUIState, drone: NodeId) {
     if state.nodes.contains_key(&drone) {
