@@ -114,7 +114,7 @@ impl NetworkVisualization {
                     egui::Align2::CENTER_CENTER,
                     node_id.to_string(),
                     egui::FontId::proportional(10.0),
-                    Color32::WHITE,
+                    Color32::BLACK,
                 );
             }
         }
