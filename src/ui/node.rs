@@ -462,6 +462,7 @@ impl NodeDetails {
             .selected_text("None")
             .show_ui(ui, |ui| {
                 let mut text_server = Vec::new();
+                error!("parent: {:?}", self.parent.upgrade());
                 if let Some(parent) = self.parent.upgrade() {
                     println!("INSIDE");
                     text_server = parent.borrow().get_text_content_servers(state);
