@@ -29,6 +29,8 @@ impl NetworkVisualization {
             },
         }));
 
+        println!("parent {:?}", Rc::downgrade(&net));
+
         // Set up the back-reference
         net.borrow_mut().node_details.parent = Rc::downgrade(&net);
         net
