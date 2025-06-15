@@ -36,6 +36,7 @@ impl CommandHandler {
                         crash(state, drone);
                     }
                     GUICommands::RemoveSender(drone, to_remove) => {
+                        error!("GUI - 1");
                         remove_sender(state, drone, to_remove);
                     }
                     GUICommands::AddSender(drone, to_add) => {
