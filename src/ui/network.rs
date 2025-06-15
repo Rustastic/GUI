@@ -212,6 +212,7 @@ impl NetworkVisualization {
     /// Helper method to get text content servers for file requests
     pub fn get_text_content_servers(&self, state: &GUIState) -> Vec<NodeId> {
         let categories = self.categorize_nodes(state);
+        println!("text_servers {:?}", categories.text_servers);
         categories.text_servers
     }
 
