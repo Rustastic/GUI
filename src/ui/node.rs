@@ -462,12 +462,10 @@ impl NetworkVisualization {
                                 digit,
                                 instance.id
                             );
-                            instance.command = Some(GUICommands::GetFile(
-                                instance.id,
-                                instance.chat_params.register_value.unwrap(),
-                                digit.to_string(),
-                            ));
-                            instance.add_sender = false;
+                            instance.media_params.server_value = Some(digit);
+                            instance.command = Some(GUICommands::AskForFileList(instance.id, digit));
+                            instance.media_params.ask_for_file_list = false;
+                            instance.media_params.get_file = true;
                         } else {
                             error!("[ {} ] Invalid Server ID: {}", "GUI".red(), option);
                         }
