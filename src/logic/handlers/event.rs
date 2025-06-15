@@ -127,16 +127,22 @@ impl EventHandler {
                         edge.0.retain(|&node| node != to_remove);
                     }
                 }
-                if let Some(edge) = state.edges.get_mut(&to_remove) {
+                /*if let Some(edge) = state.edges.get_mut(&to_remove) {
                     if edge.0.contains(&node_id) {
                         edge.0.retain(|&node| node != node_id);
                     }
-                }
+                }*/
+
+                let instance = state.nodes.get_mut(&node_id).unwrap();
+
+                // Remove neighbor from the current instance.
+                instance.neighbor.retain(|&x| x != to_remove);
+                instance.command = None;
     
                 // Remove neighbor from to_remove
-                let id = state.nodes.get(&node_id).unwrap().id;
+                /*let id = state.nodes.get(&node_id).unwrap().id;
                 let neighbor = state.nodes.get_mut(&to_remove).unwrap();
-                neighbor.neighbor.retain(|&x| x != id);
+                neighbor.neighbor.retain(|&x| x != id);*/
             },
             GUIEvents::AddSender(node_id, to_add) => {    
                 let neighbor = state.nodes.get_mut(&node_id).unwrap();
