@@ -78,6 +78,7 @@ impl SimCtrlGUI {
                 );
                 self.file_list.insert(server, items);
             }
+            _ => ()
         }
     }
 
