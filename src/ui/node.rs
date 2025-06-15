@@ -14,17 +14,8 @@ use crate::{
 };
 use messages::gui_commands::GUICommands;
 
-#[derive(Debug)]
-pub struct NodeDetails {
-    pub parent: Weak<RefCell<NetworkVisualization>>,
-}
-
-impl NodeDetails {
-    pub fn new(parent: Weak<RefCell<NetworkVisualization>>) -> Self {
-        Self { parent }
-    }
-
-    pub fn render(&mut self, state: &mut GUIState, ctx: &egui::Context) {
+impl NetworkVisualization {
+    pub fn render_nodes(&mut self, state: &mut GUIState, ctx: &egui::Context) {
         // Update node colors based on packet animation timing
         self.update_node_animations(state);
 
@@ -405,10 +396,7 @@ impl NodeDetails {
         egui::ComboBox::from_label("Select Server to register to:")
             .selected_text("None")
             .show_ui(ui, |ui| {
-                let mut comm_servers = Vec::new();
-                if let Some(parent) = self.parent.upgrade() {
-                    comm_servers = parent.borrow().get_communication_servers(state);
-                }
+                let mut comm_servers = self.get_communication_servers(state);
                 comm_servers.sort();
                 let options: Vec<String> = comm_servers.iter().map(|&x| x.to_string()).collect();
 
@@ -461,11 +449,7 @@ impl NodeDetails {
         egui::ComboBox::from_label("Select Server to get List:")
             .selected_text("None")
             .show_ui(ui, |ui| {
-                let mut text_server = Vec::new();
-                if let Some(parent) = self.parent.upgrade() {
-                    println!("INSIDE");
-                    text_server = parent.borrow().get_text_content_servers(state);
-                }
+                let mut text_server = self.get_text_content_servers(state);
                 text_server.sort();
                 let options: Vec<String> = text_server.iter().map(|&x| x.to_string()).collect();
 

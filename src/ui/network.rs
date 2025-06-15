@@ -12,31 +12,15 @@ use crate::{
         nodes::{types::ClientType, NodeGUI},
         state::GUIState,
     },
-    ui::node::NodeDetails,
 };
 use messages::high_level_messages::ServerType;
 
 #[derive(Debug)]
-pub struct NetworkVisualization {
-    node_details: NodeDetails,
-}
+pub struct NetworkVisualization;
 
 impl NetworkVisualization {
-    pub fn new() -> Rc<RefCell<Self>> {
-        let net = Rc::new(RefCell::new(NetworkVisualization {
-            node_details: NodeDetails {
-                parent: Weak::new(),
-            },
-        }));
-
-        // Set up the back-reference
-        net.borrow_mut().node_details.parent = Rc::downgrade(&net);
-
-        if let Some(parent) = net.borrow().node_details.parent.upgrade() {
-            log::error!("parent: {:?}", parent);
-        }
-
-        net
+    pub fn new() -> Self {
+        Self
     }
 
     pub fn render(&mut self, state: &mut GUIState, ui: &mut egui::Ui, ctx: &egui::Context) {
@@ -60,7 +44,7 @@ impl NetworkVisualization {
         self.update_node_colors(state);
 
         // render NodeDetails -> pop-up
-        self.node_details.render(state, ctx);
+        self.render_nodes(state, ctx);
     }
 
     fn draw_connections(&self, painter: &egui::Painter, state: &GUIState) {

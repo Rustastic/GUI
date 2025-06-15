@@ -15,8 +15,7 @@ pub struct MainUI {
 
 impl MainUI {
     pub fn new() -> Self {
-        let new = NetworkVisualization::new();
-        let network_viz = Rc::try_unwrap(new).unwrap().into_inner();
+        let network_viz = NetworkVisualization::new();
         Self {
             spawn_panel: SpawnPanel::new(),
             legend: Legend::new(),
