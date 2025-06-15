@@ -187,12 +187,12 @@ impl NetworkVisualization {
                 }
             }
         }
-
+        println!("{:?}", categories);
         categories
     }
 }
 
-#[derive(Default)]
+#[derive(Default, Debug)]
 struct NodeCategories {
     pub chat_clients: Vec<NodeId>,
     pub media_clients: Vec<NodeId>,
