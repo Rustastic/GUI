@@ -31,7 +31,6 @@ impl CommandHandler {
     fn send_command(&self, state: &mut GUIState, command: GUICommands) {
         match state.sender.try_send(command.clone()) {
             Ok(()) => {
-                info!("[ {} ] Handling {:?}", "GUI".green(), command);
                 match command {
                     GUICommands::Crash(drone) => {
                         crash(state, drone);
@@ -78,7 +77,6 @@ impl CommandHandler {
     fn send_spawn_command(&self, state: &mut GUIState, command: GUICommands) {
         match state.sender.try_send(command.clone()) {
             Ok(()) => {
-                info!("[ {} ] Handling {:?}", "GUI".green(), command);
                 match command {
                     GUICommands::Spawn(id, neighbor, pdr) => {
                         spawn(state, id, &neighbor.clone(), pdr);
