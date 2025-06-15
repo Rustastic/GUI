@@ -187,7 +187,7 @@ impl NetworkVisualization {
                 }
             }
         }
-        println!("{:?}", categories);
+        println!("categories: {:?}", categories);
         categories
     }
 }
