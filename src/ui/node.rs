@@ -411,7 +411,6 @@ impl NetworkVisualization {
                                 instance.id
                             );
                             instance.command = Some(GUICommands::RegisterTo(instance.id, digit));
-                            instance.add_sender = false;
                         } else {
                             error!("[ {} ] Invalid Server ID: {}", "GUI".red(), option);
                         }
