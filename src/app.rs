@@ -52,6 +52,16 @@ impl eframe::App for SimCtrlGUI {
                 .handle_initialization(&mut self.state, ctx);
         }
 
+        let mut tserver_list = Vec::<wg_2024::network::NodeId>::new();
+        for (id, instance) in &self.state.nodes {
+            if instance.node_type == wg_2024::packet::NodeType::Server && instance.server_type.unwrap() == ServerType::Text {
+                tserver_list.push(*id);
+            }
+        }
+
+        println!("{:?}", tserver_list);
+
+
         // Process pending commands
         self.command_handler.handle_commands(&mut self.state);
 
