@@ -167,7 +167,7 @@ impl EventHandler {
                     let new_drone = NodeGUI::new_drone(&drone, x, y);
 
                     // ad to various instances neighbors
-                    for drone in neighbors {
+                    for drone in &neighbors {
                         state
                             .nodes
                             .get_mut(&drone)
@@ -190,7 +190,30 @@ impl EventHandler {
                     );
             },
             GUIEvents::Crash(drone) => {
-                todo!()
+                // remove from edge hashmap
+                state.edges.remove(&drone);
+
+                let instance = state.nodes.get_mut(&drone).unwrap();
+
+                // remove edges starting from neighbor
+                for neighbor_id in &instance.neighbor {
+                    // get edges starting from neighbor
+                    if let Some(neighbor_drone) = state.edges.get_mut(neighbor_id) {
+                        neighbor_drone.0.retain(|x| *x != drone);
+                    }
+                }
+
+                instance.command = None;
+
+                let neighbors = state.nodes.get(&drone).unwrap().neighbor.clone();
+                let id = state.nodes.get(&drone).unwrap().id;
+                for node in neighbors {
+                    let a = state.nodes.get_mut(&node).unwrap();
+                    a.neighbor.retain(|&x| x != id);
+                }
+
+                let id = state.nodes.get(&drone).unwrap().id;
+                state.nodes.remove(&id);
             },
         }
     }
