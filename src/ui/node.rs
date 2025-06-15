@@ -1,7 +1,7 @@
 use colored::Colorize;
 use eframe::egui;
 use log::{error, info};
-use std::{cell::RefCell, rc::Weak, time::Duration};
+use std::time::Duration;
 use wg_2024::packet::NodeType;
 
 use crate::{
@@ -410,7 +410,7 @@ impl NetworkVisualization {
                                 digit,
                                 instance.id
                             );
-                            instance.command = Some(GUICommands::RegisterTo(instance.id, digit));
+                            instance.command = Some(GUICommands::RegisterTo(instance.id, 16));
                         } else {
                             error!("[ {} ] Invalid Server ID: {}", "GUI".red(), option);
                         }

@@ -1,8 +1,3 @@
-use std::{
-    cell::RefCell,
-    rc::{Rc, Weak},
-};
-
 use eframe::egui::{self, Color32, Pos2, Rect, Sense, Stroke, Vec2};
 use wg_2024::{network::NodeId, packet::NodeType};
 

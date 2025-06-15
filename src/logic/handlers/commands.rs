@@ -1,7 +1,7 @@
 use crossbeam_channel::TrySendError;
 
 use colored::Colorize;
-use log::{error, info};
+use log::error;
 
 use messages::gui_commands::GUICommands;
 

@@ -1,5 +1,3 @@
-use std::rc::Rc;
-
 use crate::{
     logic::state::GUIState,
     ui::{legend::Legend, network::NetworkVisualization, spawn::SpawnPanel},
