@@ -54,7 +54,7 @@ impl eframe::App for SimCtrlGUI {
 
         let mut tserver_list = Vec::<wg_2024::network::NodeId>::new();
         for (id, instance) in &self.state.nodes {
-            if instance.node_type == wg_2024::packet::NodeType::Server && instance.server_type.unwrap() == ServerType::Text {
+            if instance.node_type == wg_2024::packet::NodeType::Server && instance.server_type.unwrap() == messages::high_level_messages::ServerType::Text {
                 tserver_list.push(*id);
             }
         }
