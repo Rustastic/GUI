@@ -1,16 +1,12 @@
-use eframe::egui::Color32;
-use rand::Rng;
-
 use colored::Colorize;
 use log::{error, info};
 
-use wg_2024::{config::Drone as ConfigDrone, network::NodeId, packet::NodeType};
+use wg_2024::{network::NodeId, packet::NodeType};
 
 use messages::gui_commands::GUICommands;
 
 use crate::{
-    constants::{HEIGHT, WIDTH},
-    logic::{nodes::NodeGUI, state::GUIState},
+    logic::state::GUIState,
 };
 
 pub fn crash(state: &mut GUIState, drone: NodeId) {
@@ -89,77 +85,23 @@ pub fn set_pdr(state: &mut GUIState, drone: NodeId, pdr: f32) {
 }
 
 pub fn spawn(state: &mut GUIState, id: NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
-    if state.nodes.contains_key(&id) {
-        error!(
-            "[ {} ]: failed to spawn a new Drone because a Drone with Id {} already exists",
-            "GUI".red(),
-            id
-        );
-    } else {
-        for node in neighbors {
-            let instance = state.nodes.get(node).unwrap();
-            if instance.node_type == NodeType::Client && instance.neighbor.len() == 2 {
-                error!(
-                    "[ {} ]: failed to spawn a new Drone [ Client {} ] is already connected to 2 drones",
-                    "GUI".red(),
-                    instance.id
-                );
-                state.spawn.command = None;
-                return;
-            }
-        }
-
-        if (0.0..=1.0).contains(&pdr) {
-            match state
-                .sender
-                .send(GUICommands::Spawn(id, neighbors.clone(), pdr))
-            {
-                Ok(()) => {
-                    state.spawn.id = None;
-                    state.spawn.neighbors.clear();
-                    state.spawn.pdr = None;
-
-                    let drone = ConfigDrone {
-                        id,
-                        connected_node_ids: neighbors.clone(),
-                        pdr,
-                    };
-
-                    // add to nodes
-                    let mut rng = rand::rng();
-                    let (x, y) = (rng.random_range(0.0..WIDTH), rng.random_range(0.0..HEIGHT));
-                    let new_drone = NodeGUI::new_drone(&drone, x, y);
-
-                    // ad to various instances neighbors
-                    for drone in neighbors {
-                        state
-                            .nodes
-                            .get_mut(drone)
-                            .unwrap()
-                            .neighbor
-                            .push(new_drone.id);
-                    }
-
-                    state.nodes.insert(id, new_drone);
-
-                    // add edges
-                    state.edges.insert(id, (neighbors.clone(), Color32::GRAY));
-
-                    info!("[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller", "GUI".green(), id, neighbors, pdr);
-                }
-                Err(e) => error!(
-                    "[ {} ] Unable to send GUICommand::Spawn from GUI to Simulation Controller: {}",
-                    "GUI".red(),
-                    e
-                ),
-            }
-        } else {
-            error!(
-                "[ {} ]: The PDR number is out of range. Please enter a number between 0.00 and 1.00",
+    match state.sender.send(GUICommands::Spawn(id, neighbors.clone(), pdr)) {
+        Ok(()) => info!(
+            "[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller",
+            "GUI".green(),
+            id,
+            neighbors,
+            pdr
+        ),
+        Err(e) => {
+            error!("[ {} ] Unable to send GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller: {}",
                 "GUI".red(),
+                id,
+                neighbors,
+                pdr,
+                e
             );
-        }
+        },
     }
-
     state.spawn.command = None;
 }

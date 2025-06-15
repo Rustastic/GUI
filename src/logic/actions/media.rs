@@ -15,12 +15,14 @@ pub fn ask_for_file_list(state: &mut GUIState, client: NodeId, server: NodeId) {
             client,
             server
         ),
-        Err(e) => error!("[ {} ] Unable to send GUICommand::AskForFileList({}, {}) from GUI to Simulation Controller: {}",
-            "GUI".red(),
-            client,
-            server,
-            e
-        ),
+        Err(e) => {
+            error!("[ {} ] Unable to send GUICommand::AskForFileList({}, {}) from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                client,
+                server,
+                e
+            );
+        },
     }
     state.nodes.get_mut(&client).unwrap().command = None;
 }
@@ -34,13 +36,15 @@ pub fn get_file(state: &mut GUIState, client: NodeId, server: NodeId, title: &st
             server,
             title
         ),
-        Err(e) => error!("[ {} ] Unable to send GUICommand::GetFile({}, {}, {:?}) from GUI to Simulation Controller: {}",
-            "GUI".red(),
-            client,
-            server,
-            title,
-            e
-        ),
+        Err(e) => {
+            error!("[ {} ] Unable to send GUICommand::GetFile({}, {}, {:?}) from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                client,
+                server,
+                title,
+                e
+            );
+        },
     }
     state.nodes.get_mut(&client).unwrap().command = None;
 }

@@ -7,9 +7,10 @@ use eframe::egui::{self, Color32};
 use log::{error, info};
 
 use messages::gui_commands::GUIEvents;
-use wg_2024::packet::{NodeType, PacketType};
+use rand::Rng;
+use wg_2024::{config::Drone as ConfigDrone, packet::{NodeType, PacketType}};
 
-use crate::logic::{actions::topology, state::GUIState};
+use crate::{constants::{HEIGHT, WIDTH}, logic::{actions::topology, nodes::NodeGUI, state::GUIState}};
 
 pub struct EventHandler;
 
@@ -120,6 +121,77 @@ impl EventHandler {
                     .chat_params
                     .recv_message_client_value = Some(formatted_msg);
             }
+            GUIEvents::RemoveSender(node_id, to_remove) => {  
+                if let Some(edge) = state.edges.get_mut(&node_id) {
+                    if edge.0.contains(&to_remove) {
+                        edge.0.retain(|&node| node != to_remove);
+                    }
+                }
+                if let Some(edge) = state.edges.get_mut(&to_remove) {
+                    if edge.0.contains(&node_id) {
+                        edge.0.retain(|&node| node != node_id);
+                    }
+                }
+    
+                // Remove neighbor from to_remove
+                let id = state.nodes.get(&node_id).unwrap().id;
+                let neighbor = state.nodes.get_mut(&to_remove).unwrap();
+                neighbor.neighbor.retain(|&x| x != id);
+            },
+            GUIEvents::AddSender(node_id, to_add) => {    
+                let neighbor = state.nodes.get_mut(&node_id).unwrap();
+                neighbor.neighbor.push(to_add);
+                let (vec, _) = state
+                    .edges
+                    .entry(node_id)
+                    .or_insert_with(|| (Vec::new(), Color32::GRAY));
+                vec.push(to_add);
+    
+                let neighbor = state.nodes.get_mut(&to_add).unwrap();
+                neighbor.neighbor.push(node_id);
+            },
+            GUIEvents::Spawn(id, neighbors, pdr) => {
+                state.spawn.id = None;
+                    state.spawn.neighbors.clear();
+                    state.spawn.pdr = None;
+
+                    let drone = ConfigDrone {
+                        id,
+                        connected_node_ids: neighbors.clone(),
+                        pdr,
+                    };
+
+                    // add to nodes
+                    let mut rng = rand::rng();
+                    let (x, y) = (rng.random_range(0.0..WIDTH), rng.random_range(0.0..HEIGHT));
+                    let new_drone = NodeGUI::new_drone(&drone, x, y);
+
+                    // ad to various instances neighbors
+                    for drone in neighbors {
+                        state
+                            .nodes
+                            .get_mut(&drone)
+                            .unwrap()
+                            .neighbor
+                            .push(new_drone.id);
+                    }
+
+                    state.nodes.insert(id, new_drone);
+
+                    // add edges
+                    state.edges.insert(id, (neighbors.clone(), Color32::GRAY));
+
+                    info!(
+                        "[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller",
+                        "GUI".green(),
+                        id,
+                        neighbors,
+                        pdr
+                    );
+            },
+            GUIEvents::Crash(drone) => {
+                todo!()
+            },
         }
     }
 }

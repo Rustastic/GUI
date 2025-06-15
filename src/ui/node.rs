@@ -282,14 +282,18 @@ impl NodeDetails {
                     if let Some(pdr_value) = &instance.drone_params.pdr_value {
                         match pdr_value.parse::<f32>() {
                             Ok(pdr) => {
-                                info!(
-                                    "[ {} ] Setting PDR to {} for drone {}",
-                                    "GUI".green(),
-                                    pdr,
-                                    instance.id
-                                );
-                                instance.command = Some(GUICommands::SetPDR(instance.id, pdr));
-                                instance.drone_params.set_pdr = false;
+                                if (0.0..=1.0).contains(&pdr) {
+                                    info!(
+                                        "[ {} ] Setting PDR to {} for drone {}",
+                                        "Sim".green(),
+                                        pdr,
+                                        instance.id
+                                    );
+                                    instance.command = Some(GUICommands::SetPDR(instance.id, pdr));
+                                    instance.drone_params.set_pdr = false;
+                                } else {
+                                    error!("[ {} ] Invalid PDR input: {}", "GUI".red(), "The PDR value must be between 0.0 and 1.0");
+                                }
                             }
                             Err(e) => error!("[ {} ] Invalid PDR input: {}", "GUI".red(), e),
                         }
