@@ -410,7 +410,7 @@ impl NetworkVisualization {
                                 digit,
                                 instance.id
                             );
-                            instance.command = Some(GUICommands::RegisterTo(instance.id, 16));
+                            instance.command = Some(GUICommands::RegisterTo(instance.id, 15));
                         } else {
                             error!("[ {} ] Invalid Server ID: {}", "GUI".red(), option);
                         }
