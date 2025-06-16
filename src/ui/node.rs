@@ -194,8 +194,9 @@ impl NetworkVisualization {
     }
 
     fn render_remove_sender_dropdown(&self, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+        let value: Option<String> = None;
         egui::ComboBox::from_label("Select Sender to remove:")
-            .selected_text("None")
+            .selected_text(value.clone().unwrap_or("None".to_string()))
             .show_ui(ui, |ui| {
                 let mut options: Vec<String> =
                     instance.neighbor.iter().map(|n| n.to_string()).collect();
@@ -203,7 +204,11 @@ impl NetworkVisualization {
 
                 for option in options {
                     if ui.selectable_label(false, &option).clicked() {
-                        if let Ok(digit) = option.parse::<u8>() {
+
+                        let value = Some(option.to_string());
+                        instance.remove_sender = false;
+
+                        if let Ok(digit) = value.parse::<u8>() {
                             info!(
                                 "[ {} ] Removing sender: {} from {}",
                                 "GUI".green(),
@@ -211,7 +216,6 @@ impl NetworkVisualization {
                                 instance.id
                             );
                             instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
-                            instance.remove_sender = false;
                         } else {
                             error!("[ {} ] Invalid neighbor ID: {}", "GUI".red(), option);
                         }
@@ -567,3 +571,47 @@ impl NetworkVisualization {
         instance.remove_sender = false;
     }
 }
+
+/*
+let value: Option<String> = None;
+egui::ComboBox::from_label("Select Sender to remove: ")
+    .selected_text(value.clone().unwrap_or("None".to_string()))
+    .show_ui(ui, |ui| {
+        // Get options
+        let mut options = Vec::<String>::new();
+        for numbers in instance.neighbor.clone() {
+            options.push(numbers.to_string());
+        }
+        options.sort_by_key(|s| s.parse::<i32>().unwrap());
+
+        // Check if option is selected
+        for option in options {
+            if ui.selectable_label(false, &option).clicked() {
+                let value = Some(option.to_string());
+                instance.remove_sender = false;
+
+                if let Some(value_str) = value {
+                    match value_str.parse::<u8>() {
+                        Ok(digit) => {
+                            info!(
+                                "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
+                                "GUI".green(),
+                                instance.id,
+                                digit
+                            );
+                            instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
+                            instance.remove_sender = false;
+                        },
+                        Err(e) => error!(
+                            "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
+                            "GUI".red(),
+                            e
+                        ),
+                    }
+                } else {
+                    error!("[ {} ] Value is None after selectable_label click. This is unexpected.", "GUI".red());
+                }
+            }
+        }
+    });
+}*/
