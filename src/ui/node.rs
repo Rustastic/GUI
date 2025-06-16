@@ -185,7 +185,7 @@ impl NetworkVisualization {
 
     fn render_sender_controls(&self, state: &GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         if instance.remove_sender {
-            self.render_remove_sender_dropdown(ui, instance);
+            self.render_remove_sender_dropdown(state, ui, instance);
         }
 
         if instance.add_sender {
@@ -193,7 +193,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_remove_sender_dropdown(&self, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_remove_sender_dropdown(&self, state: &GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         let value: Option<String> = None;
         egui::ComboBox::from_label("Select Sender to remove:")
             .selected_text(value.clone().unwrap_or("None".to_string()))
@@ -211,13 +211,35 @@ impl NetworkVisualization {
                         if let Some(value_str) = value {
                             match value_str.parse::<u8>() {
                                 Ok(digit) => {
+
+                                    match state.sender.send(GUICommands::RemoveSender(instance.id, digit)) {
+                                        Ok(()) => {
+                                            info!(
+                                                "[ {} ] Successfully sent GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller",
+                                                "GUI".green(),
+                                                instance.id,
+                                                digit
+                                            );
+                                        },
+                                        Err(e) => {
+                                            error!("[ {} ] Unable to send GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller: {}",
+                                                "GUI".red(),
+                                                instance.id,
+                                                digit,
+                                                e
+                                            );
+                                        },
+                                    }
+                                    instance.command = None;
+                                    /*state.nodes.get_mut(&node_id).unwrap().command = None;
+
                                     info!(
                                         "[ {} ] Removing sender: {} from {}",
                                         "GUI".green(),
                                         digit,
                                         instance.id
                                     );
-                                    instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
+                                    instance.command = Some(GUICommands::RemoveSender(instance.id, digit));*/
                                 },
                                 Err(e) => {
                                     error!("[ {} ] Invalid neighbor ID: {}", "GUI".red(), option);
