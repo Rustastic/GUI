@@ -67,7 +67,10 @@ impl SpawnPanel {
         egui::ComboBox::from_label("Neighbors")
             .selected_text(format!("{:?}", state.spawn.neighbors))
             .show_ui(ui, |ui| {
-                for &neighbor in state.nodes.keys() {
+                let mut keys: Vec<_> = state.nodes.keys().copied().collect();
+                keys.sort();
+
+                for neighbor in keys {
                     let label = format!("{neighbor}");
                     let is_selected = state.spawn.neighbors.contains(&neighbor);
 

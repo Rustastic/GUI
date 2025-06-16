@@ -178,7 +178,7 @@ impl EventHandler {
                     state.edges.insert(id, (neighbors.clone(), Color32::GRAY));
 
                     info!(
-                        "[ {} ] Successfully sent GUICommand::Spawn({}, {:?}, {}) from GUI to Simulation Controller",
+                        "[ {} ] Successfully created Drone({}, {:?}, {})",
                         "GUI".green(),
                         id,
                         neighbors,
