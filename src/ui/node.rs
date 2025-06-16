@@ -40,7 +40,7 @@ impl NetworkVisualization {
     pub fn show_animation(&self, state: &mut GUIState, ui: &mut egui::Ui) {
         ui.horizontal_wrapped(|ui| {
             if ui.button("Show Animations").clicked() {
-                state.show_animation != state.show_animation;
+                state.show_animation = !state.show_animation;
                 info!("[ {} ] Show animation: {}", "GUI".green(), state.show_animation);
             }
         });
