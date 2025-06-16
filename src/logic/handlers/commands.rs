@@ -23,6 +23,7 @@ impl CommandHandler {
         // Handle node-specific commands
         for (_, node) in state.nodes.clone().iter_mut() {
             if let Some(command) = node.command.take() {
+                println!("[GUI] have a command to send {:?}", command);
                 self.send_command(state, command);
             }
         }
@@ -36,7 +37,6 @@ impl CommandHandler {
                         crash(state, drone);
                     }
                     GUICommands::RemoveSender(node_id, to_remove) => {
-                        println!("[GUI] handler calling support function remove_sender({}, {})", node_id, to_remove);
                         remove_sender(state, node_id, to_remove);
                     }
                     GUICommands::AddSender(node_id, to_add) => {
