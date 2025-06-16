@@ -23,7 +23,7 @@ impl CommandHandler {
         // Handle node-specific commands
         for (_, node) in state.nodes.clone().iter_mut() {
             if let Some(command) = node.command.take() {
-                log::info!("got a command -> {:?}", command);
+                log::warn!("got a command -> {:?}", command);
                 self.send_command(state, command);
             }
         }
