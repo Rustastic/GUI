@@ -37,7 +37,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn update_node_animations(&self, state: &mut GUIState) {
+    /*fn update_node_animations(&self, state: &mut GUIState) {
         for (_, instance) in state.nodes.iter_mut() {
             if let Some(start_time) = instance.last_packet_time {
                 if start_time.elapsed() > Duration::from_secs_f32(0.005) {
@@ -48,7 +48,7 @@ impl NetworkVisualization {
                 }
             }
         }
-    }
+    }*/
 
     fn render_node_window(
         &self,
