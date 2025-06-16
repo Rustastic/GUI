@@ -42,6 +42,9 @@ impl NetworkVisualization {
             if ui.button("Show Animations").clicked() {
                 state.show_animation = !state.show_animation;
                 info!("[ {} ] Show animation: {}", "GUI".green(), state.show_animation);
+                for (_, instance) in state.nodes.iter_mut() {
+                    instance.pending_reset = true;
+                }
                 self.update_node_animations(state);
             }
         });
