@@ -1,7 +1,7 @@
 use colored::Colorize;
 use eframe::egui;
 use log::{error, info};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use wg_2024::packet::NodeType;
 
 use crate::{
@@ -44,6 +44,9 @@ impl NetworkVisualization {
                 info!("[ {} ] Show animation: {}", "GUI".green(), state.show_animation);
                 for (_, instance) in state.nodes.iter_mut() {
                     instance.pending_reset = true;
+                    if let Some(time) = instance.last_packet_time {
+                        instance.last_packet_time = Some(time + Duration::from_secs_f32(0.01));
+                    }
                 }
                 self.update_node_animations(state);
             }
