@@ -1,6 +1,6 @@
 use colored::Colorize;
 use eframe::egui;
-use log::error;
+use log::{error, info};
 use std::time::Duration;
 use wg_2024::packet::NodeType;
 
@@ -41,6 +41,7 @@ impl NetworkVisualization {
         ui.horizontal_wrapped(|ui| {
             if ui.button("Show Animations").clicked() {
                 state.show_animation != state.show_animation;
+                info!("[ {} ] Show animation: {}", "GUI".green(), state.show_animation);
             }
         });
     }
