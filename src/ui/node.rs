@@ -7,8 +7,7 @@ use wg_2024::packet::NodeType;
 use crate::{
     constants::*,
     logic::{
-        nodes::{types::ClientType, NodeGUI},
-        state::GUIState,
+        actions::{add_sender, ask_for_file_list, crash, get_file, get_list, logout, register, remove_sender, send_message, set_pdr}, nodes::{types::ClientType, NodeGUI}, state::GUIState
     },
     ui::network::NetworkVisualization,
 };
@@ -114,7 +113,7 @@ impl NetworkVisualization {
         ui.add_space(10.0);
     }
 
-    fn render_action_buttons(&self, state: &GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_action_buttons(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         ui.horizontal_wrapped(|ui| {
             // Common buttons for all node types
             if ui.button("RemoveSender").clicked() {
@@ -128,7 +127,7 @@ impl NetworkVisualization {
             // Drone-specific buttons
             if instance.node_type == NodeType::Drone {
                 if ui.button("Crash").clicked() {
-                    instance.command = Some(GUICommands::Crash(instance.id));
+                    crash(state, instance.id);
                 }
 
                 if ui.button("SetPacketDropRate").clicked() {
@@ -143,14 +142,14 @@ impl NetworkVisualization {
         });
     }
 
-    fn render_client_buttons(&self, _state: &GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_client_buttons(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         if let Some(ClientType::Chat) = instance.client_type {
             if ui.button("SendMessage").clicked() {
                 self.toggle_send_message(instance);
             }
 
             if ui.button("GetClientList").clicked() {
-                instance.command = Some(GUICommands::GetClientList(instance.id));
+                get_list(state, instance.id);
             }
 
             if ui.button("RegisterTo").clicked() {
@@ -159,7 +158,7 @@ impl NetworkVisualization {
 
             if ui.button("LogOut").clicked() {
                 if let Some(server) = instance.chat_params.register_value {
-                    instance.command = Some(GUICommands::LogOut(instance.id, server));
+                    logout(state, instance.id, server);
                 }
             }
         } else if let Some(ClientType::Media) = instance.client_type {
@@ -177,13 +176,13 @@ impl NetworkVisualization {
     ) {
         if !instance.drone_params.crashed && !instance.chat_params.logout {
             self.render_sender_controls(state, ui, instance);
-            self.render_drone_controls(ui, instance);
+            self.render_drone_controls(state, ui, instance);
             self.render_chat_controls(state, ui, instance);
             self.render_media_controls(state, ui, instance);
         }
     }
 
-    fn render_sender_controls(&self, state: &GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_sender_controls(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         if instance.remove_sender {
             self.render_remove_sender_dropdown(state, ui, instance);
         }
@@ -193,10 +192,9 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_remove_sender_dropdown(&self, state: &GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
-        let value: Option<String> = None;
+    fn render_remove_sender_dropdown(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         egui::ComboBox::from_label("Select Sender to remove:")
-            .selected_text(value.clone().unwrap_or("None".to_string()))
+            .selected_text("None")
             .show_ui(ui, |ui| {
                 let mut options: Vec<String> =
                     instance.neighbor.iter().map(|n| n.to_string()).collect();
@@ -204,47 +202,11 @@ impl NetworkVisualization {
 
                 for option in options {
                     if ui.selectable_label(false, &option).clicked() {
-
-                        let value = Some(option.to_string());
-                        instance.remove_sender = false;
-
-                        if let Some(value_str) = value {
-                            match value_str.parse::<u8>() {
-                                Ok(digit) => {
-
-                                    match state.sender.send(GUICommands::RemoveSender(instance.id, digit)) {
-                                        Ok(()) => {
-                                            info!(
-                                                "[ {} ] Successfully sent GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller",
-                                                "GUI".green(),
-                                                instance.id,
-                                                digit
-                                            );
-                                        },
-                                        Err(e) => {
-                                            error!("[ {} ] Unable to send GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller: {}",
-                                                "GUI".red(),
-                                                instance.id,
-                                                digit,
-                                                e
-                                            );
-                                        },
-                                    }
-                                    instance.command = None;
-                                    /*state.nodes.get_mut(&node_id).unwrap().command = None;
-
-                                    info!(
-                                        "[ {} ] Removing sender: {} from {}",
-                                        "GUI".green(),
-                                        digit,
-                                        instance.id
-                                    );
-                                    instance.command = Some(GUICommands::RemoveSender(instance.id, digit));*/
-                                },
-                                Err(e) => {
-                                    error!("[ {} ] Invalid neighbor ID: {}", "GUI".red(), option);
-                                },
-                            }
+                        if let Ok(digit) = option.parse::<u8>() {
+                            instance.remove_sender = false;
+                            remove_sender(state, instance.id, digit);
+                        } else {
+                            error!("[ {} ] Invalid neighbor ID: {}", "GUI".red(), option);
                         }
                     }
                 }
@@ -253,7 +215,7 @@ impl NetworkVisualization {
 
     fn render_add_sender_dropdown(
         &self,
-        state: &GUIState,
+        state: &mut GUIState,
         ui: &mut egui::Ui,
         instance: &mut NodeGUI,
     ) {
@@ -271,14 +233,8 @@ impl NetworkVisualization {
                 for option in options {
                     if ui.selectable_label(false, &option).clicked() {
                         if let Ok(digit) = option.parse::<u8>() {
-                            info!(
-                                "[ {} ] Adding sender: {} to {}",
-                                "GUI".green(),
-                                digit,
-                                instance.id
-                            );
-                            instance.command = Some(GUICommands::AddSender(instance.id, digit));
                             instance.add_sender = false;
+                            add_sender(state, instance.id, digit);
                         } else {
                             error!("[ {} ] Invalid neighbor ID: {}", "GUI".red(), option);
                         }
@@ -287,7 +243,7 @@ impl NetworkVisualization {
             });
     }
 
-    fn render_drone_controls(&self, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_drone_controls(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         if instance.drone_params.set_pdr {
             ui.horizontal(|ui| {
                 ui.label("Enter desired PDR:");
@@ -305,14 +261,8 @@ impl NetworkVisualization {
                         match pdr_value.parse::<f32>() {
                             Ok(pdr) => {
                                 if (0.0..=1.0).contains(&pdr) {
-                                    info!(
-                                        "[ {} ] Setting PDR to {} for drone {}",
-                                        "Sim".green(),
-                                        pdr,
-                                        instance.id
-                                    );
-                                    instance.command = Some(GUICommands::SetPDR(instance.id, pdr));
                                     instance.drone_params.set_pdr = false;
+                                    set_pdr(state, instance.id, pdr);
                                 } else {
                                     error!("[ {} ] Invalid PDR input: {}", "GUI".red(), "The PDR value must be between 0.0 and 1.0");
                                 }
@@ -332,7 +282,7 @@ impl NetworkVisualization {
         instance: &mut NodeGUI,
     ) {
         if instance.chat_params.send_message && instance.chat_params.client_list_value.is_some() {
-            self.render_send_message_form(ui, instance);
+            self.render_send_message_form(state, ui, instance);
         }
 
         if instance.chat_params.register_to {
@@ -340,7 +290,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_send_message_form(&self, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_send_message_form(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         ui.vertical(|ui| {
             ui.heading("Send a Message");
 
@@ -394,20 +344,12 @@ impl NetworkVisualization {
                     instance.chat_params.send_message_msg_value.clone(),
                 ) {
                     if let Ok(client_id) = client.parse::<u8>() {
-                        info!(
-                            "[ {} ] Sending message to {}: {}",
-                            "GUI".green(),
-                            client_id,
-                            message
-                        );
-                        instance.command =
-                            Some(GUICommands::SendMessageTo(instance.id, client_id, message));
-
-                        // Reset state
                         instance.chat_params.send_message = false;
                         instance.chat_params.client_list_value = None;
                         instance.chat_params.send_message_client_value = None;
                         instance.chat_params.send_message_msg_value = None;
+
+                        send_message(state, instance.id, client_id, &message);
                     } else {
                         error!("[ {} ] Invalid client ID format", "GUI".red());
                     }
@@ -435,14 +377,9 @@ impl NetworkVisualization {
                     if ui.selectable_label(false, &option).clicked() {
                         if let Ok(digit) = option.parse::<u8>() {
                             instance.chat_params.register_value = Some(digit);
-                            info!(
-                                "[ {} ] Registering: {} to {}",
-                                "GUI".green(),
-                                digit,
-                                instance.id
-                            );
-                            instance.command = Some(GUICommands::RegisterTo(instance.id, digit));
                             instance.chat_params.register_to = false;
+
+                            register(state, instance.id, digit);
                         } else {
                             error!("[ {} ] Invalid Server ID: {}", "GUI".red(), option);
                         }
@@ -487,16 +424,11 @@ impl NetworkVisualization {
                 for option in options {
                     if ui.selectable_label(false, &option).clicked() {
                         if let Ok(digit) = option.parse::<u8>() {
-                            info!(
-                                "[ {} ] Registering: {} to {}",
-                                "GUI".green(),
-                                digit,
-                                instance.id
-                            );
                             instance.media_params.server_value = Some(digit);
-                            instance.command = Some(GUICommands::AskForFileList(instance.id, digit));
                             instance.media_params.ask_for_file_list = false;
                             instance.media_params.get_file = true;
+
+                            ask_for_file_list(state, instance.id, digit);
                         } else {
                             error!("[ {} ] Invalid Server ID: {}", "GUI".red(), option);
                         }
@@ -505,7 +437,7 @@ impl NetworkVisualization {
             });
     }
 
-    fn render_file_selection(&self, state: &GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_file_selection(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         egui::ComboBox::from_label("Select file:")
             .selected_text("None")
             .show_ui(ui, |ui| {
@@ -516,15 +448,9 @@ impl NetworkVisualization {
 
                         for option in options {
                             if ui.selectable_label(false, &option).clicked() {
-                                info!(
-                                    "[ {} ] Requesting file {} from server {}",
-                                    "GUI".green(),
-                                    option,
-                                    server_id
-                                );
-                                instance.command =
-                                    Some(GUICommands::GetFile(instance.id, server_id, option));
                                 instance.media_params.get_file = false;
+
+                                get_file(state, instance.id, server_id, &option);
                             }
                         }
                     }

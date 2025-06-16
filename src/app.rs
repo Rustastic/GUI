@@ -52,9 +52,6 @@ impl eframe::App for SimCtrlGUI {
                 .handle_initialization(&mut self.state, ctx);
         }
 
-        // Process pending commands
-        self.command_handler.handle_commands(&mut self.state);
-
         // Request continuous repainting for animations
         ctx.request_repaint();
     }

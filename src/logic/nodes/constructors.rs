@@ -23,8 +23,6 @@ impl NodeGUI {
             server_type: None,
             color: Color32::LIGHT_BLUE,
 
-            command: None,
-
             selected: false,
             remove_sender: false,
             add_sender: false,
@@ -61,8 +59,6 @@ impl NodeGUI {
             client_type,
             server_type: None,
             color,
-
-            command: None,
 
             selected: false,
             remove_sender: false,
@@ -101,8 +97,6 @@ impl NodeGUI {
             client_type: None,
             server_type,
             color,
-
-            command: None,
 
             selected: false,
             remove_sender: false,

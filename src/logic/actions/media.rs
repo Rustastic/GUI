@@ -24,7 +24,6 @@ pub fn ask_for_file_list(state: &mut GUIState, client: NodeId, server: NodeId) {
             );
         },
     }
-    state.nodes.get_mut(&client).unwrap().command = None;
 }
 
 pub fn get_file(state: &mut GUIState, client: NodeId, server: NodeId, title: &str) {
@@ -46,5 +45,4 @@ pub fn get_file(state: &mut GUIState, client: NodeId, server: NodeId, title: &st
             );
         },
     }
-    state.nodes.get_mut(&client).unwrap().command = None;
 }

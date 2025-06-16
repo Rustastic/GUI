@@ -2,7 +2,7 @@ use colored::Colorize;
 use eframe::egui;
 use log::{error, info};
 
-use crate::logic::state::GUIState;
+use crate::logic::{actions::spawn, state::GUIState};
 use messages::gui_commands::GUICommands;
 
 pub struct SpawnPanel;
@@ -22,7 +22,6 @@ impl SpawnPanel {
         if state.spawn.button_visible && ui.button("Spawn Drone").clicked() {
             state.spawn.panel_open = true;
             state.spawn.button_visible = false;
-            info!("[ {} ] Spawn button pressed", "GUI".green());
         }
     }
 
@@ -89,7 +88,7 @@ impl SpawnPanel {
             if let Ok(id) = id_str.parse::<u8>() {
                 if let Ok(pdr) = pdr_str.parse::<f32>() {
                     let neighbors = state.spawn.neighbors.clone();
-                    state.spawn.command = Some(GUICommands::Spawn(id, neighbors, pdr));
+                    spawn(state, id, &neighbors, pdr);
                     state.reset_spawn_state();
                     info!("[ {} ] Spawning new Drone: {}", "GUI".green(), id);
                 } else {

@@ -35,7 +35,6 @@ pub struct SpawnState {
     pub id: Option<String>,
     pub neighbors: Vec<NodeId>,
     pub pdr: Option<String>,
-    pub command: Option<GUICommands>,
 }
 
 impl GUIState {
@@ -52,7 +51,6 @@ impl GUIState {
                 id: None,
                 neighbors: Vec::new(),
                 pdr: None,
-                command: None,
             },
             file_list: HashMap::new(),
         }

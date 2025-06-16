@@ -22,7 +22,6 @@ pub fn crash(state: &mut GUIState, drone: NodeId) {
             );
         },
     }
-    state.nodes.get_mut(&drone).unwrap().command = None;
 }
 
 pub fn set_pdr(state: &mut GUIState, drone: NodeId, pdr: f32) {
@@ -38,8 +37,6 @@ pub fn set_pdr(state: &mut GUIState, drone: NodeId, pdr: f32) {
             e
         ),
     }
-
-    instance.command = None;
 }
 
 pub fn spawn(state: &mut GUIState, id: NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
@@ -61,5 +58,4 @@ pub fn spawn(state: &mut GUIState, id: NodeId, neighbors: &Vec<NodeId>, pdr: f32
             );
         },
     }
-    state.spawn.command = None;
 }

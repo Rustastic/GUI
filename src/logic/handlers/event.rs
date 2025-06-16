@@ -132,7 +132,6 @@ impl EventHandler {
 
                 // Remove neighbor from the current instance.
                 instance.neighbor.retain(|&x| x != to_remove);
-                instance.command = None;
             },
             GUIEvents::AddSender(node_id, to_add) => {    
                 let neighbor = state.nodes.get_mut(&node_id).unwrap();
@@ -195,8 +194,6 @@ impl EventHandler {
                         neighbor_drone.0.retain(|x| *x != drone);
                     }
                 }
-
-                instance.command = None;
 
                 let neighbors = state.nodes.get(&drone).unwrap().neighbor.clone();
                 let id = state.nodes.get(&drone).unwrap().id;

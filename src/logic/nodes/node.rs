@@ -18,8 +18,6 @@ pub struct NodeGUI {
     pub server_type: Option<ServerType>,
     pub color: egui::Color32,
 
-    pub command: Option<GUICommands>,
-
     pub selected: bool,
     pub remove_sender: bool,
     pub add_sender: bool,

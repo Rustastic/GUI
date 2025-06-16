@@ -26,7 +26,6 @@ pub fn send_message(state: &mut GUIState, src: NodeId, dest: NodeId, msg: &str) 
             );
         },
     }
-    state.nodes.get_mut(&src).unwrap().command = None;
 }
 
 pub fn register(state: &mut GUIState, client: NodeId, server: NodeId) {
@@ -46,7 +45,6 @@ pub fn register(state: &mut GUIState, client: NodeId, server: NodeId) {
             );
         },
     }
-    state.nodes.get_mut(&client).unwrap().command = None;
 }
 
 pub fn get_list(state: &mut GUIState, client: NodeId) {
@@ -64,7 +62,6 @@ pub fn get_list(state: &mut GUIState, client: NodeId) {
             );
         },
     }
-    state.nodes.get_mut(&client).unwrap().command = None;
 }
 
 pub fn logout(state: &mut GUIState, client: NodeId, server: NodeId) {
@@ -84,5 +81,4 @@ pub fn logout(state: &mut GUIState, client: NodeId, server: NodeId) {
             );
         }
     }
-    state.nodes.get_mut(&client).unwrap().command = None;
 }

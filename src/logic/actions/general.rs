@@ -26,7 +26,6 @@ pub fn remove_sender(state: &mut GUIState, node_id: NodeId, to_remove: NodeId) {
             );
         },
     }
-    state.nodes.get_mut(&node_id).unwrap().command = None;
 }
 
 pub fn add_sender(state: &mut GUIState, node_id: NodeId, to_add: NodeId) {
@@ -48,5 +47,4 @@ pub fn add_sender(state: &mut GUIState, node_id: NodeId, to_add: NodeId) {
             );
         },
     }
-    state.nodes.get_mut(&node_id).unwrap().command = None;
 }

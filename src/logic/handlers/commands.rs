@@ -14,22 +14,7 @@ impl CommandHandler {
         Self
     }
 
-    pub fn handle_commands(&self, state: &mut GUIState) {
-        // Handle spawn command
-        if let Some(command) = state.spawn.command.take() {
-            self.send_spawn_command(state, command);
-        }
-
-        // Handle node-specific commands
-        for (_, node) in state.nodes.clone().iter_mut() {
-            if let Some(command) = node.command.take() {
-                println!("[GUI] have a command to send {:?}", command);
-                self.send_command(state, command);
-            }
-        }
-    }
-
-    fn send_command(&self, state: &mut GUIState, command: GUICommands) {
+    /*fn send_command(&self, state: &mut GUIState, command: GUICommands) {
         match state.sender.try_send(command.clone()) {
             Ok(()) => {
                 match command {
@@ -37,7 +22,6 @@ impl CommandHandler {
                         crash(state, drone);
                     }
                     GUICommands::RemoveSender(node_id, to_remove) => {
-                        remove_sender(state, node_id, to_remove);
                     }
                     GUICommands::AddSender(node_id, to_add) => {
                         add_sender(state, node_id, to_add);
@@ -92,5 +76,5 @@ impl CommandHandler {
                 error!("[ {} ] Command channel disconnected", "GUI".red());
             }
         }
-    }
+    }*/
 }
