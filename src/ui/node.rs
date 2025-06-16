@@ -208,16 +208,21 @@ impl NetworkVisualization {
                         let value = Some(option.to_string());
                         instance.remove_sender = false;
 
-                        if let Ok(digit) = value.parse::<u8>() {
-                            info!(
-                                "[ {} ] Removing sender: {} from {}",
-                                "GUI".green(),
-                                digit,
-                                instance.id
-                            );
-                            instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
-                        } else {
-                            error!("[ {} ] Invalid neighbor ID: {}", "GUI".red(), option);
+                        if let Some(value_str) = value {
+                            match value_str.parse::<u8>() {
+                                Ok(digit) => {
+                                    info!(
+                                        "[ {} ] Removing sender: {} from {}",
+                                        "GUI".green(),
+                                        digit,
+                                        instance.id
+                                    );
+                                    instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
+                                },
+                                Err(e) => {
+                                    error!("[ {} ] Invalid neighbor ID: {}", "GUI".red(), option);
+                                },
+                            }
                         }
                     }
                 }
