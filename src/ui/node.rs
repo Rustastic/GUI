@@ -73,7 +73,6 @@ impl NetworkVisualization {
         let title = self.get_window_title(instance);
 
         egui::Window::new(title)
-            .fixed_size([400.0, 300.0])
             .resizable(false)
             .collapsible(true)
             .show(ctx, |ui| {
