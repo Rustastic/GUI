@@ -123,7 +123,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn update_node_colors(&self, state: &mut GUIState) {
+    pub fn update_node_colors(&self, state: &mut GUIState) {
         // Update colors based on node type
         for (_, node) in state.nodes.iter_mut() {
             // Only update if not in special state (e.g., packet animation)

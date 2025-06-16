@@ -42,13 +42,11 @@ impl NetworkVisualization {
             if ui.button("Show Animations").clicked() {
                 state.show_animation = !state.show_animation;
                 info!("[ {} ] Show animation: {}", "GUI".green(), state.show_animation);
-                for (_, instance) in state.nodes.iter_mut() {
-                    instance.pending_reset = true;
-                    if let Some(time) = instance.last_packet_time {
-                        instance.last_packet_time = Some(time + Duration::from_secs_f32(0.01));
-                    }
+
+                for (_, instance) in state.nodes.clone().iter_mut() {
+                    instance.pending_reset = false;
+                    self.update_node_colors(state);
                 }
-                self.update_node_animations(state);
             }
         });
     }
