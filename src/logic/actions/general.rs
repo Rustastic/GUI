@@ -5,9 +5,10 @@ use wg_2024::network::NodeId;
 
 use messages::gui_commands::GUICommands;
 
-use crate::logic::state::GUIState;
+use crate::logic::{nodes::node, state::GUIState};
 
 pub fn remove_sender(state: &mut GUIState, node_id: NodeId, to_remove: NodeId) {
+    log::warn!("sending a command -> RemoveSender({}, {})", node, to_remove);
     match state.sender.send(GUICommands::RemoveSender(node_id, to_remove)) {
         Ok(()) => {
             info!(
