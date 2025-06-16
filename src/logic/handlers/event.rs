@@ -10,7 +10,7 @@ use messages::gui_commands::GUIEvents;
 use rand::Rng;
 use wg_2024::{config::Drone as ConfigDrone, packet::{NodeType, PacketType}};
 
-use crate::{constants::{HEIGHT, WIDTH}, logic::{actions::topology, nodes::NodeGUI, state::GUIState}};
+use crate::{constants::{HEIGHT, NODE_RADIUS, WIDTH}, logic::{actions::topology, nodes::NodeGUI, state::GUIState}};
 
 pub struct EventHandler;
 
@@ -159,7 +159,7 @@ impl EventHandler {
 
                     // add to nodes
                     let mut rng = rand::rng();
-                    let (x, y) = (rng.random_range(0.0..WIDTH), rng.random_range(0.0..HEIGHT));
+                    let (x, y) = (rng.random_range(NODE_RADIUS..(WIDTH - NODE_RADIUS)), rng.random_range((100.0 + NODE_RADIUS)..(HEIGHT - NODE_RADIUS)));
                     let new_drone = NodeGUI::new_drone(&drone, x, y);
 
                     // ad to various instances neighbors
