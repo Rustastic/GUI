@@ -159,7 +159,7 @@ impl EventHandler {
 
                     // add to nodes
                     let mut rng = rand::rng();
-                    let (x, y) = (rng.random_range(NODE_RADIUS..(WIDTH - NODE_RADIUS)), rng.random_range((100.0 + NODE_RADIUS)..(HEIGHT - NODE_RADIUS)));
+                    let (x, y) = (rng.random_range((100.0 + NODE_RADIUS)..(WIDTH - NODE_RADIUS)), rng.random_range((100.0 + NODE_RADIUS)..(HEIGHT - NODE_RADIUS)));
                     let new_drone = NodeGUI::new_drone(&drone, x, y);
 
                     // ad to various instances neighbors
