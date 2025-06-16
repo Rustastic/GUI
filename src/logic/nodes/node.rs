@@ -1,5 +1,5 @@
 use eframe::egui;
-use messages::{gui_commands::GUICommands, high_level_messages::ServerType};
+use messages::high_level_messages::ServerType;
 use std::time::Instant;
 use wg_2024::{network::NodeId, packet::NodeType};
 

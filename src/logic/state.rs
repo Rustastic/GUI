@@ -25,6 +25,9 @@ pub struct GUIState {
 
     // File management
     pub file_list: HashMap<NodeId, Vec<String>>,
+
+    // Animation Managment
+    pub show_animation: bool,
 }
 
 /// State for spawning new drones
@@ -53,6 +56,7 @@ impl GUIState {
                 pdr: None,
             },
             file_list: HashMap::new(),
+            show_animation: false,
         }
     }
 

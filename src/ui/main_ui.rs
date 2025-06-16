@@ -30,6 +30,11 @@ impl MainUI {
 
             ui.add_space(10.0);
 
+            // Show Animations
+            self.network_viz.show_animation(state, ui);
+
+            ui.add_space(10.0);
+
             // Render spawn controls
             self.spawn_panel.render(state, ui);
 

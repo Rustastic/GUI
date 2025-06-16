@@ -6,7 +6,7 @@ use log::warn;
 
 use crate::{
     logic::{
-        handlers::{CommandHandler, EventHandler},
+        handlers::EventHandler,
         state::GUIState,
     },
     ui::MainUI,
@@ -16,7 +16,6 @@ use crate::{
 pub struct SimCtrlGUI {
     pub state: GUIState,
     event_handler: EventHandler,
-    command_handler: CommandHandler,
     main_ui: MainUI,
 }
 
@@ -30,7 +29,6 @@ impl SimCtrlGUI {
 
         Self {
             event_handler: EventHandler::new(),
-            command_handler: CommandHandler::new(),
             main_ui: MainUI::new(),
             state,
         }

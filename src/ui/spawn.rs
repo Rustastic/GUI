@@ -3,7 +3,6 @@ use eframe::egui;
 use log::{error, info};
 
 use crate::logic::{actions::spawn, state::GUIState};
-use messages::gui_commands::GUICommands;
 
 pub struct SpawnPanel;
 

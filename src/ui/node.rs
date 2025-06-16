@@ -1,6 +1,6 @@
 use colored::Colorize;
 use eframe::egui;
-use log::{error, info};
+use log::error;
 use std::time::Duration;
 use wg_2024::packet::NodeType;
 
@@ -11,12 +11,13 @@ use crate::{
     },
     ui::network::NetworkVisualization,
 };
-use messages::gui_commands::GUICommands;
 
 impl NetworkVisualization {
     pub fn render_nodes(&mut self, state: &mut GUIState, ctx: &egui::Context) {
         // Update node colors based on packet animation timing
-        //self.update_node_animations(state);
+        if state.show_animation {
+            self.update_node_animations(state);
+        }
 
         // Collect node IDs of selected nodes
         let mut selected_ids = Vec::new();
@@ -36,7 +37,15 @@ impl NetworkVisualization {
         }
     }
 
-    /*fn update_node_animations(&self, state: &mut GUIState) {
+    pub fn show_animation(&self, state: &mut GUIState, ui: &mut egui::Ui) {
+        ui.horizontal_wrapped(|ui| {
+            if ui.button("Show Animations").clicked() {
+                state.show_animation != state.show_animation;
+            }
+        });
+    }
+
+    fn update_node_animations(&self, state: &mut GUIState) {
         for (_, instance) in state.nodes.iter_mut() {
             if let Some(start_time) = instance.last_packet_time {
                 if start_time.elapsed() > Duration::from_secs_f32(0.005) {
@@ -47,7 +56,7 @@ impl NetworkVisualization {
                 }
             }
         }
-    }*/
+    }
 
     fn render_node_window(
         &self,
@@ -524,47 +533,3 @@ impl NetworkVisualization {
         instance.remove_sender = false;
     }
 }
-
-/*
-let value: Option<String> = None;
-egui::ComboBox::from_label("Select Sender to remove: ")
-    .selected_text(value.clone().unwrap_or("None".to_string()))
-    .show_ui(ui, |ui| {
-        // Get options
-        let mut options = Vec::<String>::new();
-        for numbers in instance.neighbor.clone() {
-            options.push(numbers.to_string());
-        }
-        options.sort_by_key(|s| s.parse::<i32>().unwrap());
-
-        // Check if option is selected
-        for option in options {
-            if ui.selectable_label(false, &option).clicked() {
-                let value = Some(option.to_string());
-                instance.remove_sender = false;
-
-                if let Some(value_str) = value {
-                    match value_str.parse::<u8>() {
-                        Ok(digit) => {
-                            info!(
-                                "[ {} ] Passing to handler GUICommands::RemoveSender({}, {})",
-                                "GUI".green(),
-                                instance.id,
-                                digit
-                            );
-                            instance.command = Some(GUICommands::RemoveSender(instance.id, digit));
-                            instance.remove_sender = false;
-                        },
-                        Err(e) => error!(
-                            "[ {} ] Unable to parse neighbor NodeId in Crash GUICommand: {}",
-                            "GUI".red(),
-                            e
-                        ),
-                    }
-                } else {
-                    error!("[ {} ] Value is None after selectable_label click. This is unexpected.", "GUI".red());
-                }
-            }
-        }
-    });
-}*/

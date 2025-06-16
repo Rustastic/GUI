@@ -82,28 +82,32 @@ impl EventHandler {
                     .client_list_value = Some(client_list);
             }
             GUIEvents::PacketSent(src, _, packet) => {
-                /*if let Some(node) = state.nodes.get_mut(&src) {
-                    if node.node_type == NodeType::Drone {
-                        match packet.pack_type {
-                            PacketType::MsgFragment(_) => node.color = Color32::BLUE,
-                            PacketType::Ack(_) => node.color = Color32::DARK_GREEN,
-                            PacketType::Nack(_) => node.color = Color32::DARK_RED,
-                            PacketType::FloodRequest(_) => node.color = Color32::WHITE,
-                            PacketType::FloodResponse(_) => node.color = Color32::DARK_GRAY,
+                if state.show_animation {
+                    if let Some(node) = state.nodes.get_mut(&src) {
+                        if node.node_type == NodeType::Drone {
+                            match packet.pack_type {
+                                PacketType::MsgFragment(_) => node.color = Color32::BLUE,
+                                PacketType::Ack(_) => node.color = Color32::DARK_GREEN,
+                                PacketType::Nack(_) => node.color = Color32::DARK_RED,
+                                PacketType::FloodRequest(_) => node.color = Color32::WHITE,
+                                PacketType::FloodResponse(_) => node.color = Color32::DARK_GRAY,
+                            }
                         }
                     }
+                    state.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
+                    state.nodes.get_mut(&src).unwrap().pending_reset = true;
+                    ctx.request_repaint();
                 }
-                state.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
-                state.nodes.get_mut(&src).unwrap().pending_reset = true;
-                ctx.request_repaint();*/
             }
             GUIEvents::PacketDropped(src, _) => {
-                /*if let Some(node) = state.nodes.get_mut(&src) {
-                    node.color = Color32::RED;
+                if state.show_animation {
+                    if let Some(node) = state.nodes.get_mut(&src) {
+                        node.color = Color32::RED;
+                    }
+                    state.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
+                    state.nodes.get_mut(&src).unwrap().pending_reset = true;
+                    ctx.request_repaint();
                 }
-                state.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
-                state.nodes.get_mut(&src).unwrap().pending_reset = true;
-                ctx.request_repaint();*/
             }
             GUIEvents::MessageReceived(src, dest, msg) => {
                 info!(
