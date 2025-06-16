@@ -78,9 +78,7 @@ impl NetworkVisualization {
             .show(ctx, |ui| {
                 if !instance.drone_params.crashed {
                     self.render_node_info(ui, instance);
-                    ui.horizontal(|ui| {
-                        self.render_action_buttons(state, ui, instance);
-                    });
+                    self.render_action_buttons(state, ui, instance);
                     self.render_interactive_controls(state, ui, instance);
                 }
 
