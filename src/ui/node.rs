@@ -411,6 +411,7 @@ impl NetworkVisualization {
                                 instance.id
                             );
                             instance.command = Some(GUICommands::RegisterTo(instance.id, digit));
+                            instance.chat_params.register_to = false;
                         } else {
                             error!("[ {} ] Invalid Server ID: {}", "GUI".red(), option);
                         }
