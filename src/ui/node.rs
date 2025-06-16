@@ -43,9 +43,9 @@ impl NetworkVisualization {
                 state.show_animation = !state.show_animation;
                 info!("[ {} ] Show animation: {}", "GUI".green(), state.show_animation);
 
-                for (_, instance) in state.nodes.clone().iter_mut() {
-                    instance.pending_reset = false;
-                    self.update_node_colors(state);
+                for (_, instance) in state.nodes.iter_mut() {
+                    let color = self.get_node_color(&instance);
+                    instance.color = color;
                 }
             }
         });

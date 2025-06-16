@@ -123,7 +123,7 @@ impl NetworkVisualization {
         }
     }
 
-    pub fn update_node_colors(&self, state: &mut GUIState) {
+    fn update_node_colors(&self, state: &mut GUIState) {
         // Update colors based on node type
         for (_, node) in state.nodes.iter_mut() {
             // Only update if not in special state (e.g., packet animation)
@@ -133,7 +133,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn get_node_color(&self, node: &NodeGUI) -> Color32 {
+    pub fn get_node_color(&self, node: &NodeGUI) -> Color32 {
         match node.node_type {
             NodeType::Drone => DRONE_COLOR,
             NodeType::Server => match node.server_type {
