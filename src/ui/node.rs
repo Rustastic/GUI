@@ -17,7 +17,7 @@ use messages::gui_commands::GUICommands;
 impl NetworkVisualization {
     pub fn render_nodes(&mut self, state: &mut GUIState, ctx: &egui::Context) {
         // Update node colors based on packet animation timing
-        self.update_node_animations(state);
+        //self.update_node_animations(state);
 
         // Collect node IDs of selected nodes
         let mut selected_ids = Vec::new();
