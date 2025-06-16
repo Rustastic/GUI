@@ -82,7 +82,7 @@ impl EventHandler {
                     .client_list_value = Some(client_list);
             }
             GUIEvents::PacketSent(src, _, packet) => {
-                if let Some(node) = state.nodes.get_mut(&src) {
+                /*if let Some(node) = state.nodes.get_mut(&src) {
                     if node.node_type == NodeType::Drone {
                         match packet.pack_type {
                             PacketType::MsgFragment(_) => node.color = Color32::BLUE,
@@ -92,7 +92,7 @@ impl EventHandler {
                             PacketType::FloodResponse(_) => node.color = Color32::DARK_GRAY,
                         }
                     }
-                }
+                }*/
                 state.nodes.get_mut(&src).unwrap().last_packet_time = Some(Instant::now());
                 state.nodes.get_mut(&src).unwrap().pending_reset = true;
                 ctx.request_repaint();
