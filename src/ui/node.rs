@@ -204,6 +204,7 @@ impl NetworkVisualization {
                 for option in options {
                     if ui.selectable_label(false, &option).clicked() {
                         if let Ok(digit) = option.parse::<u8>() {
+                            println!("[GUI] User wants to remove node {}", digit);
                             info!(
                                 "[ {} ] Removing sender: {} from {}",
                                 "GUI".green(),

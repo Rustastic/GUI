@@ -8,9 +8,10 @@ use messages::gui_commands::GUICommands;
 use crate::logic::state::GUIState;
 
 pub fn remove_sender(state: &mut GUIState, node_id: NodeId, to_remove: NodeId) {
-    log::warn!("sending a command -> RemoveSender({}, {})", node_id, to_remove);
+    println!("[GUI] sending GUICommand::RemoveSender({}, {})", node_id, to_remove);
     match state.sender.send(GUICommands::RemoveSender(node_id, to_remove)) {
         Ok(()) => {
+            println!("[GUI] sent GUICommand::RemoveSender({}, {})", node_id, to_remove);
             info!(
                 "[ {} ] Successfully sent GUICommand::RemoveSender({}, {}) from GUI to Simulation Controller",
                 "GUI".green(),

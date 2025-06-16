@@ -35,11 +35,12 @@ impl CommandHandler {
                     GUICommands::Crash(drone) => {
                         crash(state, drone);
                     }
-                    GUICommands::RemoveSender(drone, to_remove) => {
-                        remove_sender(state, drone, to_remove);
+                    GUICommands::RemoveSender(node_id, to_remove) => {
+                        println!("[GUI] handler calling support function remove_sender({}, {})", node_id, to_remove);
+                        remove_sender(state, node_id, to_remove);
                     }
-                    GUICommands::AddSender(drone, to_add) => {
-                        add_sender(state, drone, to_add);
+                    GUICommands::AddSender(node_id, to_add) => {
+                        add_sender(state, node_id, to_add);
                     }
                     GUICommands::SetPDR(drone, pdr) => {
                         set_pdr(state, drone, pdr);
