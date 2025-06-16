@@ -8,6 +8,7 @@ use messages::gui_commands::GUICommands;
 use crate::logic::state::GUIState;
 
 pub fn remove_sender(state: &mut GUIState, node_id: NodeId, to_remove: NodeId) {
+    state.nodes.get_mut(&node_id).unwrap().command = None;
     match state.sender.send(GUICommands::RemoveSender(node_id, to_remove)) {
         Ok(()) => {
             info!(
@@ -26,7 +27,6 @@ pub fn remove_sender(state: &mut GUIState, node_id: NodeId, to_remove: NodeId) {
             );
         },
     }
-    state.nodes.get_mut(&node_id).unwrap().command = None;
 }
 
 pub fn add_sender(state: &mut GUIState, node_id: NodeId, to_add: NodeId) {
