@@ -36,6 +36,8 @@ pub fn set_pdr(state: &mut GUIState, drone: NodeId, pdr: f32) {
                 e
             ),
         }
+    } else {
+        println!("ERROREEEEEEE");
     }
 }
 
