@@ -24,7 +24,19 @@ pub fn crash(state: &mut GUIState, drone: NodeId) {
 }
 
 pub fn set_pdr(state: &mut GUIState, drone: NodeId, pdr: f32) {
-    if let Some(instance) = state.nodes.get_mut(&drone) {
+    let instance = state.nodes.get_mut(&drone).unwrap();
+    match state.sender.send(GUICommands::SetPDR(instance.id, pdr)) {
+        Ok(()) => {
+            info!("[ {} ] Successfully sent GUICommand::SetPDR({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, pdr);
+            instance.pdr = pdr;
+        }
+        Err(e) => error!(
+            "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
+            "GUI".red(),
+            e
+        ),
+    }
+    /*if let Some(instance) = state.nodes.get_mut(&drone) {
         match state.sender.send(GUICommands::SetPDR(drone, pdr)) {
             Ok(()) => {
                 info!("[ {} ] Successfully sent GUICommand::SetPDR({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, pdr);
@@ -40,11 +52,11 @@ pub fn set_pdr(state: &mut GUIState, drone: NodeId, pdr: f32) {
         }
     } else {
         error!(
-            "[ {} ] Unable to [ Node {} ]",
+            "[ {} ] Unable to get [ Node {} ]",
             "GUI".red(),
             drone,
         );
-    }
+    }*/
 }
 
 pub fn spawn(state: &mut GUIState, id: NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
