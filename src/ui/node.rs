@@ -1,7 +1,7 @@
 use colored::Colorize;
 use eframe::egui;
 use log::{error, info};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 use wg_2024::packet::NodeType;
 
 use crate::{
