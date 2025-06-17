@@ -286,7 +286,7 @@ impl NetworkVisualization {
                             Ok(pdr) => {
                                 if (0.0..=1.0).contains(&pdr) {
                                     instance.drone_params.set_pdr = false;
-                                    set_pdr(state, instance.id, pdr);
+                                    set_pdr(state, instance, pdr);
                                 } else {
                                     error!(
                                         "[ {} ] Invalid PDR input: {}",

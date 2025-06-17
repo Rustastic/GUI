@@ -5,7 +5,7 @@ use wg_2024::network::NodeId;
 
 use messages::gui_commands::GUICommands;
 
-use crate::logic::state::GUIState;
+use crate::logic::{nodes::NodeGUI, state::GUIState};
 
 pub fn crash(state: &mut GUIState, drone: NodeId) {
     match state.sender.send(GUICommands::Crash(drone)) {
@@ -23,40 +23,20 @@ pub fn crash(state: &mut GUIState, drone: NodeId) {
     }
 }
 
-pub fn set_pdr(state: &mut GUIState, drone: NodeId, pdr: f32) {
-    let instance = state.nodes.get_mut(&drone).unwrap();
+pub fn set_pdr(state: &mut GUIState, instance: &mut NodeGUI, pdr: f32) {
     match state.sender.send(GUICommands::SetPDR(instance.id, pdr)) {
         Ok(()) => {
             info!("[ {} ] Successfully sent GUICommand::SetPDR({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, pdr);
             instance.pdr = pdr;
         }
-        Err(e) => error!(
-            "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
-            "GUI".red(),
-            e
-        ),
+        Err(e) => {
+            error!(
+                "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
+                "GUI".red(),
+                e
+            );
+        },
     }
-    /*if let Some(instance) = state.nodes.get_mut(&drone) {
-        match state.sender.send(GUICommands::SetPDR(drone, pdr)) {
-            Ok(()) => {
-                info!("[ {} ] Successfully sent GUICommand::SetPDR({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, pdr);
-                instance.pdr = pdr;
-            }
-            Err(e) => {
-                error!(
-                    "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
-                    "GUI".red(),
-                    e
-                );
-            },
-        }
-    } else {
-        error!(
-            "[ {} ] Unable to get [ Node {} ]",
-            "GUI".red(),
-            drone,
-        );
-    }*/
 }
 
 pub fn spawn(state: &mut GUIState, id: NodeId, neighbors: &Vec<NodeId>, pdr: f32) {
