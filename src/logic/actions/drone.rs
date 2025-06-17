@@ -5,9 +5,7 @@ use wg_2024::network::NodeId;
 
 use messages::gui_commands::GUICommands;
 
-use crate::{
-    logic::state::GUIState,
-};
+use crate::logic::state::GUIState;
 
 pub fn crash(state: &mut GUIState, drone: NodeId) {
     match state.sender.send(GUICommands::Crash(drone)) {
@@ -16,11 +14,12 @@ pub fn crash(state: &mut GUIState, drone: NodeId) {
             "GUI".green(),
         ),
         Err(e) => {
-            error!("[ {} ] Unable to send GUICommand::Crash() from GUI to Simulation Controller: {}",
+            error!(
+                "[ {} ] Unable to send GUICommand::Crash() from GUI to Simulation Controller: {}",
                 "GUI".red(),
                 e
             );
-        },
+        }
     }
 }
 

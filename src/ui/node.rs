@@ -7,7 +7,12 @@ use wg_2024::packet::NodeType;
 use crate::{
     constants::*,
     logic::{
-        actions::{add_sender, ask_for_file_list, crash, get_file, get_list, logout, register, remove_sender, send_message, set_pdr}, nodes::{types::ClientType, NodeGUI}, state::GUIState
+        actions::{
+            add_sender, ask_for_file_list, crash, get_file, get_list, logout, register,
+            remove_sender, send_message, set_pdr,
+        },
+        nodes::{types::ClientType, NodeGUI},
+        state::GUIState,
     },
     ui::network::NetworkVisualization,
 };
@@ -41,7 +46,11 @@ impl NetworkVisualization {
         ui.horizontal_wrapped(|ui| {
             if ui.button("Show Animations").clicked() {
                 state.show_animation = !state.show_animation;
-                info!("[ {} ] Show animation: {}", "GUI".green(), state.show_animation);
+                info!(
+                    "[ {} ] Show animation: {}",
+                    "GUI".green(),
+                    state.show_animation
+                );
 
                 for (_, instance) in state.nodes.iter_mut() {
                     let color = self.get_node_color(&instance);
@@ -127,7 +136,12 @@ impl NetworkVisualization {
         ui.add_space(10.0);
     }
 
-    fn render_action_buttons(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_action_buttons(
+        &self,
+        state: &mut GUIState,
+        ui: &mut egui::Ui,
+        instance: &mut NodeGUI,
+    ) {
         ui.horizontal_wrapped(|ui| {
             // Common buttons for all node types
             if ui.button("RemoveSender").clicked() {
@@ -156,7 +170,12 @@ impl NetworkVisualization {
         });
     }
 
-    fn render_client_buttons(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_client_buttons(
+        &self,
+        state: &mut GUIState,
+        ui: &mut egui::Ui,
+        instance: &mut NodeGUI,
+    ) {
         if let Some(ClientType::Chat) = instance.client_type {
             if ui.button("SendMessage").clicked() {
                 self.toggle_send_message(instance);
@@ -196,7 +215,12 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_sender_controls(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_sender_controls(
+        &self,
+        state: &mut GUIState,
+        ui: &mut egui::Ui,
+        instance: &mut NodeGUI,
+    ) {
         if instance.remove_sender {
             self.render_remove_sender_dropdown(state, ui, instance);
         }
@@ -206,7 +230,12 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_remove_sender_dropdown(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_remove_sender_dropdown(
+        &self,
+        state: &mut GUIState,
+        ui: &mut egui::Ui,
+        instance: &mut NodeGUI,
+    ) {
         egui::ComboBox::from_label("Select Sender to remove:")
             .selected_text("None")
             .show_ui(ui, |ui| {
@@ -257,7 +286,12 @@ impl NetworkVisualization {
             });
     }
 
-    fn render_drone_controls(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_drone_controls(
+        &self,
+        state: &mut GUIState,
+        ui: &mut egui::Ui,
+        instance: &mut NodeGUI,
+    ) {
         if instance.drone_params.set_pdr {
             ui.horizontal(|ui| {
                 ui.label("Enter desired PDR:");
@@ -278,7 +312,11 @@ impl NetworkVisualization {
                                     instance.drone_params.set_pdr = false;
                                     set_pdr(state, instance.id, pdr);
                                 } else {
-                                    error!("[ {} ] Invalid PDR input: {}", "GUI".red(), "The PDR value must be between 0.0 and 1.0");
+                                    error!(
+                                        "[ {} ] Invalid PDR input: {}",
+                                        "GUI".red(),
+                                        "The PDR value must be between 0.0 and 1.0"
+                                    );
                                 }
                             }
                             Err(e) => error!("[ {} ] Invalid PDR input: {}", "GUI".red(), e),
@@ -304,7 +342,12 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_send_message_form(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_send_message_form(
+        &self,
+        state: &mut GUIState,
+        ui: &mut egui::Ui,
+        instance: &mut NodeGUI,
+    ) {
         ui.vertical(|ui| {
             ui.heading("Send a Message");
 
@@ -451,7 +494,12 @@ impl NetworkVisualization {
             });
     }
 
-    fn render_file_selection(&self, state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
+    fn render_file_selection(
+        &self,
+        state: &mut GUIState,
+        ui: &mut egui::Ui,
+        instance: &mut NodeGUI,
+    ) {
         egui::ComboBox::from_label("Select file:")
             .selected_text("None")
             .show_ui(ui, |ui| {

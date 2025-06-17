@@ -5,10 +5,7 @@ use eframe::egui;
 use log::warn;
 
 use crate::{
-    logic::{
-        handlers::EventHandler,
-        state::GUIState,
-    },
+    logic::{handlers::EventHandler, state::GUIState},
     ui::MainUI,
 };
 
