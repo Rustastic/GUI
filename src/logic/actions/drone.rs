@@ -30,14 +30,20 @@ pub fn set_pdr(state: &mut GUIState, drone: NodeId, pdr: f32) {
                 info!("[ {} ] Successfully sent GUICommand::SetPDR({}, {}) from GUI to Simulation Controller", "GUI".green(), instance.id, pdr);
                 instance.pdr = pdr;
             }
-            Err(e) => error!(
-                "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
-                "GUI".red(),
-                e
-            ),
+            Err(e) => {
+                error!(
+                    "[ {} ] Unable to send GUICommand::SetPDR from GUI to Simulation Controller: {}",
+                    "GUI".red(),
+                    e
+                );
+            },
         }
     } else {
-        println!("ERROREEEEEEE");
+        error!(
+            "[ {} ] Unable to [ Node {} ]",
+            "GUI".red(),
+            drone,
+        );
     }
 }
 
