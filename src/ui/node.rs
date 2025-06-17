@@ -5,7 +5,7 @@ use std::time::Duration;
 use wg_2024::packet::NodeType;
 
 use crate::{
-    constants::*,
+    constants::DRONE_COLOR,
     logic::{
         actions::{
             add_sender, ask_for_file_list, crash, get_file, get_list, logout, register,
@@ -21,7 +21,7 @@ impl NetworkVisualization {
     pub fn render_nodes(&mut self, state: &mut GUIState, ctx: &egui::Context) {
         // Update node colors based on packet animation timing
         if state.show_animation {
-            self.update_node_animations(state);
+            Self::update_node_animations(state);
         }
 
         // Collect node IDs of selected nodes
@@ -42,6 +42,7 @@ impl NetworkVisualization {
         }
     }
 
+    #[allow(clippy::explicit_iter_loop)]
     pub fn show_animation(&self, state: &mut GUIState, ui: &mut egui::Ui) {
         ui.horizontal_wrapped(|ui| {
             if ui.button("Show Animations").clicked() {
@@ -53,14 +54,15 @@ impl NetworkVisualization {
                 );
 
                 for (_, instance) in state.nodes.iter_mut() {
-                    let color = self.get_node_color(&instance);
+                    let color = self.get_node_color(instance);
                     instance.color = color;
                 }
             }
         });
     }
 
-    fn update_node_animations(&self, state: &mut GUIState) {
+    #[allow(clippy::explicit_iter_loop)]
+    fn update_node_animations(state: &mut GUIState) {
         for (_, instance) in state.nodes.iter_mut() {
             if let Some(start_time) = instance.last_packet_time {
                 if start_time.elapsed() > Duration::from_secs_f32(0.005) {
@@ -79,19 +81,19 @@ impl NetworkVisualization {
         instance: &mut NodeGUI,
         ctx: &egui::Context,
     ) {
-        let title = self.get_window_title(instance);
+        let title = Self::get_window_title(instance);
 
         egui::Window::new(title)
             .resizable(false)
             .collapsible(true)
             .show(ctx, |ui| {
                 if !instance.drone_params.crashed {
-                    self.render_node_info(ui, instance);
-                    self.render_action_buttons(state, ui, instance);
+                    Self::render_node_info(ui, instance);
+                    Self::render_action_buttons(state, ui, instance);
                     self.render_interactive_controls(state, ui, instance);
                 }
 
-                self.render_status_info(ui, instance);
+                Self::render_status_info(ui, instance);
 
                 ui.add_space(20.0);
 
@@ -101,7 +103,7 @@ impl NetworkVisualization {
             });
     }
 
-    fn get_window_title(&self, instance: &NodeGUI) -> String {
+    fn get_window_title(instance: &NodeGUI) -> String {
         match instance.node_type {
             NodeType::Server => {
                 format!(
@@ -125,7 +127,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_node_info(&self, ui: &mut egui::Ui, instance: &NodeGUI) {
+    fn render_node_info(ui: &mut egui::Ui, instance: &NodeGUI) {
         ui.label(format!("Id: {}", instance.id));
         ui.label(format!("Neighbors: {:?}", instance.neighbor));
 
@@ -136,20 +138,15 @@ impl NetworkVisualization {
         ui.add_space(10.0);
     }
 
-    fn render_action_buttons(
-        &self,
-        state: &mut GUIState,
-        ui: &mut egui::Ui,
-        instance: &mut NodeGUI,
-    ) {
+    fn render_action_buttons(state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         ui.horizontal_wrapped(|ui| {
             // Common buttons for all node types
             if ui.button("RemoveSender").clicked() {
-                self.toggle_remove_sender(instance);
+                Self::toggle_remove_sender(instance);
             }
 
             if ui.button("AddSender").clicked() {
-                self.toggle_add_sender(instance);
+                Self::toggle_add_sender(instance);
             }
 
             // Drone-specific buttons
@@ -159,26 +156,21 @@ impl NetworkVisualization {
                 }
 
                 if ui.button("SetPacketDropRate").clicked() {
-                    self.toggle_set_pdr(instance);
+                    Self::toggle_set_pdr(instance);
                 }
             }
 
             // Client-specific buttons
             if instance.node_type == NodeType::Client {
-                self.render_client_buttons(state, ui, instance);
+                Self::render_client_buttons(state, ui, instance);
             }
         });
     }
 
-    fn render_client_buttons(
-        &self,
-        state: &mut GUIState,
-        ui: &mut egui::Ui,
-        instance: &mut NodeGUI,
-    ) {
+    fn render_client_buttons(state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         if let Some(ClientType::Chat) = instance.client_type {
             if ui.button("SendMessage").clicked() {
-                self.toggle_send_message(instance);
+                Self::toggle_send_message(instance);
             }
 
             if ui.button("GetClientList").clicked() {
@@ -186,7 +178,7 @@ impl NetworkVisualization {
             }
 
             if ui.button("RegisterTo").clicked() {
-                self.toggle_register_to(instance);
+                Self::toggle_register_to(instance);
             }
 
             if ui.button("LogOut").clicked() {
@@ -196,7 +188,7 @@ impl NetworkVisualization {
             }
         } else if let Some(ClientType::Media) = instance.client_type {
             if ui.button("AskForFile").clicked() {
-                self.toggle_ask_for_file_list(instance);
+                Self::toggle_ask_for_file_list(instance);
             }
         }
     }
@@ -208,30 +200,24 @@ impl NetworkVisualization {
         instance: &mut NodeGUI,
     ) {
         if !instance.drone_params.crashed && !instance.chat_params.logout {
-            self.render_sender_controls(state, ui, instance);
-            self.render_drone_controls(state, ui, instance);
+            Self::render_sender_controls(state, ui, instance);
+            Self::render_drone_controls(state, ui, instance);
             self.render_chat_controls(state, ui, instance);
             self.render_media_controls(state, ui, instance);
         }
     }
 
-    fn render_sender_controls(
-        &self,
-        state: &mut GUIState,
-        ui: &mut egui::Ui,
-        instance: &mut NodeGUI,
-    ) {
+    fn render_sender_controls(state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         if instance.remove_sender {
-            self.render_remove_sender_dropdown(state, ui, instance);
+            Self::render_remove_sender_dropdown(state, ui, instance);
         }
 
         if instance.add_sender {
-            self.render_add_sender_dropdown(state, ui, instance);
+            Self::render_add_sender_dropdown(state, ui, instance);
         }
     }
 
     fn render_remove_sender_dropdown(
-        &self,
         state: &mut GUIState,
         ui: &mut egui::Ui,
         instance: &mut NodeGUI,
@@ -240,7 +226,7 @@ impl NetworkVisualization {
             .selected_text("None")
             .show_ui(ui, |ui| {
                 let mut options: Vec<String> =
-                    instance.neighbor.iter().map(|n| n.to_string()).collect();
+                    instance.neighbor.iter().map(ToString::to_string).collect();
                 options.sort_by_key(|s| s.parse::<i32>().unwrap_or(0));
 
                 for option in options {
@@ -256,12 +242,7 @@ impl NetworkVisualization {
             });
     }
 
-    fn render_add_sender_dropdown(
-        &self,
-        state: &mut GUIState,
-        ui: &mut egui::Ui,
-        instance: &mut NodeGUI,
-    ) {
+    fn render_add_sender_dropdown(state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         egui::ComboBox::from_label("Select Sender to add:")
             .selected_text("None")
             .show_ui(ui, |ui| {
@@ -269,7 +250,7 @@ impl NetworkVisualization {
                     .edges
                     .keys()
                     .filter(|&id| !instance.neighbor.contains(id) && *id != instance.id)
-                    .map(|id| id.to_string())
+                    .map(ToString::to_string)
                     .collect();
                 options.sort_by_key(|s| s.parse::<i32>().unwrap_or(0));
 
@@ -286,12 +267,7 @@ impl NetworkVisualization {
             });
     }
 
-    fn render_drone_controls(
-        &self,
-        state: &mut GUIState,
-        ui: &mut egui::Ui,
-        instance: &mut NodeGUI,
-    ) {
+    fn render_drone_controls(state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         if instance.drone_params.set_pdr {
             ui.horizontal(|ui| {
                 ui.label("Enter desired PDR:");
@@ -334,7 +310,7 @@ impl NetworkVisualization {
         instance: &mut NodeGUI,
     ) {
         if instance.chat_params.send_message && instance.chat_params.client_list_value.is_some() {
-            self.render_send_message_form(state, ui, instance);
+            Self::render_send_message_form(state, ui, instance);
         }
 
         if instance.chat_params.register_to {
@@ -342,12 +318,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_send_message_form(
-        &self,
-        state: &mut GUIState,
-        ui: &mut egui::Ui,
-        instance: &mut NodeGUI,
-    ) {
+    fn render_send_message_form(state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         ui.vertical(|ui| {
             ui.heading("Send a Message");
 
@@ -366,7 +337,7 @@ impl NetworkVisualization {
                         let mut options: Vec<String> = client_list
                             .iter()
                             .filter(|&&id| id != instance.id)
-                            .map(|id| id.to_string())
+                            .map(ToString::to_string)
                             .collect();
                         options.sort_by_key(|s| s.parse::<i32>().unwrap_or(0));
 
@@ -427,7 +398,7 @@ impl NetworkVisualization {
             .selected_text("None")
             .show_ui(ui, |ui| {
                 let mut comm_servers = self.get_communication_servers(state);
-                comm_servers.sort();
+                comm_servers.sort_unstable();
                 let options: Vec<String> = comm_servers.iter().map(|&x| x.to_string()).collect();
 
                 for option in options {
@@ -461,7 +432,7 @@ impl NetworkVisualization {
                 .contains_key(&instance.media_params.server_value.unwrap())
             && instance.media_params.get_file
         {
-            self.render_file_selection(state, ui, instance);
+            Self::render_file_selection(state, ui, instance);
         }
     }
 
@@ -475,7 +446,7 @@ impl NetworkVisualization {
             .selected_text("None")
             .show_ui(ui, |ui| {
                 let mut text_server = self.get_text_content_servers(state);
-                text_server.sort();
+                text_server.sort_unstable();
                 let options: Vec<String> = text_server.iter().map(|&x| x.to_string()).collect();
 
                 for option in options {
@@ -494,12 +465,7 @@ impl NetworkVisualization {
             });
     }
 
-    fn render_file_selection(
-        &self,
-        state: &mut GUIState,
-        ui: &mut egui::Ui,
-        instance: &mut NodeGUI,
-    ) {
+    fn render_file_selection(state: &mut GUIState, ui: &mut egui::Ui, instance: &mut NodeGUI) {
         egui::ComboBox::from_label("Select file:")
             .selected_text("None")
             .show_ui(ui, |ui| {
@@ -524,7 +490,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn render_status_info(&self, ui: &mut egui::Ui, instance: &NodeGUI) {
+    fn render_status_info(ui: &mut egui::Ui, instance: &NodeGUI) {
         if instance.node_type == NodeType::Client {
             if let Some(ClientType::Chat) = instance.client_type {
                 match &instance.chat_params.recv_message_client_value {
@@ -540,7 +506,7 @@ impl NetworkVisualization {
     }
 
     // Helper methods for button toggles
-    fn toggle_remove_sender(&self, instance: &mut NodeGUI) {
+    fn toggle_remove_sender(instance: &mut NodeGUI) {
         instance.remove_sender = !instance.remove_sender;
         instance.add_sender = false;
         instance.drone_params.set_pdr = false;
@@ -549,7 +515,7 @@ impl NetworkVisualization {
         instance.media_params.ask_for_file_list = false;
     }
 
-    fn toggle_add_sender(&self, instance: &mut NodeGUI) {
+    fn toggle_add_sender(instance: &mut NodeGUI) {
         instance.add_sender = !instance.add_sender;
         instance.remove_sender = false;
         instance.drone_params.set_pdr = false;
@@ -558,13 +524,13 @@ impl NetworkVisualization {
         instance.media_params.ask_for_file_list = false;
     }
 
-    fn toggle_set_pdr(&self, instance: &mut NodeGUI) {
+    fn toggle_set_pdr(instance: &mut NodeGUI) {
         instance.drone_params.set_pdr = !instance.drone_params.set_pdr;
         instance.remove_sender = false;
         instance.add_sender = false;
     }
 
-    fn toggle_send_message(&self, instance: &mut NodeGUI) {
+    fn toggle_send_message(instance: &mut NodeGUI) {
         instance.chat_params.send_message = !instance.chat_params.send_message;
         instance.add_sender = false;
         instance.remove_sender = false;
@@ -572,7 +538,7 @@ impl NetworkVisualization {
         instance.chat_params.get_client_list = false;
     }
 
-    fn toggle_register_to(&self, instance: &mut NodeGUI) {
+    fn toggle_register_to(instance: &mut NodeGUI) {
         instance.chat_params.register_to = !instance.chat_params.register_to;
         instance.add_sender = false;
         instance.remove_sender = false;
@@ -580,7 +546,7 @@ impl NetworkVisualization {
         instance.chat_params.get_client_list = false;
     }
 
-    fn toggle_ask_for_file_list(&self, instance: &mut NodeGUI) {
+    fn toggle_ask_for_file_list(instance: &mut NodeGUI) {
         instance.media_params.ask_for_file_list = !instance.media_params.ask_for_file_list;
         instance.add_sender = false;
         instance.remove_sender = false;

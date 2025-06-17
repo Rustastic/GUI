@@ -1,9 +1,19 @@
-use crate::constants::*;
+use crate::constants::{
+    CHAT_CLIENT_COLOR, COMMUNICATION_SERVER_COLOR, DRONE_COLOR, LEGEND_SPACING, LEGEND_X_START,
+    LEGEND_Y_POS, MEDIA_CLIENT_COLOR, MEDIA_CONTENT_SERVER_COLOR, TEXT_CONTENT_SERVER_COLOR,
+};
 use eframe::egui::{self, Pos2};
 
 pub struct Legend;
 
+impl Default for Legend {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Legend {
+    #[must_use]
     pub fn new() -> Self {
         Self
     }

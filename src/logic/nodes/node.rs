@@ -6,6 +6,7 @@ use wg_2024::{network::NodeId, packet::NodeType};
 use super::{ChatParam, DroneParams, MediaParams};
 use crate::logic::nodes::types::ClientType;
 
+#[allow(clippy::struct_excessive_bools)]
 #[derive(Clone, Debug)]
 pub struct NodeGUI {
     pub id: NodeId,

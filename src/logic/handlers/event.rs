@@ -20,14 +20,21 @@ use crate::{
 
 pub struct EventHandler;
 
+impl Default for EventHandler {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl EventHandler {
+    #[must_use]
     pub fn new() -> Self {
         Self
     }
 
     pub fn handle_events(&self, state: &mut GUIState, ctx: &egui::Context) {
         match state.receiver.try_recv() {
-            Ok(event) => self.process_event(state, event, ctx),
+            Ok(event) => Self::process_event(state, event, ctx),
             Err(TryRecvError::Empty) => (),
             Err(TryRecvError::Disconnected) => {
                 error!(
@@ -42,7 +49,7 @@ impl EventHandler {
         match state.receiver.try_recv() {
             Ok(event) => {
                 if let GUIEvents::Topology(_, _, _) = event {
-                    self.process_event(state, event, ctx);
+                    Self::process_event(state, event, ctx);
                 } else {
                     error!(
                         "[ {} ] Received NON-Topology GUIEvent before Initialization",
@@ -60,7 +67,8 @@ impl EventHandler {
         }
     }
 
-    fn process_event(&self, state: &mut GUIState, event: GUIEvents, ctx: &egui::Context) {
+    #[allow(clippy::too_many_lines)]
+    fn process_event(state: &mut GUIState, event: GUIEvents, ctx: &egui::Context) {
         match event {
             GUIEvents::Topology(drones, clients, servers) => {
                 info!("[ {} ]: Received Topology", "GUI".green());
@@ -123,7 +131,7 @@ impl EventHandler {
                     msg,
                     src
                 );
-                let formatted_msg = format!("[{}] {}", src, msg);
+                let formatted_msg = format!("[{src}] -> {msg}");
                 state
                     .nodes
                     .get_mut(&dest)
@@ -175,7 +183,7 @@ impl EventHandler {
                 for drone in &neighbors {
                     state
                         .nodes
-                        .get_mut(&drone)
+                        .get_mut(drone)
                         .unwrap()
                         .neighbor
                         .push(new_drone.id);

@@ -41,6 +41,7 @@ pub struct SpawnState {
 }
 
 impl GUIState {
+    #[must_use]
     pub fn new(sender: Sender<GUICommands>, receiver: Receiver<GUIEvents>) -> Self {
         Self {
             sender,

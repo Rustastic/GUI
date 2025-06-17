@@ -2,7 +2,10 @@ use eframe::egui::{self, Color32, Pos2, Rect, Sense, Stroke, Vec2};
 use wg_2024::{network::NodeId, packet::NodeType};
 
 use crate::{
-    constants::*,
+    constants::{
+        CHAT_CLIENT_COLOR, COMMUNICATION_SERVER_COLOR, DRONE_COLOR, HEIGHT, MEDIA_CLIENT_COLOR,
+        MEDIA_CONTENT_SERVER_COLOR, NODE_RADIUS, TEXT_CONTENT_SERVER_COLOR, WIDTH,
+    },
     logic::{
         nodes::{types::ClientType, NodeGUI},
         state::GUIState,
@@ -13,7 +16,14 @@ use messages::high_level_messages::ServerType;
 #[derive(Debug)]
 pub struct NetworkVisualization;
 
+impl Default for NetworkVisualization {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl NetworkVisualization {
+    #[must_use]
     pub fn new() -> Self {
         Self
     }
@@ -30,10 +40,10 @@ impl NetworkVisualization {
         ));
 
         // Draw network connections
-        self.draw_connections(&painter, state);
+        Self::draw_connections(&painter, state);
 
         // Draw nodes and handle interactions
-        self.draw_nodes_and_handle_interactions(ui, &painter, state, &response);
+        Self::draw_nodes_and_handle_interactions(ui, &painter, state, &response);
 
         // Update node colors based on type
         self.update_node_colors(state);
@@ -42,7 +52,7 @@ impl NetworkVisualization {
         self.render_nodes(state, ctx);
     }
 
-    fn draw_connections(&self, painter: &egui::Painter, state: &GUIState) {
+    fn draw_connections(painter: &egui::Painter, state: &GUIState) {
         for (start_id, (neighbors, color)) in &state.edges {
             if let Some(start_node) = state.nodes.get(start_id) {
                 for end_id in neighbors {
@@ -61,7 +71,6 @@ impl NetworkVisualization {
     }
 
     fn draw_nodes_and_handle_interactions(
-        &self,
         ui: &mut egui::Ui,
         painter: &egui::Painter,
         state: &mut GUIState,
@@ -125,7 +134,7 @@ impl NetworkVisualization {
 
     fn update_node_colors(&self, state: &mut GUIState) {
         // Update colors based on node type
-        for (_, node) in state.nodes.iter_mut() {
+        for node in state.nodes.values_mut() {
             // Only update if not in special state (e.g., packet animation)
             if !node.pending_reset {
                 node.color = self.get_node_color(node);
@@ -133,6 +142,7 @@ impl NetworkVisualization {
         }
     }
 
+    #[must_use]
     pub fn get_node_color(&self, node: &NodeGUI) -> Color32 {
         match node.node_type {
             NodeType::Drone => DRONE_COLOR,
@@ -150,7 +160,7 @@ impl NetworkVisualization {
         }
     }
 
-    fn categorize_nodes(&self, state: &GUIState) -> NodeCategories {
+    fn categorize_nodes(state: &GUIState) -> NodeCategories {
         let mut categories = NodeCategories::default();
 
         for (id, node) in &state.nodes {
@@ -187,20 +197,23 @@ struct NodeCategories {
 
 impl NetworkVisualization {
     /// Helper method to get communication servers for registration
+    #[must_use]
     pub fn get_communication_servers(&self, state: &GUIState) -> Vec<NodeId> {
-        let categories = self.categorize_nodes(state);
+        let categories = Self::categorize_nodes(state);
         categories.communication_servers
     }
 
     /// Helper method to get text content servers for file requests
+    #[must_use]
     pub fn get_text_content_servers(&self, state: &GUIState) -> Vec<NodeId> {
-        let categories = self.categorize_nodes(state);
+        let categories = Self::categorize_nodes(state);
         categories.text_servers
     }
 
     /// Helper method to get media content servers
+    #[must_use]
     pub fn get_media_content_servers(&self, state: &GUIState) -> Vec<NodeId> {
-        let categories = self.categorize_nodes(state);
+        let categories = Self::categorize_nodes(state);
         categories.media_servers
     }
 
@@ -213,6 +226,7 @@ impl NetworkVisualization {
     }
 
     /// Auto-arrange nodes in a circle layout
+    #[allow(clippy::cast_precision_loss)]
     pub fn auto_arrange_nodes(&self, state: &mut GUIState) {
         let node_count = state.nodes.len();
         if node_count == 0 {
@@ -220,7 +234,7 @@ impl NetworkVisualization {
         }
 
         let center_x = WIDTH / 2.0;
-        let center_y = (HEIGHT + 100.0) / 2.0;
+        let center_y = f32::midpoint(HEIGHT, 100.0);
         let radius = (WIDTH.min(HEIGHT - 100.0) / 2.0) - NODE_RADIUS * 2.0;
 
         for (i, (_, node)) in state.nodes.iter_mut().enumerate() {
@@ -231,6 +245,7 @@ impl NetworkVisualization {
     }
 
     /// Get node at position (for hover detection)
+    #[must_use]
     pub fn get_node_at_position(&self, state: &GUIState, pos: Pos2) -> Option<NodeId> {
         for (id, node) in &state.nodes {
             let node_pos = egui::pos2(node.x, node.y);

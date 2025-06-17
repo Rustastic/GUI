@@ -6,6 +6,7 @@ pub struct DroneParams {
 }
 
 impl DroneParams {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             crashed: false,

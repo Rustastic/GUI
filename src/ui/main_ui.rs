@@ -11,7 +11,14 @@ pub struct MainUI {
     network_viz: NetworkVisualization,
 }
 
+impl Default for MainUI {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl MainUI {
+    #[must_use]
     pub fn new() -> Self {
         let network_viz = NetworkVisualization::new();
         Self {

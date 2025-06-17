@@ -130,6 +130,7 @@ fn fruchterman_reingold(
     positions
 }
 
+#[allow(clippy::missing_panics_doc)]
 pub fn topology(
     state: &mut GUIState,
     drones: &[ConfigDrone],
@@ -176,6 +177,7 @@ pub fn topology(
 
     for server in servers {
         for neighbor in &server.connected_drone_ids {
+            #[allow(clippy::missing_panics_doc)]
             graph.add_edge(
                 *vertexes.get(&server.id).unwrap(),
                 *vertexes.get(neighbor).unwrap(),

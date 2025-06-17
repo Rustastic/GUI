@@ -15,6 +15,7 @@ pub struct ChatParam {
 }
 
 impl ChatParam {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             send_message: false,

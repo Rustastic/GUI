@@ -8,6 +8,7 @@ pub struct MediaParams {
 }
 
 impl MediaParams {
+    #[must_use]
     pub fn new() -> Self {
         Self {
             ask_for_file_list: false,
