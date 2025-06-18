@@ -35,7 +35,7 @@ pub fn set_pdr(state: &mut GUIState, instance: &mut NodeGUI, pdr: f32) {
                 "GUI".red(),
                 e
             );
-        },
+        }
     }
 }
 

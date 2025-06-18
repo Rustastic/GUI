@@ -181,9 +181,6 @@ impl EventHandler {
 
                 state.nodes.insert(id, new_drone);
 
-                // add edges
-                state.edges.insert(id, (neighbors.clone(), Color32::GRAY));
-
                 info!(
                     "[ {} ] Successfully created Drone({}, {:?}, {})",
                     "GUI".green(),
