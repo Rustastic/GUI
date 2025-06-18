@@ -179,16 +179,6 @@ impl EventHandler {
                 );
                 let new_drone = NodeGUI::new_drone(&drone, x, y);
 
-                // ad to various instances neighbors
-                /*for drone in &neighbors {
-                    state
-                        .nodes
-                        .get_mut(drone)
-                        .unwrap()
-                        .neighbor
-                        .push(new_drone.id);
-                }*/
-
                 state.nodes.insert(id, new_drone);
 
                 // add edges
